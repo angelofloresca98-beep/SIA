@@ -189,840 +189,305 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Create Farmer Post</title>
-
-
-    <style>
-
-        * {
-
-            margin: 0;
-
-            padding: 0;
-
-            box-sizing: border-box;
-
-            font-family: Arial, sans-serif;
-
-        }
-
-
-        body {
-
-            background: #f4f7f3;
-
-            display: flex;
-
-            min-height: 100vh;
-
-        }
-
-
-        /* SIDEBAR */
-
-        .sidebar {
-
-            width: 240px;
-
-            height: 100vh;
-
-            background: #2e7d32;
-
-            color: white;
-
-            padding: 25px 15px;
-
-            position: fixed;
-
-            left: 0;
-
-            top: 0;
-
-        }
-
-
-        .logo {
-
-            text-align: center;
-
-            margin-bottom: 35px;
-
-        }
-
-
-        .logo h2 {
-
-            font-size: 24px;
-
-        }
-
-
-        .logo p {
-
-            font-size: 13px;
-
-            margin-top: 5px;
-
-            opacity: 0.8;
-
-        }
-
-
-        .nav {
-
-            list-style: none;
-
-        }
-
-
-        .nav li {
-
-            margin-bottom: 10px;
-
-        }
-
-
-        .nav a {
-
-            display: block;
-
-            color: white;
-
-            text-decoration: none;
-
-            padding: 13px 15px;
-
-            border-radius: 8px;
-
-            transition: 0.3s;
-
-        }
-
-
-        .nav a:hover {
-
-            background: #1b5e20;
-
-        }
-
-
-        .nav .active {
-
-            background: #1b5e20;
-
-        }
-
-
-        .logout {
-
-            margin-top: 30px;
-
-            border-top: 1px solid rgba(255,255,255,0.3);
-
-            padding-top: 20px;
-
-        }
-
-
-        /*  MAIN */
-
-        .main {
-
-            margin-left: 240px;
-
-            width: calc(100% - 240px);
-
-            padding: 30px;
-
-        }
-
-
-        /* HEADER */
-
-        .header {
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-            background: white;
-
-            padding: 20px 25px;
-
-            border-radius: 12px;
-
-            margin-bottom: 25px;
-
-            box-shadow:
-                0 3px 10px rgba(0,0,0,0.08);
-
-        }
-
-
-        .header h1 {
-
-            color: #2e7d32;
-
-            font-size: 26px;
-
-        }
-
-
-        .header p {
-
-            color: #777;
-
-            margin-top: 5px;
-
-        }
-
-
-        .profile {
-
-            background: #e8f5e9;
-
-            color: #2e7d32;
-
-            padding: 10px 15px;
-
-            border-radius: 20px;
-
-            font-weight: bold;
-
-        }
-
-
-        /* FORM CARD */
-
-        .form-card {
-
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 12px;
-
-            box-shadow:
-                0 3px 10px rgba(0,0,0,0.08);
-
-            max-width: 900px;
-
-            margin: auto;
-
-        }
-
-
-        .form-card h2 {
-
-            color: #2e7d32;
-
-            margin-bottom: 25px;
-
-        }
-
-
-        .form-grid {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 20px;
-
-        }
-
-
-        .form-group {
-
-            display: flex;
-
-            flex-direction: column;
-
-        }
-
-
-        .form-group.full {
-
-            grid-column: 1 / -1;
-
-        }
-
-
-        .form-group label {
-
-            font-weight: bold;
-
-            color: #444;
-
-            margin-bottom: 8px;
-
-        }
-
-
-        .form-group input,
-
-        .form-group textarea,
-
-        .form-group select {
-
-            padding: 12px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 7px;
-
-            font-size: 15px;
-
-            outline: none;
-
-        }
-
-
-        .form-group input:focus,
-
-        .form-group textarea:focus,
-
-        .form-group select:focus {
-
-            border-color: #2e7d32;
-
-        }
-
-
-        .form-group textarea {
-
-            min-height: 120px;
-
-            resize: vertical;
-
-        }
-
-
-        /* ==========================================
-           BUTTONS
-        ========================================== */
-
-        .button-container {
-
-            margin-top: 25px;
-
-            display: flex;
-
-            gap: 10px;
-
-        }
-
-
-        .btn {
-
-            border: none;
-
-            background: #2e7d32;
-
-            color: white;
-
-            padding: 12px 25px;
-
-            border-radius: 7px;
-
-            font-size: 15px;
-
-            cursor: pointer;
-
-            font-weight: bold;
-
-        }
-
-
-        .btn:hover {
-
-            background: #1b5e20;
-
-        }
-
-
-        .cancel-btn {
-
-            background: #777;
-
-            color: white;
-
-            text-decoration: none;
-
-            padding: 12px 25px;
-
-            border-radius: 7px;
-
-        }
-
-
-        .cancel-btn:hover {
-
-            background: #555;
-
-        }
-
-
-        /* ==========================================
-           MESSAGE
-        ========================================== */
-
-        .message {
-
-            padding: 12px 15px;
-
-            border-radius: 7px;
-
-            margin-bottom: 20px;
-
-            font-weight: bold;
-
-        }
-
-
-        .error {
-
-            background: #ffebee;
-
-            color: #c62828;
-
-            border: 1px solid #ef9a9a;
-
-        }
-
-
-        /* ==========================================
-           RESPONSIVE
-        ========================================== */
-
-        @media (max-width: 700px) {
-
-            .sidebar {
-
-                width: 200px;
-
-            }
-
-
-            .main {
-
-                margin-left: 200px;
-
-                width: calc(100% - 200px);
-
-                padding: 20px;
-
-            }
-
-
-            .form-grid {
-
-                grid-template-columns: 1fr;
-
-            }
-
-
-            .form-group.full {
-
-                grid-column: auto;
-
-            }
-
-
-            .header {
-
-                flex-direction: column;
-
-                align-items: flex-start;
-
-                gap: 15px;
-
-            }
-
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Farmer Post</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --ink: #1c2a24;
+    --muted: #6b7a72;
+    --paper: #f4f6f2;
+    --card: #ffffff;
+    --line: #e4e9e2;
+    --forest: #1f4d3a;
+    --leaf: #2f7d4f;
+    --leaf-soft: #dff0e5;
+    --harvest: #b7791f;
+    --danger: #b3261e;
+    --danger-soft: #fbe3e0;
+    --radius: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 3px solid var(--harvest);
+    outline-offset: 2px;
+}
+
+/* ---------- Sidebar (same as the other farmer pages) ---------- */
+.sidebar { position: fixed; inset: 0 auto 0 0; width: 240px; background: var(--forest); padding: 26px 16px; display: flex; flex-direction: column; z-index: 10; }
+.logo { color: #fff; padding: 0 12px 28px; }
+.logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.logo p { margin-top: 4px; padding-left: 30px; color: rgba(255,255,255,.6); font-size: 13px; }
+
+.nav { list-style: none; flex: 1; display: flex; flex-direction: column; }
+.nav a { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,.78); text-decoration: none; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
+.nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav a.active { background: rgba(255,255,255,.14); color: #fff; }
+.nav a i { width: 18px; text-align: center; }
+.nav .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); padding-top: 12px; }
+
+/* ---------- Layout ---------- */
+.main { margin-left: 240px; padding: 28px 32px 48px; }
+.page { max-width: 780px; }
+
+.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header p { color: var(--muted); }
+
+.profile { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px 6px 6px; font-weight: 600; }
+.profile i { width: 38px; height: 38px; border-radius: 50%; background: var(--leaf-soft); color: var(--forest); display: inline-flex; align-items: center; justify-content: center; }
+
+/* ---------- Form ---------- */
+.form-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
+.form-card h2 { font-size: 19px; font-weight: 700; margin-bottom: 22px; }
+
+.message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; font-size: 14.5px; }
+.message::before { font-family: "Font Awesome 6 Free"; font-weight: 900; margin-top: 1px; }
+.message.error   { background: var(--danger-soft); color: var(--danger); }
+.message.error::before   { content: "\f06a"; }
+.message.success { background: var(--leaf-soft); color: var(--forest); }
+.message.success::before { content: "\f058"; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+
+.form-group label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 11px 13px;
+    border: 1px solid #cbd5cd;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+    color: var(--ink);
+    transition: border-color .15s, box-shadow .15s;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(47,125,79,.18); }
+
+.form-group input[readonly] { background: var(--paper); color: var(--muted); cursor: default; }
+.form-group textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+
+.button-container { margin-top: 26px; display: flex; gap: 12px; }
+
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    border: 0; background: var(--leaf); color: #fff;
+    padding: 11px 24px; border-radius: 10px;
+    font: inherit; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+}
+.btn:hover { background: var(--forest); }
+
+.cancel-btn {
+    display: inline-flex; align-items: center;
+    background: #fff; color: var(--ink); text-decoration: none;
+    border: 1px solid var(--line); padding: 11px 24px; border-radius: 10px; font-weight: 600;
+}
+.cancel-btn:hover { background: var(--paper); }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 768px) {
+    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
+    .logo { padding: 0 12px 0 4px; white-space: nowrap; }
+    .logo p { display: none; }
+    .nav { flex-direction: row; align-items: center; }
+    .nav li { margin-right: 4px; }
+    .nav a { white-space: nowrap; padding: 10px 12px; margin: 0; }
+    .nav a span { display: none; }
+    .nav .logout { margin: 0 0 0 auto; border: 0; padding: 0; }
+    .main { margin-left: 0; padding: 18px 14px 40px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .form-card { padding: 18px; }
+}
+
+@media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: auto; }
+    .button-container { flex-direction: column-reverse; }
+    .btn, .cancel-btn { width: 100%; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
-
 
 <body>
 
+<!-- SIDEBAR -->
+<aside class="sidebar">
 
-    <!-- ==========================================
-         SIDEBAR
-    ========================================== -->
+    <div class="logo">
+        <h2><i class="fa-solid fa-seedling"></i> FarmMarket</h2>
+        <p>Farm-to-Market System</p>
+    </div>
 
-    <aside class="sidebar">
+    <ul class="nav">
+        <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
+        <li><a href="farmer_post.php" class="active"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
+        <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+    </ul>
+
+</aside>
 
 
-        <div class="logo">
+<!-- MAIN CONTENT -->
+<main class="main">
+<div class="page">
 
-            <h2>🌾 FarmMarket</h2>
-
-            <p>Farm-to-Market System</p>
-
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <h1>Create Farmer Post</h1>
+            <p>Post your available agricultural products.</p>
         </div>
 
-
-        <ul class="nav">
-
-
-            <li>
-
-                <a href="farmerDashboard.php">
-
-                    🏠 Dashboard
-
-                </a>
-
-            </li>
+        <div class="profile"><i class="fa-solid fa-tractor"></i> Farmer</div>
+    </div>
 
 
-            <li>
+    <!-- FORM -->
+    <div class="form-card">
 
-                <a href="my_post.php">
+        <h2>Add new product</h2>
 
-                    📋 My Posts
+        <?php if (isset($message) && $message !== ""): ?>
+            <div class="message <?= htmlspecialchars($message_type ?? '') ?>" role="alert">
+                <span><?= htmlspecialchars($message) ?></span>
+            </div>
+        <?php endif; ?>
 
-                </a>
+        <form method="POST" action="">
 
-            </li>
+            <div class="form-grid">
 
-            <li>
+                <!-- PRODUCT -->
+                <div class="form-group">
+                    <label for="product">Product *</label>
+                    <input
+                        type="text"
+                        id="product"
+                        name="product"
+                        placeholder="e.g. Rice"
+                        value="<?= htmlspecialchars($_POST['product'] ?? '') ?>"
+                        required
+                    >
+                </div>
 
-                <a href="farmer_post.php">
+                <!-- VARIETY -->
+                <div class="form-group">
+                    <label for="variety">Variety</label>
+                    <input
+                        type="text"
+                        id="variety"
+                        name="variety"
+                        placeholder="e.g. Dinorado"
+                        value="<?= htmlspecialchars($_POST['variety'] ?? '') ?>"
+                    >
+                </div>
 
-                    + Create Post
+                <!-- QUANTITY -->
+                <div class="form-group">
+                    <label for="quantity">Quantity *</label>
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        min="1"
+                        step="0.01"
+                        placeholder="e.g. 50"
+                        value="<?= htmlspecialchars($_POST['quantity'] ?? '') ?>"
+                        required
+                    >
+                </div>
 
-                </a>
+                <!-- UNIT -->
+                <div class="form-group">
+                    <label for="unit">Unit *</label>
+                    <select id="unit" name="unit" required>
+                        <option value="">Select unit</option>
+                        <?php
+                        $unitOptions = [
+                            'kg'    => 'Kilogram (kg)',
+                            'sack'  => 'Sack',
+                            'ton'   => 'Ton',
+                            'piece' => 'Piece',
+                            'box'   => 'Box',
+                            'liter' => 'Liter',
+                        ];
+                        foreach ($unitOptions as $value => $label): ?>
+                            <option value="<?= $value ?>" <?= ($_POST['unit'] ?? '') === $value ? 'selected' : '' ?>>
+                                <?= $label ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
 
-            </li>
+                <!-- PRICE -->
+                <div class="form-group">
+                    <label for="price">Price *</label>
+                    <input
+                        type="number"
+                        id="price"
+                        name="price"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g. 2500"
+                        value="<?= htmlspecialchars($_POST['price'] ?? '') ?>"
+                        required
+                    >
+                </div>
 
+                <!-- POST TYPE -->
+                <div class="form-group">
+                    <label for="post_type_display">Post type</label>
+                    <input
+                        type="text"
+                        id="post_type_display"
+                        value="Selling"
+                        readonly
+                    >
+                </div>
 
-
-            <li class="logout">
-
-                <a href="../logout.php">
-
-                    🚪 Logout
-
-                </a>
-
-            </li>
-
-
-        </ul>
-
-    </aside>
-
-
-
-    <!-- ==========================================
-         MAIN CONTENT
-    ========================================== -->
-
-    <main class="main">
-
-
-        <!-- HEADER -->
-
-        <div class="header">
-
-
-            <div>
-
-                <h1>
-                    Create Farmer Post
-                </h1>
-
-                <p>
-                    Post your available agricultural products.
-                </p>
+                <!-- DESCRIPTION -->
+                <div class="form-group full">
+                    <label for="description">Description</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        placeholder="Describe your product..."
+                    ><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+                </div>
 
             </div>
 
-
-            <div class="profile">
-
-                👨‍🌾 Farmer
-
+            <!-- BUTTONS -->
+            <div class="button-container">
+                <button type="submit" class="btn"><i class="fa-solid fa-seedling"></i> Create post</button>
+                <a href="farmer.php" class="cancel-btn">Cancel</a>
             </div>
 
+        </form>
 
-        </div>
+    </div>
 
-
-
-        <!-- ==========================================
-             FORM
-        ========================================== -->
-
-        <div class="form-card">
-
-
-            <h2>
-                🌱 Add New Product
-            </h2>
-
-
-            <?php if ($message !== ""): ?>
-
-                <div class="message <?= htmlspecialchars($message_type) ?>">
-
-                    <?= htmlspecialchars($message) ?>
-
-                </div>
-
-            <?php endif; ?>
-
-
-
-            <form method="POST" action="">
-
-
-                <div class="form-grid">
-
-
-                    <!-- PRODUCT -->
-
-                    <div class="form-group">
-
-                        <label for="product">
-
-                            Product *
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="product"
-                            name="product"
-                            placeholder="e.g. Rice"
-                            value="<?= htmlspecialchars($_POST['product'] ?? '') ?>"
-                            required
-                        >
-
-                    </div>
-
-
-
-                    <!-- VARIETY -->
-
-                    <div class="form-group">
-
-                        <label for="variety">
-
-                            Variety
-
-                        </label>
-
-                        <input
-                            type="text"
-                            id="variety"
-                            name="variety"
-                            placeholder="e.g. Dinorado"
-                            value="<?= htmlspecialchars($_POST['variety'] ?? '') ?>"
-                        >
-
-                    </div>
-
-
-
-                    <!-- QUANTITY -->
-
-                    <div class="form-group">
-
-                        <label for="quantity">
-
-                            Quantity *
-
-                        </label>
-
-                        <input
-                            type="number"
-                            id="quantity"
-                            name="quantity"
-                            min="1"
-                            step="0.01"
-                            placeholder="e.g. 50"
-                            value="<?= htmlspecialchars($_POST['quantity'] ?? '') ?>"
-                            required
-                        >
-
-                    </div>
-
-
-
-                    <!-- UNIT -->
-
-                    <div class="form-group">
-
-                        <label for="unit">
-
-                            Unit *
-
-                        </label>
-
-                        <select
-                            id="unit"
-                            name="unit"
-                            required
-                        >
-
-                            <option value="">
-                                Select Unit
-                            </option>
-
-                            <option value="kg">
-                                Kilogram (kg)
-                            </option>
-
-                            <option value="sack">
-                                Sack
-                            </option>
-
-                            <option value="ton">
-                                Ton
-                            </option>
-
-                            <option value="piece">
-                                Piece
-                            </option>
-
-                            <option value="box">
-                                Box
-                            </option>
-
-                            <option value="liter">
-                                Liter
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-
-                    <!-- PRICE -->
-
-                    <div class="form-group">
-
-                        <label for="price">
-
-                            Price *
-
-                        </label>
-
-                        <input
-                            type="number"
-                            id="price"
-                            name="price"
-                            min="0"
-                            step="0.01"
-                            placeholder="e.g. 2500"
-                            value="<?= htmlspecialchars($_POST['price'] ?? '') ?>"
-                            required
-                        >
-
-                    </div>
-
-
-
-                    <!-- POST TYPE -->
-
-                    <div class="form-group">
-
-                        <label>
-
-                            Post Type
-
-                        </label>
-
-                        <input
-                            type="text"
-                            value="Selling"
-                            readonly
-                        >
-
-                    </div>
-
-
-
-                    <!-- DESCRIPTION -->
-
-                    <div class="form-group full">
-
-                        <label for="description">
-
-                            Description
-
-                        </label>
-
-                        <textarea
-                            id="description"
-                            name="description"
-                            placeholder="Describe your product..."
-                        ><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
-
-                    </div>
-
-
-                </div>
-
-
-
-                <!-- BUTTONS -->
-
-                <div class="button-container">
-
-
-                    <button
-                        type="submit"
-                        class="btn"
-                    >
-
-                        🌱 Create Post
-
-                    </button>
-
-
-                    <a
-                        href="farmer.php"
-                        class="cancel-btn"
-                    >
-
-                        Cancel
-
-                    </a>
-
-
-                </div>
-
-
-            </form>
-
-
-        </div>
-
-
-    </main>
-
+</div>
+</main>
 
 </body>
-
 </html>

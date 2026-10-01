@@ -1,861 +1,541 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
     header("Location: ../login.php");
     exit;
 }
 
 require '../database/connection.php';
 
-// TOTAL USERS
-$totalUsers = $conn->query(
-    "SELECT COUNT(*) FROM users WHERE role IN ('farmer', 'buyer')"
-)->fetchColumn();
+// CSRF token (used by the delete form)
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-// TOTAL FARMERS
-$totalFarmers = $conn->query(
-    "SELECT COUNT(*) FROM users WHERE role='farmer'")->fetchColumn();
+// Flash message (set it in delete_user.php / add.php / update_user.php)
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
 
-// TOTAL BUYERS
-$totalBuyers = $conn->query(
-    "SELECT COUNT(*) FROM users WHERE role='buyer'")->fetchColumn();
+// One query for everyone, split in PHP
+$stmt = $conn->prepare(
+    "SELECT user_id, firstName, middleName, lastName, address, contact_number, email, role
+     FROM users
+     WHERE role IN ('farmer', 'buyer')
+     ORDER BY user_id DESC"
+);
+$stmt->execute();
+$all = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// FARMERS LIST
-$farmerStmt = $conn->prepare("SELECT * FROM users WHERE role='farmer' ORDER BY user_id DESC");
-$farmerStmt->execute();
-$farmers = $farmerStmt->fetchAll(PDO::FETCH_ASSOC);
+$farmers = array_values(array_filter($all, fn($u) => $u['role'] === 'farmer'));
+$buyers  = array_values(array_filter($all, fn($u) => $u['role'] === 'buyer'));
 
-// BUYERS LIST
-$buyerStmt = $conn->prepare("SELECT * FROM users WHERE role='buyer' ORDER BY user_id DESC");
-$buyerStmt->execute();
-$buyers = $buyerStmt->fetchAll(PDO::FETCH_ASSOC);
+$totalUsers   = count($all);
+$totalFarmers = count($farmers);
+$totalBuyers  = count($buyers);
+$farmerPct    = $totalUsers ? round($totalFarmers / $totalUsers * 100) : 0;
+
+function e($v): string {
+    return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
+}
+
+function fullName(array $u): string {
+    return trim(implode(' ', array_filter([$u['firstName'], $u['middleName'], $u['lastName']])));
+}
+
+function initials(array $u): string {
+    return strtoupper(mb_substr($u['firstName'] ?? '', 0, 1) . mb_substr($u['lastName'] ?? '', 0, 1));
+}
+
+function renderUserTable(array $users, string $role): void {
+    if (!$users) {
+        echo '<div class="empty"><i class="fa-solid fa-user-slash"></i>'
+           . '<p>No ' . e($role) . 's yet.</p>'
+           . '<a href="add.php" class="btn btn-sm btn-primary">Add a ' . e($role) . '</a></div>';
+        return;
+    }
+    ?>
+    <div class="table-responsive">
+        <table class="table align-middle user-table" data-role="<?= e($role) ?>">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Contact</th>
+                    <th>Address</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($users as $u): ?>
+                <tr data-search="<?= e(strtolower(fullName($u) . ' ' . $u['email'] . ' ' . $u['contact_number'] . ' ' . $u['address'])) ?>">
+                    <td>
+                        <div class="person">
+                            <span class="avatar <?= e($role) ?>"><?= e(initials($u)) ?></span>
+                            <div>
+                                <div class="person-name"><?= e(fullName($u)) ?></div>
+                                <div class="person-email"><?= e($u['email']) ?></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><?= e($u['contact_number']) ?></td>
+                    <td class="address"><?= e($u['address']) ?></td>
+                    <td class="text-end text-nowrap">
+                        <a href="update_user.php?user_id=<?= urlencode($u['user_id']) ?>"
+                           class="action-btn edit-btn" title="Edit <?= e(fullName($u)) ?>"
+                           aria-label="Edit <?= e(fullName($u)) ?>">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                        <button type="button" class="action-btn delete-btn"
+                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                data-id="<?= e($u['user_id']) ?>"
+                                data-name="<?= e(fullName($u)) ?>"
+                                aria-label="Delete <?= e(fullName($u)) ?>">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <div class="empty d-none no-results">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <p>No <?= e($role) ?>s match your search.</p>
+        </div>
+    </div>
+    <?php
+}
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Bootstrap -->
-<link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-    rel="stylesheet"
->
-
-<!-- Font Awesome -->
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
->
-
-<!-- Google Font -->
-<link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+:root {
+    --ink: #1c2a24;
+    --muted: #6b7a72;
+    --paper: #f4f6f2;
+    --card: #ffffff;
+    --line: #e4e9e2;
+    --forest: #1f4d3a;
+    --forest-dark: #173a2c;
+    --leaf: #2f7d4f;
+    --leaf-soft: #dff0e5;
+    --harvest: #b7791f;
+    --harvest-soft: #fbeccb;
+    --danger: #c0392b;
+    --danger-soft: #fbe3e0;
+    --radius: 12px;
 }
+
+* { box-sizing: border-box; }
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background: #f5f7fb;
-    color: #333;
+    font-family: 'Figtree', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
 }
 
+a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--harvest);
+    outline-offset: 2px;
+}
+
+/* ---------- Sidebar ---------- */
 .sidebar {
     position: fixed;
-    left: 0;
-    top: 0;
-
-    width: 250px;
-    height: 100vh;
-
-    background: linear-gradient(
-        180deg,
-        #2563eb,
-        #1d4ed8
-    );
-
-    padding: 25px 15px;
-
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+    inset: 0 auto 0 0;
+    width: 240px;
+    background: var(--forest);
+    padding: 26px 16px;
+    display: flex;
+    flex-direction: column;
 }
 
-.logo {
-    color: white;
-
-    font-size: 22px;
+.brand {
+    color: #fff;
+    font-size: 20px;
     font-weight: 700;
-
-    text-align: center;
-
-    margin-bottom: 35px;
+    letter-spacing: -0.01em;
+    padding: 0 12px 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
+
+.sidebar nav { flex: 1; }
 
 .sidebar a {
     display: flex;
     align-items: center;
-
-    gap: 15px;
-
-    color: rgba(255, 255, 255, 0.85);
-
+    gap: 14px;
+    color: rgba(255, 255, 255, 0.78);
     text-decoration: none;
-
-    padding: 14px 18px;
-
+    padding: 12px 14px;
     border-radius: 10px;
-
-    margin-bottom: 8px;
-
-    transition: 0.3s;
+    margin-bottom: 4px;
+    font-weight: 500;
 }
 
-.sidebar a:hover,
-.sidebar a.active {
-    background: rgba(255, 255, 255, 0.18);
-    color: white;
-}
+.sidebar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.sidebar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.sidebar a i { width: 18px; text-align: center; }
+.sidebar .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0 0 10px 10px; padding-top: 16px; }
 
-.sidebar a i {
-    width: 20px;
-}
-
-.main {
-    margin-left: 250px;
-    padding: 30px;
-}
-
+/* ---------- Layout ---------- */
+.main { margin-left: 240px; padding: 28px 32px 48px; max-width: 1280px; }
 
 .topbar {
     display: flex;
-
     justify-content: space-between;
     align-items: center;
-
-    background: white;
-
-    padding: 22px 25px;
-
-    border-radius: 15px;
-
-    margin-bottom: 25px;
-
-    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.04);
+    margin-bottom: 24px;
+    gap: 16px;
 }
 
-.topbar h2 {
-    font-weight: 600;
-    margin-bottom: 5px;
+.topbar h1 { font-size: 26px; font-weight: 700; margin: 0 0 2px; letter-spacing: -0.02em; }
+.topbar p { color: var(--muted); margin: 0; }
+
+.admin-chip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 16px 6px 6px;
 }
 
+.admin-chip .avatar { background: var(--forest); color: #fff; }
+.admin-chip small { color: var(--muted); display: block; line-height: 1.1; }
+.admin-chip strong { line-height: 1.2; }
 
+/* ---------- Stats ---------- */
 .stats {
     display: grid;
-
-    grid-template-columns:
-        repeat(3, 1fr);
-
-    gap: 20px;
-
-    margin-bottom: 25px;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
 .stat-card {
-    background: white;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+}
 
-    padding: 25px;
+.stat-card .label { color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.stat-card .value { font-size: 38px; font-weight: 700; line-height: 1.1; margin: 8px 0 0; letter-spacing: -0.02em; }
 
-    border-radius: 15px;
+.stat-card.total { background: var(--forest); border-color: var(--forest); color: #fff; }
+.stat-card.total .label { color: rgba(255,255,255,.75); }
 
+.split { display: flex; height: 8px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,.2); margin-top: 16px; }
+.split span { display: block; background: #8fd3a8; }
+.split-legend { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255,255,255,.75); margin-top: 8px; }
+
+/* ---------- Panel ---------- */
+.panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+}
+
+.panel-head {
     display: flex;
-
+    justify-content: space-between;
     align-items: center;
-
-    gap: 18px;
-
-    box-shadow:
-        0 3px 15px rgba(0, 0, 0, 0.04);
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
 }
 
-.icon-box {
-    width: 55px;
-    height: 55px;
+.panel-head h2 { font-size: 19px; font-weight: 700; margin: 0; }
 
-    border-radius: 12px;
+.tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    font-size: 22px;
+.search { position: relative; }
+.search i { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.search input {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 12px 9px 38px;
+    width: 280px;
+    max-width: 100%;
+    background: var(--paper);
+    font: inherit;
 }
 
+.btn-primary { background: var(--leaf); border-color: var(--leaf); font-weight: 600; }
+.btn-primary:hover, .btn-primary:focus { background: var(--forest); border-color: var(--forest); }
 
-
-.icon-box.blue {
-    background: #dbeafe;
-    color: #2563eb;
-}
-
-
-.icon-box.green {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.icon-box.orange {
-    background: #ffedd5;
-    color: #ea580c;
-}
-
-.stat-card h3 {
-    font-size: 28px;
-
-    font-weight: 600;
-
-    margin: 0;
-}
-
-.stat-card p {
-    color: #777;
-
-    margin: 3px 0 0;
-}
-
-
-.table-card {
-    background: white;
-
-    padding: 25px;
-
-    border-radius: 15px;
-
-    box-shadow:
-        0 3px 15px rgba(0, 0, 0, 0.04);
-}
-
-.table-card h4 {
-    font-weight: 600;
-}
-
-.nav-tabs {
-    border-bottom: 2px solid #f1f5f9;
-    margin-bottom: 20px;
-}
-
+/* ---------- Tabs ---------- */
+.nav-tabs { border-bottom: 1px solid var(--line); margin-bottom: 8px; }
 .nav-tabs .nav-link {
-    color: #777;
+    color: var(--muted);
     border: none;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 0;
-}
-
-.nav-tabs .nav-link.active {
-    background: transparent;
-    color: #2563eb;
-    border-bottom: 3px solid #2563eb;
     font-weight: 600;
+    padding: 10px 18px;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
 }
-
-
-.table thead th {
-    color: #555;
-
-    font-weight: 600;
-
-    background: #f8fafc;
-}
-
-.table tbody tr {
-    vertical-align: middle;
-}
-
-.badge-admin,
-.badge-farmer,
-.badge-buyer,
-.badge-user {
-
-    padding: 7px 12px;
-
-    border-radius: 20px;
-
-    font-size: 12px;
-
-    font-weight: 500;
-
+.nav-tabs .nav-link:hover { color: var(--ink); }
+.nav-tabs .nav-link.active { background: transparent; color: var(--forest); border-bottom-color: var(--leaf); }
+.count {
     display: inline-block;
+    min-width: 24px;
+    padding: 1px 8px;
+    margin-left: 6px;
+    border-radius: 99px;
+    background: var(--paper);
+    font-size: 12px;
+    text-align: center;
 }
 
-
-
-
-.badge-admin {
-    background: #ede9fe;
-    color: #7c3aed;
+/* ---------- Table ---------- */
+.user-table thead th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 13px;
+    background: transparent;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 10px;
 }
+.user-table tbody td { padding: 14px 10px; border-bottom: 1px solid var(--line); }
+.user-table tbody tr:last-child td { border-bottom: none; }
+.user-table tbody tr:hover td { background: #fafbf9; }
+.user-table .address { color: var(--muted); max-width: 260px; }
 
+.person { display: flex; align-items: center; gap: 12px; }
+.person-name { font-weight: 600; }
+.person-email { color: var(--muted); font-size: 13px; }
 
-
-
-.badge-farmer {
-    background: #dcfce7;
-    color: #15803d;
+.avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
 }
-
-
-.badge-buyer {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-
-.badge-user {
-    background: #f1f5f9;
-    color: #475569;
-}
-
+.avatar.farmer { background: var(--leaf-soft); color: var(--forest); }
+.avatar.buyer  { background: var(--harvest-soft); color: #7a4f0e; }
 
 .action-btn {
-
-    width: 35px;
-    height: 35px;
-
+    width: 34px; height: 34px;
     border-radius: 8px;
-
     border: none;
-
-    margin-right: 5px;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-flex; align-items: center; justify-content: center;
     text-decoration: none;
-
-    transition: 0.2s;
+    margin-left: 4px;
+    transition: background .15s, color .15s;
 }
+.edit-btn { background: var(--leaf-soft); color: var(--forest); }
+.edit-btn:hover { background: var(--leaf); color: #fff; }
+.delete-btn { background: var(--danger-soft); color: var(--danger); }
+.delete-btn:hover { background: var(--danger); color: #fff; }
 
-.edit-btn {
-    background: #dbeafe;
-    color: #2563eb;
-}
+/* ---------- Empty states ---------- */
+.empty { text-align: center; color: var(--muted); padding: 40px 16px; }
+.empty i { font-size: 28px; margin-bottom: 10px; opacity: .6; }
+.empty p { margin-bottom: 12px; }
 
-.edit-btn:hover {
-    background: #2563eb;
-    color: white;
-}
-
-.delete-btn {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.delete-btn:hover {
-    background: #dc2626;
-    color: white;
-}
-
-
-.no-data {
-    text-align: center;
-    color: #999;
-    padding: 20px;
-}
-
-
+/* ---------- Responsive ---------- */
 @media (max-width: 992px) {
-
-    .sidebar {
-        width: 210px;
-    }
-
-    .main {
-        margin-left: 210px;
-    }
-
-    .stats {
-        grid-template-columns: 1fr;
-    }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stat-card.total { grid-column: 1 / -1; }
 }
-
 
 @media (max-width: 768px) {
-
-    .sidebar {
-        position: relative;
-
-        width: 100%;
-        height: auto;
-    }
-
-    .sidebar a {
-        display: inline-flex;
-
-        margin-right: 5px;
-    }
-
-    .main {
-        margin-left: 0;
-
-        padding: 15px;
-    }
-
-    .topbar {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 15px;
-    }
-
-    .table-card {
-        padding: 15px;
-    }
+    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
+    .brand { padding: 0 12px 0 4px; white-space: nowrap; }
+    .sidebar nav { display: flex; flex: 1; }
+    .sidebar a { white-space: nowrap; margin: 0 4px 0 0; padding: 10px 12px; }
+    .sidebar a span { display: none; }
+    .sidebar .logout { margin: 0; border: 0; padding: 10px 12px; }
+    .main { margin-left: 0; padding: 18px 14px 40px; }
+    .topbar { flex-direction: column; align-items: flex-start; }
+    .search input { width: 100%; }
+    .search, .tools { width: 100%; }
+    .panel { padding: 16px; }
 }
 
+@media (max-width: 520px) {
+    .stats { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+}
 </style>
-
 </head>
-
 
 <body>
 
-<div class="sidebar">
+<aside class="sidebar">
+    <div class="brand"><i class="fa-solid fa-seedling"></i> Admin Panel</div>
 
-    <div class="logo">
-        ✨ Admin Panel
-    </div>
+    <nav>
+        <a href="admin.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+        <a href="#users"><i class="fa-solid fa-users"></i><span>Up</span></a>
+        <a href="add.php"><i class="fa-solid fa-user-plus"></i><span>Add user</span></a>
+    </nav>
 
+    <a href="../logout.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></a>
+</aside>
 
-    <!-- DASHBOARD -->
+<main class="main">
 
-    <a href="admin.php" class="active">
-
-        <i class="fa-solid fa-house"></i>
-
-        Dashboard
-
-    </a>
-
-
-    <!-- USERS -->
-
-    <a href="admin.php">
-
-        <i class="fa-solid fa-users"></i>
-
-        Users
-
-    </a>
-
-
-    <!-- ADD USER -->
-
-    <a href="add.php">
-
-        <i class="fa-solid fa-user-plus"></i>
-
-        Add User
-
-    </a>
-
-
-    <!-- LOGOUT -->
-
-    <a href="../logout.php">
-
-        <i class="fa-solid fa-right-from-bracket"></i>
-
-        Logout
-
-    </a>
-
-</div>
-
-
-<div class="main">
-
-    <div class="topbar">
-
+    <header class="topbar">
         <div>
-
-            <h2>
-                Dashboard
-            </h2>
-
-            <p class="text-muted mb-0">
-
-                Welcome back!
-                Here's your overview 👋
-
-            </p>
-
+            <h1>Dashboard</h1>
+            <p>Manage the farmers and buyers on your platform.</p>
         </div>
 
-
-        <div>
-
-            <strong>
-
-                <?= htmlspecialchars($_SESSION['user']) ?>
-
-            </strong>
-
-            <br>
-
-            <small class="text-muted">
-
-                Administrator
-
-            </small>
-
+        <div class="admin-chip">
+            <span class="avatar"><?= e(strtoupper(mb_substr($_SESSION['user'] ?? 'A', 0, 1))) ?></span>
+            <div>
+                <strong><?= e($_SESSION['user'] ?? 'Admin') ?></strong>
+                <small>Administrator</small>
+            </div>
         </div>
+    </header>
 
-    </div>
+    <?php if ($flash): ?>
+        <div class="alert alert-<?= e($flash['type'] ?? 'success') ?> alert-dismissible fade show" role="alert">
+            <?= e($flash['message'] ?? '') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
-    <div class="stats">
-
-
-        <!-- TOTAL USERS -->
+    <section class="stats" aria-label="Summary">
+        <div class="stat-card total">
+            <div class="label"><i class="fa-solid fa-users"></i> Total users</div>
+            <div class="value"><?= $totalUsers ?></div>
+            <div class="split" role="img" aria-label="<?= $farmerPct ?>% farmers, <?= 100 - $farmerPct ?>% buyers">
+                <span style="width: <?= $farmerPct ?>%"></span>
+            </div>
+            <div class="split-legend">
+                <span>Farmers <?= $farmerPct ?>%</span>
+                <span>Buyers <?= $totalUsers ? 100 - $farmerPct : 0 ?>%</span>
+            </div>
+        </div>
 
         <div class="stat-card">
-
-            <div class="icon-box blue">
-
-                <i class="fa-solid fa-users"></i>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-
-                    <?= htmlspecialchars($totalUsers) ?>
-
-                </h3>
-
-                <p>
-                    Total Users
-                </p>
-
-            </div>
-
+            <div class="label"><i class="fa-solid fa-tractor"></i> Farmers</div>
+            <div class="value"><?= $totalFarmers ?></div>
         </div>
-
-
-        <!-- FARMERS -->
 
         <div class="stat-card">
+            <div class="label"><i class="fa-solid fa-cart-shopping"></i> Buyers</div>
+            <div class="value"><?= $totalBuyers ?></div>
+        </div>
+    </section>
 
-            <div class="icon-box green">
+    <section class="panel" id="users">
 
-                <i class="fa-solid fa-tractor"></i>
+        <div class="panel-head">
+            <h2>Users</h2>
 
+            <div class="tools">
+                <label class="search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="userSearch" placeholder="Search name, email, contact or address"
+                           aria-label="Search users">
+                </label>
+                <a href="add.php" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Add user</a>
             </div>
-
-
-            <div>
-
-                <h3>
-
-                    <?= htmlspecialchars($totalFarmers) ?>
-
-                </h3>
-
-                <p>
-                    Farmers
-                </p>
-
-            </div>
-
         </div>
 
-
-        <!-- BUYERS -->
-
-        <div class="stat-card">
-
-            <div class="icon-box orange">
-
-                <i class="fa-solid fa-cart-shopping"></i>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-
-                    <?= htmlspecialchars($totalBuyers) ?>
-
-                </h3>
-
-                <p>
-                    Buyers
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="table-card">
-
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-
-
-            <h4>
-                Users Management
-            </h4>
-
-
-            <a
-                href="add.php"
-                class="btn btn-primary"
-            >
-
-                <i class="fa-solid fa-plus"></i>
-
-                Add New User
-
-            </a>
-
-
-        </div>
-
-
-        <!-- TABS -->
-
-        <ul class="nav nav-tabs" id="userTabs" role="tablist">
-
+        <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="farmer-tab" data-bs-toggle="tab" data-bs-target="#farmer" type="button" role="tab">
-                    <i class="fa-solid fa-tractor me-1"></i>
-                    Farmers (<?= count($farmers) ?>)
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#farmer" type="button" role="tab">
+                    <i class="fa-solid fa-tractor me-1"></i> Farmers
+                    <span class="count" data-count="farmer"><?= $totalFarmers ?></span>
                 </button>
             </li>
-
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="buyer-tab" data-bs-toggle="tab" data-bs-target="#buyer" type="button" role="tab">
-                    <i class="fa-solid fa-cart-shopping me-1"></i>
-                    Buyers (<?= count($buyers) ?>)
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#buyer" type="button" role="tab">
+                    <i class="fa-solid fa-cart-shopping me-1"></i> Buyers
+                    <span class="count" data-count="buyer"><?= $totalBuyers ?></span>
                 </button>
             </li>
-
         </ul>
 
-
-        <div class="tab-content" id="userTabsContent">
-
-
-            <!-- FARMERS TAB -->
-
+        <div class="tab-content">
             <div class="tab-pane fade show active" id="farmer" role="tabpanel">
-
-                <?php if (count($farmers) === 0): ?>
-
-                    <div class="alert alert-warning">
-                        No farmers found.
-                    </div>
-
-                <?php else: ?>
-
-                    <div class="table-responsive">
-
-                        <table class="table align-middle">
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th>Last Name</th>
-                                    <th>Adress</th>
-                                    <th>Contact</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                <?php foreach ($farmers as $row): ?>
-
-                                    <tr>
-
-                                        <td><?= htmlspecialchars($row['user_id']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['firstName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['middleName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['lastName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['address']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['contact_number']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['email']) ?></td>
-
-                                        
-
-                                        <td>
-                                            <span class="badge-farmer">Farmer</span>
-                                        </td>
-
-                                        <td>
-
-                                            <a
-                                                href="update_user.php?user_id=<?= urlencode($row['user_id']) ?>"
-                                                class="action-btn edit-btn"
-                                                title="Edit User"
-                                            >
-                                                <i class="fa-solid fa-pen"></i>
-                                            </a>
-
-                                            <a
-                                                href="delete_user.php?user_id=<?= urlencode($row['user_id']) ?>"
-                                                class="action-btn delete-btn"
-                                                title="Delete User"
-                                                onclick="return confirm('Are you sure you want to delete this user?')"
-                                            >
-                                                <i class="fa-solid fa-trash"></i>
-                                            </a>
-
-                                        </td>
-
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                <?php endif; ?>
-
+                <?php renderUserTable($farmers, 'farmer'); ?>
             </div>
-
-<!-- Buyers Tab -->
             <div class="tab-pane fade" id="buyer" role="tabpanel">
-
-                <?php if (count($buyers) === 0): ?>
-
-                    <div class="alert alert-warning">
-                        No buyers found.
-                    </div>
-
-                <?php else: ?>
-
-                    <div class="table-responsive">
-
-                        <table class="table align-middle">
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>First Name</th>
-                                    <th>Middle Name</th>
-                                    <th>Last Name</th>
-                                    <th>Adress</th>
-                                    <th>Contact</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-
-                                <?php foreach ($buyers as $row): ?>
-
-                                    <tr>
-                                        <td><?= htmlspecialchars($row['user_id']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['firstName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['middleName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['lastName']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['address']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['contact_number']) ?></td>
-
-                                        <td><?= htmlspecialchars($row['email']) ?></td>
-
-
-                                        <td>
-                                            <span class="badge-buyer">Buyer</span>
-                                        </td>
-
-                                        <td>
-
-                                            <a
-                                                href="update_user.php?user_id=<?= urlencode($row['user_id']) ?>"
-                                                class="action-btn edit-btn"
-                                                title="Edit User"
-                                            >
-                                                <i class="fa-solid fa-pen"></i>
-                                            </a>
-
-                                            <a
-                                                href="delete_user.php?user_id=<?= urlencode($row['user_id']) ?>"
-                                                class="action-btn delete-btn"
-                                                title="Delete User"
-                                                onclick="return confirm('Are you sure you want to delete this user?')"
-                                            >
-                                                <i class="fa-solid fa-trash"></i>
-                                            </a>
-
-                                        </td>
-
-                                    </tr>
-
-                                <?php endforeach; ?>
-
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                <?php endif; ?>
-
+                <?php renderUserTable($buyers, 'buyer'); ?>
             </div>
-
         </div>
 
+    </section>
+</main>
 
+<!-- Delete confirmation (POST + CSRF instead of a GET link) -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" action="delete_user.php">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
+            <input type="hidden" name="user_id" id="deleteUserId">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteTitle">Delete this user?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0"><strong id="deleteUserName"></strong> will be permanently removed. This can't be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete user</button>
+            </div>
+        </form>
     </div>
-
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Fill the delete modal with the selected user
+document.getElementById('deleteModal').addEventListener('show.bs.modal', function (ev) {
+    const btn = ev.relatedTarget;
+    document.getElementById('deleteUserId').value = btn.dataset.id;
+    document.getElementById('deleteUserName').textContent = btn.dataset.name;
+});
+
+// Live search across both tabs
+const searchInput = document.getElementById('userSearch');
+searchInput.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+
+    document.querySelectorAll('.user-table').forEach(function (table) {
+        const rows = table.querySelectorAll('tbody tr');
+        let visible = 0;
+
+        rows.forEach(function (row) {
+            const match = row.dataset.search.includes(q);
+            row.hidden = !match;
+            if (match) visible++;
+        });
+
+        table.parentElement.querySelector('.no-results').classList.toggle('d-none', visible !== 0);
+        table.hidden = visible === 0;
+
+        const badge = document.querySelector('[data-count="' + table.dataset.role + '"]');
+        if (badge) badge.textContent = visible;
+    });
+});
+</script>
 
 </body>
-
 </html>

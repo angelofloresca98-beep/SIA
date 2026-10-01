@@ -6,13 +6,13 @@ require '../database/connection.php';
 /* CHECK LOGIN */
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 
 
 $user_id = $_SESSION['user_id'];
-
+$buyerName = $_SESSION['user'] ?? 'Buyer';
 
 /*  GET LATEST FARMER PRODUCTS */
 
@@ -75,427 +75,184 @@ $myPostsCount = $stmtMyPosts->fetchColumn();
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buyer Dashboard</title>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <title>Buyer Dashboard</title>
+<style>
+:root {
+    --ink: #1c2a24;
+    --muted: #6b7a72;
+    --paper: #f4f6f2;
+    --card: #ffffff;
+    --line: #e4e9e2;
+    --forest: #1f4d3a;
+    --leaf: #2f7d4f;
+    --leaf-soft: #dff0e5;
+    --harvest: #b7791f;
+    --harvest-soft: #fbeccb;
+    --radius: 12px;
+}
 
-    <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
 
-        body {
-            background: #f4f7f3;
-            display: flex;
-            min-height: 100vh;
-        }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
 
-        /* SIDEBAR */
+/* ---------- Sidebar ---------- */
+.sidebar { position: fixed; inset: 0 auto 0 0; width: 240px; background: var(--forest); padding: 26px 16px; display: flex; flex-direction: column; z-index: 10; }
+.logo { color: #fff; padding: 0 12px 28px; }
+.logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.logo p { margin-top: 4px; padding-left: 30px; color: rgba(255,255,255,.6); font-size: 13px; }
 
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background: #2e7d32;
-            color: white;
-            padding: 25px 15px;
-            position: fixed;
-            left: 0;
-            top: 0;
-        }
+.nav { list-style: none; flex: 1; display: flex; flex-direction: column; }
+.nav a { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,.78); text-decoration: none; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
+.nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav a.active { background: rgba(255,255,255,.14); color: #fff; }
+.nav a i { width: 18px; text-align: center; }
+.nav .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); padding-top: 12px; }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 35px;
-        }
+/* ---------- Layout ---------- */
+.main { margin-left: 240px; padding: 28px 32px 48px; max-width: 1280px; }
 
-        .logo h2 {
-            font-size: 24px;
-        }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header p { color: var(--muted); }
+.header p b { color: var(--ink); font-weight: 600; }
 
-        .logo p {
-            font-size: 13px;
-            margin-top: 5px;
-            opacity: 0.8;
-        }
+.profile { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px 6px 6px; font-weight: 600; }
 
-        .nav {
-            list-style: none;
-        }
+.avatar { width: 38px; height: 38px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.avatar.farmer { background: var(--leaf-soft); color: var(--forest); }
+.avatar.buyer  { background: var(--harvest-soft); color: #7a4f0e; }
 
-        .nav li {
-            margin-bottom: 10px;
-        }
+/* ---------- Summary ---------- */
+.dashboard-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; max-width: 720px; }
+.dashboard-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; display: flex; align-items: center; gap: 18px; }
+.dashboard-card .icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.dashboard-card.mine .icon    { background: var(--harvest-soft); color: #7a4f0e; }
+.dashboard-card.products .icon { background: var(--leaf-soft); color: var(--forest); }
+.dashboard-card .number { font-size: 32px; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.dashboard-card h3 { font-size: 15px; font-weight: 600; margin-top: 2px; }
+.dashboard-card p { color: var(--muted); font-size: 13.5px; }
 
-        .nav a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 13px 15px;
-            border-radius: 8px;
-            transition: 0.3s;
-        }
+/* ---------- Products ---------- */
+.section { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+.section-header h2 { font-size: 20px; font-weight: 700; }
+.view-all { color: var(--forest); text-decoration: none; font-weight: 600; }
+.view-all:hover { text-decoration: underline; }
 
-        .nav a:hover {
-            background: #1b5e20;
-        }
+.products-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 
-        .nav .active {
-            background: #1b5e20;
-        }
+.product-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; background: #fff; }
+.product-card:hover { border-color: #c9d5cb; }
 
-        .logout {
-            margin-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.3);
-            padding-top: 20px;
-        }
+.product-card h2 { font-size: 19px; font-weight: 700; color: var(--forest); line-height: 1.25; }
+.variety { color: var(--muted); font-size: 14px; margin-top: 2px; }
 
-        /* MAIN CONTENT */
+.farmer-name { display: flex; align-items: center; gap: 10px; margin: 16px 0; padding: 10px 12px; background: var(--paper); border-radius: 10px; font-weight: 600; }
+.farmer-name small { display: block; font-weight: 400; color: var(--muted); font-size: 12.5px; line-height: 1.2; }
 
-        .main {
-            margin-left: 240px;
-            width: calc(100% - 240px);
-            padding: 30px;
-        }
+.details { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; font-size: 14.5px; }
+.details dt { color: var(--muted); }
+.details dd { font-weight: 500; overflow-wrap: anywhere; }
+.details dd.price { color: var(--forest); font-weight: 700; }
 
-        /* HEADER */
+.description { margin-top: 14px; padding: 10px 12px; background: var(--paper); border-radius: 8px; font-size: 14px; color: #44524a; line-height: 1.5; }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
+.posted-date { margin-top: auto; padding-top: 16px; color: var(--muted); font-size: 13px; }
 
-        .header h1 {
-            color: #2e7d32;
-            font-size: 26px;
-        }
+.no-products { grid-column: 1 / -1; text-align: center; padding: 56px 20px; color: var(--muted); }
+.no-products i { font-size: 30px; opacity: .55; margin-bottom: 12px; }
+.no-products h3 { color: var(--ink); font-size: 18px; margin-bottom: 6px; }
 
-        .header p {
-            color: #777;
-            margin-top: 5px;
-        }
+/* ---------- Responsive ---------- */
+@media (max-width: 1200px) { .products-container { grid-template-columns: repeat(2, 1fr); } }
 
-        .profile {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
+@media (max-width: 768px) {
+    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
+    .logo { padding: 0 12px 0 4px; white-space: nowrap; }
+    .logo p { display: none; }
+    .nav { flex-direction: row; align-items: center; }
+    .nav li { margin-right: 4px; }
+    .nav a { white-space: nowrap; padding: 10px 12px; margin: 0; }
+    .nav a span { display: none; }
+    .nav .logout { margin: 0 0 0 auto; border: 0; padding: 0; }
+    .main { margin-left: 0; padding: 18px 14px 40px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .products-container { grid-template-columns: 1fr; }
+    .section { padding: 16px; }
+}
 
-        /* DASHBOARD CARDS */
+@media (max-width: 520px) { .dashboard-cards { grid-template-columns: 1fr; } }
 
-        .dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .dashboard-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .dashboard-card .icon {
-            font-size: 30px;
-            margin-bottom: 15px;
-        }
-
-        .dashboard-card h3 {
-            color: #555;
-            font-size: 16px;
-            margin-bottom: 10px;
-        }
-
-        .dashboard-card .number {
-            font-size: 30px;
-            font-weight: bold;
-            color: #2e7d32;
-        }
-
-        .dashboard-card p {
-            color: #777;
-            margin-top: 5px;
-        }
-
-        /* SECTION */
-
-        .section {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-header h2 {
-            color: #333;
-        }
-
-        .view-all {
-            color: #2e7d32;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .view-all:hover {
-            text-decoration: underline;
-        }
-
-        /* PRODUCTS */
-
-        .products-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .product-card {
-            background: #f9fbf9;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #e0e0e0;
-            transition: 0.3s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.10);
-        }
-
-        .product-card h2 {
-            color: #2e7d32;
-            margin-bottom: 15px;
-        }
-
-        .product-card p {
-            margin: 10px 0;
-            color: #555;
-        }
-
-        .product-card strong {
-            color: #333;
-        }
-
-        /* FARMER NAME */
-
-        .farmer-name {
-            background: #e8f5e9;
-            color: #2e7d32 !important;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: bold;
-        }
-
-        .contact-btn {
-            display: block;
-            text-align: center;
-            background: #2e7d32;
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 7px;
-            margin-top: 15px;
-        }
-
-        .contact-btn:hover {
-            background: #1b5e20;
-        }
-
-        /* =========================
-           NO PRODUCTS
-        ========================= */
-
-        .no-products {
-            text-align: center;
-            padding: 40px;
-            color: #777;
-            grid-column: 1 / -1;
-        }
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media (max-width: 1000px) {
-
-            .dashboard-cards {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .products-container {
-                grid-template-columns: 1fr 1fr;
-            }
-
-        }
-
-        @media (max-width: 700px) {
-
-            .sidebar {
-                width: 200px;
-            }
-
-            .main {
-                margin-left: 200px;
-                width: calc(100% - 200px);
-                padding: 20px;
-            }
-
-            .dashboard-cards,
-            .products-container {
-                grid-template-columns: 1fr;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-        }
-
-    </style>
-
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
 
 <body>
 
-
 <!-- SIDEBAR -->
-
 <aside class="sidebar">
 
     <div class="logo">
-
-        <h2>🌾 FarmMarket</h2>
-
+        <h2><i class="fa-solid fa-seedling"></i> FarmMarket</h2>
         <p>Farm-to-Market System</p>
-
     </div>
 
-
     <ul class="nav">
-
-        <li>
-            <a href="buyer.php" class="active">
-                🏠 Dashboard
-            </a>
-        </li>
-
-        <li>
-            <a href="my_post.php">
-                📋 My Posts
-            </a>
-        </li>
-
-        <li>
-            <a href="buyer_post.php">
-                + Create Post
-            </a>
-        </li>
-
-        <li class="logout">
-            <a href="../logout.php">
-                🚪 Logout
-            </a>
-        </li>
-
+        <li><a href="buyer.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
+        <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
+        <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 
 </aside>
 
+
 <main class="main">
 
-
     <!-- HEADER -->
-
     <div class="header">
-
         <div>
-
             <h1>Buyer Dashboard</h1>
-
-            <p>
-                Find fresh products directly from farmers.
-            </p>
-
+            <p>Welcome, <b><?= htmlspecialchars($buyerName) ?>!</b></p>
         </div>
 
         <div class="profile">
-            👤 Buyer
+            <span class="avatar buyer"><?= htmlspecialchars(strtoupper(mb_substr($buyerName, 0, 1))) ?></span>
+            Buyer
         </div>
-
     </div>
 
 
+    <!-- SUMMARY CARDS -->
     <div class="dashboard-cards">
 
-
         <!-- MY POSTS -->
-
-        <div class="dashboard-card">
-
-            <div class="icon">
-                📋
+        <div class="dashboard-card mine">
+            <div class="icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div>
+                <div class="number"><?= htmlspecialchars($myPostsCount) ?></div>
+                <h3>My Posts</h3>
+                <p>Your product requests</p>
             </div>
-
-            <h3>
-                My Posts
-            </h3>
-
-            <div class="number">
-                <?= htmlspecialchars($myPostsCount) ?>
-            </div>
-
-            <p>
-                Your product requests
-            </p>
-
         </div>
 
-
         <!-- FARMER PRODUCTS -->
-
-        <div class="dashboard-card">
-
-            <div class="icon">
-                🌱
+        <div class="dashboard-card products">
+            <div class="icon"><i class="fa-solid fa-wheat-awn"></i></div>
+            <div>
+                <div class="number"><?= count($farmerPosts) ?></div>
+                <h3>Farmer Products</h3>
+                <p>Latest products from farmers</p>
             </div>
-
-            <h3>
-                Farmer Products
-            </h3>
-
-            <div class="number">
-                <?= count($farmerPosts) ?>
-            </div>
-
-            <p>
-                Latest products from farmers
-            </p>
-
         </div>
 
     </div>
@@ -504,183 +261,87 @@ $myPostsCount = $stmtMyPosts->fetchColumn();
     <div class="section">
 
         <div class="section-header">
-
-            <h2>
-                Latest Farmer Products
-            </h2>
-
-            <a href="farmer_posts.php" class="view-all">
-                View All →
-            </a>
-
+            <h2>Latest Farmer Products</h2>
+            <a href="farmer_posts.php" class="view-all">View all</a>
         </div>
-
 
         <div class="products-container">
 
-
             <?php if (count($farmerPosts) > 0): ?>
-
 
                 <?php foreach ($farmerPosts as $post): ?>
 
+                    <?php
+                        $nameParts = preg_split('/\s+/', trim($post['farmer_name']));
+                        $farmerInitials = strtoupper(
+                            mb_substr($nameParts[0] ?? '', 0, 1) . mb_substr(end($nameParts) ?: '', 0, 1)
+                        );
+                    ?>
+
                     <div class="product-card">
 
-
                         <!-- PRODUCT -->
-
-                        <h2>
-
-                            🌾
-                            <?= htmlspecialchars($post['product_name']) ?>
-
-                        </h2>
-
+                        <h2><?= htmlspecialchars($post['product_name']) ?></h2>
 
                         <!-- VARIETY -->
-
                         <?php if (!empty($post['variety'])): ?>
-
-                            <p>
-
-                                <strong>
-                                    Variety:
-                                </strong>
-
-                                <?= htmlspecialchars($post['variety']) ?>
-
-                            </p>
-
+                            <div class="variety"><?= htmlspecialchars($post['variety']) ?></div>
                         <?php endif; ?>
 
-
                         <!-- FARMER NAME -->
+                        <div class="farmer-name">
+                            <span class="avatar farmer"><?= htmlspecialchars($farmerInitials) ?></span>
+                            <div>
+                                <small>Farmer</small>
+                                <?= htmlspecialchars($post['farmer_name']) ?>
+                            </div>
+                        </div>
 
-                        <p class="farmer-name">
+                        <dl class="details">
+                            <!-- QUANTITY -->
+                            <dt>Quantity</dt>
+                            <dd><?= htmlspecialchars($post['quantity']) ?> <?= htmlspecialchars($post['unit']) ?></dd>
 
-                            👨‍🌾
+                            <!-- PRICE -->
+                            <dt>Price</dt>
+                            <dd class="price">₱<?= number_format($post['price'], 2) ?> / <?= htmlspecialchars($post['unit']) ?></dd>
 
-                            <strong>
-                                Farmer:
-                            </strong>
+                            <!-- LOCATION -->
+                            <dt>Location</dt>
+                            <dd><?= htmlspecialchars($post['address']) ?></dd>
 
-                            <?= htmlspecialchars($post['farmer_name']) ?>
-
-                        </p>
-
-
-                        <!-- QUANTITY -->
-
-                        <p>
-
-                            <strong>
-                                Quantity:
-                            </strong>
-
-                            <?= htmlspecialchars($post['quantity']) ?>
-
-                            <?= htmlspecialchars($post['unit']) ?>
-
-                        </p>
-
-
-                        <!-- PRICE -->
-
-                        <p>
-
-                            <strong>
-                                Price:
-                            </strong>
-
-                            ₱<?= number_format($post['price'], 2) ?>
-
-                            / <?= htmlspecialchars($post['unit']) ?>
-
-                        </p>
-
-
-                        <!-- LOCATION -->
-
-                        <p>
-
-                            <strong>
-                                Location:
-                            </strong>
-
-                            <?= htmlspecialchars($post['address']) ?>
-
-                        </p>
-
-
-                        <!-- CONTACT -->
-
-                        <p>
-
-                            <strong>
-                                Contact:
-                            </strong>
-
-                            <?= htmlspecialchars($post['contact_number']) ?>
-
-                        </p>
-
+                            <!-- CONTACT -->
+                            <dt>Contact</dt>
+                            <dd><?= htmlspecialchars($post['contact_number']) ?></dd>
+                        </dl>
 
                         <!-- DESCRIPTION -->
-
-                        <p>
-
-                            <strong>
-                                Description:
-                            </strong>
-
-                            <?= htmlspecialchars($post['description']) ?>
-
-                        </p>
-
+                        <?php if (!empty($post['description'])): ?>
+                            <p class="description"><?= htmlspecialchars($post['description']) ?></p>
+                        <?php endif; ?>
 
                         <!-- POSTED -->
-
-                        <p>
-
-                            <strong>
-                                Posted:
-                            </strong>
-
-                            <?= htmlspecialchars($post['created_at']) ?>
-
-                        </p>
+                        <p class="posted-date">Posted <?= htmlspecialchars(date('M d, Y', strtotime($post['created_at']))) ?></p>
 
                     </div>
 
                 <?php endforeach; ?>
 
-
             <?php else: ?>
 
-
                 <div class="no-products">
-
-                    <h3>
-                        🌱 No Farmer Products Yet
-                    </h3>
-
-                    <p>
-                        Farmers haven't posted any products yet.
-                    </p>
-
+                    <i class="fa-solid fa-wheat-awn"></i>
+                    <h3>No farmer products yet</h3>
+                    <p>New products from farmers will show up here.</p>
                 </div>
 
-
             <?php endif; ?>
-
 
         </div>
 
     </div>
 
-
 </main>
 
 </body>
-
 </html>

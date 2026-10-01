@@ -54,292 +54,214 @@ if(isset($_POST['create'])){
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Register</title>
-<link rel="stylesheet" href="style.css">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create account · Farm to Market</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+:root {
+    --ink: #1c2a24;
+    --muted: #6b7a72;
+    --paper: #f4f6f2;
+    --forest: #1f4d3a;
+    --leaf: #2f7d4f;
+    --harvest: #b7791f;
+    --danger: #b3261e;
+    --danger-soft: #fbe3e0;
+    --ok-soft: #dff0e5;
 }
 
-body{
-    height:100vh;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    background:
-    linear-gradient(135deg,#0b1020,#111827,#1e1b4b);
-
-    overflow:hidden;
+body {
+    font-family: 'Figtree', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(320px, 5fr) 6fr;
 }
 
-/* BACKGROUND GLOW */
-
-body::before{
-    content:'';
-
-    position:absolute;
-
-    width:500px;
-    height:500px;
-
-    background:#7c3aed;
-
-    border-radius:50%;
-
-    top:-150px;
-    left:-150px;
-
-    filter:blur(150px);
-
-    opacity:0.5;
+a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 3px solid var(--harvest);
+    outline-offset: 2px;
 }
 
-body::after{
-    content:'';
-
-    position:absolute;
-
-    width:400px;
-    height:400px;
-
-    background:#2563eb;
-
-    border-radius:50%;
-
-    bottom:-120px;
-    right:-120px;
-
-    filter:blur(140px);
-
-    opacity:0.5;
+/* ---------- Brand panel ---------- */
+.brand-panel {
+    background: var(--forest);
+    color: #fff;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-/* LOGIN BOX */
-
-.card-box{
-
-    position:relative;
-    z-index:10;
-
-    width:420px;
-
-    padding:40px;
-
-    border-radius:30px;
-
-    background:rgba(255,255,255,0.08);
-
-    backdrop-filter:blur(20px);
-
-    border:1px solid rgba(255,255,255,0.1);
-
-    box-shadow:
-    0 0 30px rgba(139,92,246,0.3);
-
-    animation:fadeIn 1s ease;
+.brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; }
+.brand-mark i {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: rgba(255,255,255,.14);
+    display: inline-flex; align-items: center; justify-content: center;
 }
 
-/* TITLE */
+.brand-copy h2 { font-size: 34px; line-height: 1.15; letter-spacing: -0.02em; max-width: 14ch; margin-bottom: 14px; }
+.brand-copy p { color: rgba(255,255,255,.75); max-width: 36ch; line-height: 1.55; }
+.brand-foot { color: rgba(255,255,255,.55); font-size: 13px; }
 
-.title{
+/* ---------- Form panel ---------- */
+.form-panel { display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+.form-wrap { width: 100%; max-width: 420px; }
 
-    text-align:center;
+h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+.sub { color: var(--muted); margin-bottom: 26px; }
 
-    font-size:33px;
-    font-weight:700;
+.alert {
+    display: flex; gap: 10px; align-items: flex-start;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;
+    font-size: 14.5px; font-weight: 500;
+}
+.alert i { margin-top: 2px; }
+.alert-danger  { background: var(--danger-soft); color: var(--danger); }
+.alert-success { background: var(--ok-soft); color: var(--forest); }
 
-    color:white;
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { margin-bottom: 18px; }
+.field.full { grid-column: 1 / -1; }
+label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
 
-    margin-bottom:30px;
+input[type=text], input[type=email], input[type=password] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5cd;
+    border-radius: 10px;
+    font: inherit;
+    background: #fff;
+    transition: border-color .15s, box-shadow .15s;
+}
+input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(47,125,79,.18); }
+
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-toggle {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 38px; height: 38px; border: 0; border-radius: 8px;
+    background: transparent; color: var(--muted); cursor: pointer;
+}
+.pw-toggle:hover { color: var(--ink); background: var(--paper); }
+
+.btn-register {
+    width: 100%; padding: 13px; margin-top: 4px;
+    background: var(--leaf); color: #fff;
+    border: 0; border-radius: 10px;
+    font: inherit; font-weight: 600; font-size: 16px;
+    cursor: pointer; transition: background .15s;
+}
+.btn-register:hover { background: var(--forest); }
+
+.foot { text-align: center; margin-top: 22px; color: var(--muted); font-size: 14.5px; }
+.foot a { color: var(--forest); font-weight: 600; text-decoration: none; }
+.foot a:hover { text-decoration: underline; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+    body { grid-template-columns: 1fr; }
+    .brand-panel { padding: 22px 24px; flex-direction: row; align-items: center; }
+    .brand-copy, .brand-foot { display: none; }
+    .form-panel { align-items: flex-start; padding-top: 40px; }
 }
 
-/* LABEL */
-
-label{
-    color:#e2e8f0;
-    margin-bottom:8px;
+@media (max-width: 480px) {
+    .row { grid-template-columns: 1fr; gap: 0; }
 }
 
-/* INPUT */
-
-.form-control{
-
-    background:rgba(255,255,255,0.08) !important;
-
-    border:none !important;
-
-    color:white !important;
-
-    padding:14px !important;
-
-    border-radius:14px !important;
-
-    transition:0.3s;
-}
-
-.form-control:focus{
-
-    box-shadow:
-    0 0 15px rgba(115, 114, 115, 0.5) !important;
-
-    background:rgba(255,255,255,0.12) !important;
-}
-
-.form-control::placeholder{
-    color:#cbd5e1;
-}
-
-/* BUTTON */
-
-.btn-login{
-
-    width:100%;
-
-    padding:14px;
-
-    border:none;
-
-    border-radius:14px;
-
-    background:
-    linear-gradient(135deg,#7c3aed,#a855f7);
-
-    font-size:16px;
-    font-weight:600;
-
-    transition:0.3s;
-}
-
-.btn-login:hover{
-
-    transform:translateY(-3px);
-
-    box-shadow:
-    0 0 20px rgba(218, 218, 218, 0.5);
-}
-
-/* LINK */
-
-a{
-    color:#c084fc;
-    text-decoration:none;
-}
-
-a:hover{
-    color:white;
-}
-
-/* ALERT */
-
-.alert{
-    border-radius:12px;
-}
-
-/* ANIMATION */
-
-@keyframes fadeIn{
-
-    from{
-        opacity:0;
-        transform:translateY(30px);
-    }
-
-    to{
-        opacity:1;
-        transform:translateY(0);
-    }
-
-}
-
-.register-card{
-
-    position:relative;
-    z-index:10;
-
-    width:420px;
-
-    padding:40px;
-
-    border-radius:30px;
-
-    background:rgba(255,255,255,0.08);
-
-    backdrop-filter:blur(20px);
-
-    border:2px solid rgba(255,255,255,0.2);
-
-    box-shadow:
-    0 0 30px rgba(139,92,246,0.3);
-
-    animation:fadeIn 1s ease;
-}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 
 <body>
 
-<div class="register-card">
+<aside class="brand-panel">
+    <div class="brand-mark"><i class="fa-solid fa-seedling"></i> Farm to Market</div>
 
-    <h3 class="text-center mb-3 text-white">Create Account</h3>
+    <div class="brand-copy">
+        <h2>Set up your account in a minute.</h2>
+        <p>Fill in your details and you can sign in right away.</p>
+    </div>
 
-    <!-- ALERT MESSAGE -->
-    <?php if(isset($_SESSION['message'])): ?>
-        <div class="alert alert-<?= $_SESSION['type']; ?>">
-            <?= $_SESSION['message']; ?>
-        </div>
-        <?php unset($_SESSION['message']); ?>
-    <?php endif; ?>
+    <div class="brand-foot">&copy; <?= date('Y') ?> Farm to Market System</div>
+</aside>
 
-    <!-- REGISTER FORM -->
-    <form method="POST">
+<main class="form-panel">
+    <div class="form-wrap">
 
-        <div class="mb-3">
-            <label>First Name</label>
-            <input type="text" name="firstName" class="form-control">
-        </div>
+        <h1>Create account</h1>
+        <p class="sub">All fields are required.</p>
 
-        <div class="mb-3">
-            <label>Middle Name</label>
-            <input type="text" name="middleName" class="form-control">
-        </div>
+        <!-- ALERT MESSAGE -->
+        <?php if(isset($_SESSION['message'])): ?>
+            <div class="alert alert-<?= htmlspecialchars($_SESSION['type']); ?>" role="alert">
+                <i class="fa-solid <?= $_SESSION['type'] === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
+                <span><?= htmlspecialchars($_SESSION['message']); ?></span>
+            </div>
+            <?php unset($_SESSION['message']); ?>
+        <?php endif; ?>
 
-        <div class="mb-3">
-            <label>Last Name</label>
-            <input type="text" name="lastName" class="form-control">
-        </div>
+        <!-- REGISTER FORM -->
+        <form method="POST">
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control">
-        </div>
+            <div class="row">
+                <div class="field">
+                    <label for="firstName">First name</label>
+                    <input type="text" id="firstName" name="firstName" autocomplete="given-name" autofocus required>
+                </div>
 
-        <div class="mb-3">
-            <label>Password</label>
-            <input type="password" name="password" class="form-control">
-        </div>
+                <div class="field">
+                    <label for="middleName">Middle name</label>
+                    <input type="text" id="middleName" name="middleName" autocomplete="additional-name" required>
+                </div>
 
-        <button type="submit" name="create" class="btn btn-register">
-            Register
-        </button>
+                <div class="field full">
+                    <label for="lastName">Last name</label>
+                    <input type="text" id="lastName" name="lastName" autocomplete="family-name" required>
+                </div>
+            </div>
 
-        <div class="text-center mt-3">
-            <a href="login.php" class="back-login">
-                ← Back to Login
-            </a>
-        </div>
+            <div class="field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" autocomplete="email" required>
+            </div>
 
-    </form>
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="pw-wrap">
+                    <input type="password" id="password" name="password" autocomplete="new-password" required>
+                    <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+            </div>
 
-</div>
+            <button type="submit" name="create" class="btn-register">Register</button>
+
+            <p class="foot">Already have an account? <a href="login.php">Back to sign in</a></p>
+        </form>
+
+    </div>
+</main>
+
+<script>
+const pw = document.getElementById('password');
+const toggle = document.getElementById('pwToggle');
+
+toggle.addEventListener('click', function () {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    toggle.querySelector('i').className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+});
+</script>
 
 </body>
 </html>

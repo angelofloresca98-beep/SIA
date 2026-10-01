@@ -1,4 +1,3 @@
-```php
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -9,7 +8,7 @@ require '../database/connection.php';
 // CHECK LOGIN
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) {
-    header("Location: ../index.php");
+    header("Location: ../login.php");
     exit();
 }
 
@@ -150,636 +149,253 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+$units = [
+    'kg'    => 'Kilogram (kg)',
+    'sack'  => 'Sack',
+    'ton'   => 'Ton',
+    'piece' => 'Piece',
+    'box'   => 'Box',
+    'liter' => 'Liter',
+];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Buyer Request</title>
 
-    <meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+<style>
+:root {
+    --ink: #1c2a24; --muted: #6b7a72; --paper: #f4f6f2; --card: #ffffff; --line: #e4e9e2;
+    --forest: #1f4d3a; --leaf: #2f7d4f; --leaf-soft: #dff0e5;
+    --harvest: #b7791f; --harvest-soft: #fbeccb;
+    --danger: #c0392b; --danger-soft: #fbe3e0; --radius: 12px;
+}
 
-    <title>Create Buyer Request</title>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
 
-    <style>
+/* Sidebar */
+.sidebar { position: fixed; inset: 0 auto 0 0; width: 240px; background: var(--forest); padding: 26px 16px; display: flex; flex-direction: column; z-index: 10; }
+.brand { color: #fff; padding: 0 12px 28px; }
+.brand strong { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.brand small { display: block; margin-top: 4px; padding-left: 30px; color: rgba(255,255,255,.6); font-size: 13px; }
+.nav { list-style: none; flex: 1; display: flex; flex-direction: column; }
+.nav a { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,.78); text-decoration: none; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
+.nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav a.active { background: rgba(255,255,255,.14); color: #fff; }
+.nav a i { width: 18px; text-align: center; }
+.nav .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); padding-top: 12px; }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+/* Layout */
+.main { margin-left: 240px; padding: 28px 32px 48px; max-width: 1280px; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header p { color: var(--muted); }
+.profile { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); color: var(--forest); padding: 8px 16px; border-radius: 99px; font-weight: 600; }
+.profile i { color: var(--leaf); }
 
-        body {
-            background: #f4f7f3;
-            display: flex;
-            min-height: 100vh;
-        }
+/* Form card */
+.form-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; max-width: 860px; }
+.card-head { display: flex; align-items: center; gap: 14px; padding-bottom: 20px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+.card-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--harvest-soft); color: var(--harvest); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
+.card-head h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.card-head p { color: var(--muted); font-size: 14.5px; margin-top: 2px; }
 
+.message { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14.5px; }
+.message.error { background: var(--danger-soft); color: var(--danger); border: 1px solid #efc3bd; }
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-weight: 600; font-size: 14px; margin-bottom: 7px; }
+.form-group label .req { color: var(--danger); }
+.form-group label .opt { color: var(--muted); font-weight: 500; }
 
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background: #2e7d32;
-            color: white;
-            padding: 25px 15px;
-            position: fixed;
-            left: 0;
-            top: 0;
-        }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 10px;
+    font: inherit; font-size: 15px; color: var(--ink); background: #fff; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+}
+.form-group input::placeholder, .form-group textarea::placeholder { color: #a3aea7; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--leaf); box-shadow: 0 0 0 3px var(--leaf-soft);
+}
+.form-group textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+.form-group select { appearance: none; cursor: pointer; padding-right: 38px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%236b7a72' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center; }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 35px;
-        }
+.input-prefix { position: relative; }
+.input-prefix span { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); font-weight: 600; pointer-events: none; }
+.input-prefix input { padding-left: 30px; }
 
-        .logo h2 {
-            font-size: 24px;
-        }
+.type-chip { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 10px; background: var(--harvest-soft); color: #7a4f0e; font-weight: 600; font-size: 15px; width: fit-content; }
 
-        .logo p {
-            font-size: 13px;
-            margin-top: 5px;
-            opacity: 0.8;
-        }
+.hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.counter { text-align: right; color: var(--muted); font-size: 13px; margin-top: 6px; }
 
-        .nav {
-            list-style: none;
-        }
+/* Buttons */
+.button-container { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; gap: 10px; justify-content: flex-end; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--leaf); color: #fff; border: 0; border-radius: 10px; padding: 11px 20px; font: inherit; font-weight: 600; cursor: pointer; transition: background .15s; }
+.btn-primary:hover { background: var(--forest); }
+.btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--muted); text-decoration: none; border: 1px solid var(--line); border-radius: 10px; padding: 11px 20px; font-weight: 600; transition: background .15s, color .15s; }
+.btn-ghost:hover { background: var(--paper); color: var(--ink); }
 
-        .nav li {
-            margin-bottom: 10px;
-        }
-
-        .nav a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 13px 15px;
-            border-radius: 8px;
-            transition: 0.3s;
-        }
-
-        .nav a:hover {
-            background: #1b5e20;
-        }
-
-        .nav .active {
-            background: #1b5e20;
-        }
-
-        .logout {
-            margin-top: 30px;
-            border-top: 1px solid rgba(255,255,255,0.3);
-            padding-top: 20px;
-        }
-
-
-        /* =========================
-           MAIN
-        ========================= */
-
-        .main {
-            margin-left: 240px;
-            width: calc(100% - 240px);
-            padding: 30px;
-        }
-
-
-        /* =========================
-           HEADER
-        ========================= */
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-        }
-
-        .header h1 {
-            color: #2e7d32;
-            font-size: 26px;
-        }
-
-        .header p {
-            color: #777;
-            margin-top: 5px;
-        }
-
-        .profile {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
-
-
-        /* =========================
-           FORM
-        ========================= */
-
-        .form-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            max-width: 900px;
-            margin: auto;
-        }
-
-        .form-card h2 {
-            color: #2e7d32;
-            margin-bottom: 8px;
-        }
-
-        .form-description {
-            color: #777;
-            margin-bottom: 25px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            font-weight: bold;
-            color: #444;
-            margin-bottom: 8px;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 7px;
-            font-size: 15px;
-            outline: none;
-            background: white;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            border-color: #2e7d32;
-            box-shadow: 0 0 0 2px rgba(46,125,50,0.10);
-        }
-
-        .form-group input[readonly] {
-            background: #f3f3f3;
-            color: #666;
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-
-        /* =========================
-           BUTTONS
-        ========================= */
-
-        .button-container {
-            margin-top: 25px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            border: none;
-            background: #2e7d32;
-            color: white;
-            padding: 12px 25px;
-            border-radius: 7px;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            background: #1b5e20;
-        }
-
-        .cancel-btn {
-            display: inline-block;
-            background: #777;
-            color: white;
-            text-decoration: none;
-            padding: 12px 25px;
-            border-radius: 7px;
-        }
-
-        .cancel-btn:hover {
-            background: #555;
-        }
-
-
-        /* =========================
-           MESSAGE
-        ========================= */
-
-        .message {
-            padding: 12px 15px;
-            border-radius: 7px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-        }
-
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media (max-width: 700px) {
-
-            .sidebar {
-                width: 200px;
-            }
-
-            .main {
-                margin-left: 200px;
-                width: calc(100% - 200px);
-                padding: 20px;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .form-group.full {
-                grid-column: auto;
-            }
-
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-        }
-
-    </style>
-
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
+    .brand { padding: 0 12px 0 4px; white-space: nowrap; }
+    .brand small { display: none; }
+    .nav { flex-direction: row; align-items: center; }
+    .nav li { margin-right: 4px; }
+    .nav a { white-space: nowrap; padding: 10px 12px; margin: 0; }
+    .nav a span { display: none; }
+    .nav .logout { margin: 0 0 0 auto; border: 0; padding: 0; }
+    .main { margin-left: 0; padding: 18px 14px 40px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .form-card { padding: 20px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: auto; }
+    .button-container { flex-direction: column-reverse; }
+    .btn-primary, .btn-ghost { justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
 
 <body>
 
-
-<!-- =========================
-     SIDEBAR
-========================= -->
-
 <aside class="sidebar">
-
-    <div class="logo">
-
-        <h2>🌾 FarmMarket</h2>
-
-        <p>
-            Farm-to-Market System
-        </p>
-
+    <div class="brand">
+        <strong><i class="fa-solid fa-seedling"></i> FarmMarket</strong>
+        <small>Farm-to-Market System</small>
     </div>
-
-
     <ul class="nav">
-
-        <li>
-            <a href="buyer.php">
-                🏠 Dashboard
-            </a>
-        </li>
-
-        <li>
-            <a href="my_post.php">
-                📋 My Posts
-            </a>
-        </li>
-
-        <li>
-            <a href="buyer_post.php" class="active">
-                ➕ Create Post
-            </a>
-        </li>
-
-        <li class="logout">
-            <a href="../logout.php">
-                🚪 Logout
-            </a>
-        </li>
-
+        <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
+        <li><a href="buyer_post.php" class="active"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
+        <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
-
 </aside>
-
-
-<!-- =========================
-     MAIN CONTENT
-========================= -->
 
 <main class="main">
 
-
-    <!-- HEADER -->
-
     <div class="header">
-
         <div>
-
-            <h1>
-                Create Buyer Request
-            </h1>
-
-            <p>
-                Tell farmers what agricultural product you are looking for.
-            </p>
-
+            <h1>Create Buyer Request</h1>
+            <p>Tell farmers what agricultural product you are looking for.</p>
         </div>
-
-
-        <div class="profile">
-
-            👤 <?= htmlspecialchars($user_name) ?>
-
-        </div>
-
+        <div class="profile"><i class="fa-solid fa-circle-user"></i> <?= htmlspecialchars($user_name) ?></div>
     </div>
-
-
-    <!-- FORM -->
 
     <div class="form-card">
 
-        <h2>
-            📋 Create Product Request
-        </h2>
-
-        <p class="form-description">
-            Enter the product, quantity and budget you need.
-        </p>
-
+        <div class="card-head">
+            <div class="card-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+            <div>
+                <h2>Product request</h2>
+                <p>Enter the product, quantity and budget you need.</p>
+            </div>
+        </div>
 
         <?php if ($message !== ""): ?>
-
-            <div class="message <?= htmlspecialchars($message_type) ?>">
-
+            <div class="message <?= htmlspecialchars($message_type) ?>" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
                 <?= htmlspecialchars($message) ?>
-
             </div>
-
         <?php endif; ?>
-
 
         <form method="POST" action="">
 
-
             <div class="form-grid">
 
-
                 <!-- PRODUCT -->
-
                 <div class="form-group">
-
-                    <label for="product">
-                        Product *
-                    </label>
-
-                    <input
-                        type="text"
-                        id="product"
-                        name="product"
-                        placeholder="e.g. Rice"
-                        value="<?= htmlspecialchars($_POST['product'] ?? '') ?>"
-                        required
-                    >
-
+                    <label for="product">Product <span class="req">*</span></label>
+                    <input type="text" id="product" name="product" placeholder="e.g. Rice"
+                           value="<?= htmlspecialchars($_POST['product'] ?? '') ?>" required>
                 </div>
-
 
                 <!-- VARIETY -->
-
                 <div class="form-group">
-
-                    <label for="variety">
-                        Variety
-                    </label>
-
-                    <input
-                        type="text"
-                        id="variety"
-                        name="variety"
-                        placeholder="e.g. Dinorado"
-                        value="<?= htmlspecialchars($_POST['variety'] ?? '') ?>"
-                    >
-
+                    <label for="variety">Variety <span class="opt">(optional)</span></label>
+                    <input type="text" id="variety" name="variety" placeholder="e.g. Dinorado"
+                           value="<?= htmlspecialchars($_POST['variety'] ?? '') ?>">
                 </div>
-
 
                 <!-- QUANTITY -->
-
                 <div class="form-group">
-
-                    <label for="quantity">
-                        Quantity Needed *
-                    </label>
-
-                    <input
-                        type="number"
-                        id="quantity"
-                        name="quantity"
-                        min="0.01"
-                        step="0.01"
-                        placeholder="e.g. 50"
-                        value="<?= htmlspecialchars($_POST['quantity'] ?? '') ?>"
-                        required
-                    >
-
+                    <label for="quantity">Quantity needed <span class="req">*</span></label>
+                    <input type="number" id="quantity" name="quantity" min="0.01" step="0.01" placeholder="e.g. 50"
+                           value="<?= htmlspecialchars($_POST['quantity'] ?? '') ?>" required>
                 </div>
-
 
                 <!-- UNIT -->
-
                 <div class="form-group">
-
-                    <label for="unit">
-                        Unit *
-                    </label>
-
-                    <select
-                        id="unit"
-                        name="unit"
-                        required
-                    >
-
-                        <option value="">
-                            Select Unit
-                        </option>
-
-                        <option
-                            value="kg"
-                            <?= ($_POST['unit'] ?? '') === 'kg' ? 'selected' : '' ?>
-                        >
-                            Kilogram (kg)
-                        </option>
-
-                        <option
-                            value="sack"
-                            <?= ($_POST['unit'] ?? '') === 'sack' ? 'selected' : '' ?>
-                        >
-                            Sack
-                        </option>
-
-                        <option
-                            value="ton"
-                            <?= ($_POST['unit'] ?? '') === 'ton' ? 'selected' : '' ?>
-                        >
-                            Ton
-                        </option>
-
-                        <option
-                            value="piece"
-                            <?= ($_POST['unit'] ?? '') === 'piece' ? 'selected' : '' ?>
-                        >
-                            Piece
-                        </option>
-
-                        <option
-                            value="box"
-                            <?= ($_POST['unit'] ?? '') === 'box' ? 'selected' : '' ?>
-                        >
-                            Box
-                        </option>
-
-                        <option
-                            value="liter"
-                            <?= ($_POST['unit'] ?? '') === 'liter' ? 'selected' : '' ?>
-                        >
-                            Liter
-                        </option>
-
+                    <label for="unit">Unit <span class="req">*</span></label>
+                    <select id="unit" name="unit" required>
+                        <option value="">Select unit</option>
+                        <?php foreach ($units as $value => $label): ?>
+                            <option value="<?= $value ?>" <?= ($_POST['unit'] ?? '') === $value ? 'selected' : '' ?>>
+                                <?= $label ?>
+                            </option>
+                        <?php endforeach; ?>
                     </select>
-
                 </div>
-
 
                 <!-- BUDGET -->
-
                 <div class="form-group">
-
-                    <label for="price">
-                        Budget / Price per Unit *
-                    </label>
-
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        min="0"
-                        step="0.01"
-                        placeholder="e.g. 50.00"
-                        value="<?= htmlspecialchars($_POST['price'] ?? '') ?>"
-                        required
-                    >
-
+                    <label for="price">Budget / price per unit <span class="req">*</span></label>
+                    <div class="input-prefix">
+                        <span>₱</span>
+                        <input type="number" id="price" name="price" min="0" step="0.01" placeholder="50.00"
+                               value="<?= htmlspecialchars($_POST['price'] ?? '') ?>" required>
+                    </div>
+                    <div class="hint">The most you are willing to pay for each unit.</div>
                 </div>
-
 
                 <!-- POST TYPE -->
-
                 <div class="form-group">
-
-                    <label>
-                        Post Type
-                    </label>
-
-                    <input
-                        type="text"
-                        value="Wanted"
-                        readonly
-                    >
-
+                    <label>Post type</label>
+                    <div class="type-chip"><i class="fa-solid fa-cart-shopping"></i> Wanted</div>
+                    <div class="hint">Buyer requests are always posted as Wanted.</div>
                 </div>
 
-
                 <!-- DESCRIPTION -->
-
                 <div class="form-group full">
-
-                    <label for="description">
-                        Description
-                    </label>
-
-                    <textarea
-                        id="description"
-                        name="description"
-                        placeholder="Describe the product you are looking for..."
-                    ><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
-
+                    <label for="description">Description <span class="opt">(optional)</span></label>
+                    <textarea id="description" name="description" maxlength="500"
+                              placeholder="Describe the product you are looking for..."><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
+                    <div class="counter"><span id="count">0</span>/500</div>
                 </div>
 
             </div>
 
-
-            <!-- BUTTONS -->
-
             <div class="button-container">
-
-                <button
-                    type="submit"
-                    class="btn"
-                >
-                    📋 Create Request
-                </button>
-
-
-                <a
-                    href="buyer.php"
-                    class="cancel-btn"
-                >
-                    Cancel
-                </a>
-
+                <a href="buyer.php" class="btn-ghost">Cancel</a>
+                <button type="submit" class="btn-primary"><i class="fa-solid fa-paper-plane"></i> Create request</button>
             </div>
 
         </form>
-
     </div>
 
 </main>
 
+<script>
+    // Live character counter for the description box
+    const desc = document.getElementById('description');
+    const count = document.getElementById('count');
+    const update = () => { count.textContent = desc.value.length; };
+    desc.addEventListener('input', update);
+    update();
+</script>
+
 </body>
 </html>
-```
