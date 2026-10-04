@@ -108,21 +108,60 @@ body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); 
 
 a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
 
-/* ---------- Sidebar ---------- */
-.sidebar { position: fixed; inset: 0 auto 0 0; width: 240px; background: var(--forest); padding: 26px 16px; display: flex; flex-direction: column; z-index: 10; }
-.brand { color: #fff; padding: 0 12px 28px; }
-.brand strong { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
-.brand small { display: block; margin-top: 4px; padding-left: 30px; color: rgba(255,255,255,.6); font-size: 13px; }
+/* ---------- Navbar ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: var(--forest);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+    height: 70px;
+}
 
-.nav { list-style: none; flex: 1; display: flex; flex-direction: column; }
-.nav a { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,.78); text-decoration: none; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
-.nav a:hover { background: rgba(255,255,255,.08); color: #fff; }
-.nav a.active { background: rgba(255,255,255,.14); color: #fff; }
-.nav a i { width: 18px; text-align: center; }
-.nav .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); padding-top: 12px; }
+.brand, .logo {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 40px;
+}
+.brand strong, .logo h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.brand small, .logo p { margin: 0; display: none; }
+
+.navbar nav, .navbar .nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.78);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-weight: 500;
+}
+
+.navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.navbar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.navbar a i { width: 18px; text-align: center; }
+.navbar .logout, .navbar li.logout { margin-left: auto; }
 
 /* ---------- Layout ---------- */
-.main { margin-left: 240px; padding: 28px 32px 48px; max-width: 1280px; }
+.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
 
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
 .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
@@ -190,14 +229,11 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 @media (max-width: 1200px) { .requests-container { grid-template-columns: repeat(2, 1fr); } }
 
 @media (max-width: 768px) {
-    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
-    .brand { padding: 0 12px 0 4px; white-space: nowrap; }
-    .brand small { display: none; }
-    .nav { flex-direction: row; align-items: center; }
-    .nav li { margin-right: 4px; }
-    .nav a { white-space: nowrap; padding: 10px 12px; margin: 0; }
-    .nav a span { display: none; }
-    .nav .logout { margin: 0 0 0 auto; border: 0; padding: 0; }
+    .navbar { padding: 0 16px; overflow-x: auto; }
+    .brand, .logo { margin-right: 20px; white-space: nowrap; }
+    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
+    .navbar a { white-space: nowrap; }
+    .navbar a span { display: none; }
     .main { margin-left: 0; padding: 18px 14px 40px; }
     .header { flex-direction: column; align-items: flex-start; }
     .requests-container { grid-template-columns: 1fr; }
@@ -213,7 +249,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 <body>
 
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<nav class="navbar">
 
     <div class="brand">
         <strong><i class="fa-solid fa-seedling"></i> FarmMarket</strong>
@@ -227,7 +263,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 
-</aside>
+</nav>
 
 
 <!-- MAIN -->

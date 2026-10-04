@@ -148,49 +148,60 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     outline-offset: 2px;
 }
 
-/* ---------- Sidebar ---------- */
-.sidebar {
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 240px;
+/* ---------- Navbar ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
     background: var(--forest);
-    padding: 26px 16px;
+    padding: 0 32px;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    height: 70px;
 }
 
-.brand {
+.brand, .logo {
     color: #fff;
     font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.01em;
-    padding: 0 12px 28px;
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-right: 40px;
 }
+.brand strong, .logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.brand small, .logo p { display: none; }
 
-.sidebar nav { flex: 1; }
-
-.sidebar a {
+.navbar nav, .navbar .nav {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: rgba(255, 255, 255, 0.78);
     text-decoration: none;
-    padding: 12px 14px;
-    border-radius: 10px;
-    margin-bottom: 4px;
+    padding: 8px 16px;
+    border-radius: 99px;
     font-weight: 500;
 }
 
-.sidebar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.sidebar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
-.sidebar a i { width: 18px; text-align: center; }
-.sidebar .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0 0 10px 10px; padding-top: 16px; }
+.navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.navbar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.navbar a i { width: 18px; text-align: center; }
+.navbar .logout, .navbar li.logout { margin-left: auto; }
 
 /* ---------- Layout ---------- */
-.main { margin-left: 240px; padding: 28px 32px 48px; max-width: 1280px; }
+.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
 
 .topbar {
     display: flex;
@@ -355,12 +366,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 768px) {
-    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
-    .brand { padding: 0 12px 0 4px; white-space: nowrap; }
-    .sidebar nav { display: flex; flex: 1; }
-    .sidebar a { white-space: nowrap; margin: 0 4px 0 0; padding: 10px 12px; }
-    .sidebar a span { display: none; }
-    .sidebar .logout { margin: 0; border: 0; padding: 10px 12px; }
+    .navbar { padding: 0 16px; overflow-x: auto; }
+    .brand, .logo { margin-right: 20px; white-space: nowrap; }
+    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
+    .navbar a { white-space: nowrap; }
+    .navbar a span { display: none; }
     .main { margin-left: 0; padding: 18px 14px 40px; }
     .topbar { flex-direction: column; align-items: flex-start; }
     .search input { width: 100%; }
@@ -380,17 +390,17 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 <body>
 
-<aside class="sidebar">
+<nav class="navbar">
     <div class="brand"><i class="fa-solid fa-seedling"></i> Admin Panel</div>
 
-    <nav>
-        <a href="admin.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-        <a href="#users"><i class="fa-solid fa-users"></i><span>Up</span></a>
-        <a href="add.php"><i class="fa-solid fa-user-plus"></i><span>Add user</span></a>
+        <nav>
+        <a href="#dashboard" class="menu-link active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+        <a href="#users" class="menu-link"><i class="fa-solid fa-users"></i><span>User Management</span></a>
+        <a href="#sales" class="menu-link"><i class="fa-solid fa-chart-line"></i><span>Sales Overview</span></a>
     </nav>
 
     <a href="../logout.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></a>
-</aside>
+</nav>
 
 <main class="main">
 
@@ -416,7 +426,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
         </div>
     <?php endif; ?>
 
-    <section class="stats" aria-label="Summary">
+    <section class="stats scroll-section" id="dashboard" aria-label="Summary">
         <div class="stat-card total">
             <div class="label"><i class="fa-solid fa-users"></i> Total users</div>
             <div class="value"><?= $totalUsers ?></div>
@@ -440,7 +450,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
         </div>
     </section>
 
-    <section class="panel" id="users">
+    <section class="panel scroll-section" id="users">
 
         <div class="panel-head">
             <h2>Users</h2>
@@ -479,6 +489,52 @@ a:focus-visible, button:focus-visible, input:focus-visible {
             </div>
         </div>
 
+        </section>
+
+    <section class="panel scroll-section" id="sales" style="margin-top: 24px;">
+        <div class="panel-head">
+            <h2>Sales Overview</h2>
+            <div class="tools">
+                <button class="btn btn-primary" onclick="alert('Exporting report...')"><i class="fa-solid fa-download me-1"></i> Export Report</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Product</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#TRX-98234</td>
+                        <td>Organic Tomatoes</td>
+                        <td>₱1,250.00</td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>Today, 10:23 AM</td>
+                    </tr>
+                    <tr>
+                        <td>#TRX-98233</td>
+                        <td>Fresh Carrots</td>
+                        <td>₱450.00</td>
+                        <td><span class="badge bg-success">Completed</span></td>
+                        <td>Today, 09:15 AM</td>
+                    </tr>
+                    <tr>
+                        <td>#TRX-98232</td>
+                        <td>Jasmine Rice (50kg)</td>
+                        <td>₱2,800.00</td>
+                        <td><span class="badge bg-warning text-dark">Pending</span></td>
+                        <td>Yesterday</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </section>
 </main>
 
@@ -511,6 +567,82 @@ document.getElementById('deleteModal').addEventListener('show.bs.modal', functio
     const btn = ev.relatedTarget;
     document.getElementById('deleteUserId').value = btn.dataset.id;
     document.getElementById('deleteUserName').textContent = btn.dataset.name;
+});
+
+// Interactivity: Smooth Scrolling & Scroll Spy
+document.addEventListener('DOMContentLoaded', () => {
+    const menuLinks = document.querySelectorAll('.menu-link');
+    const sections = document.querySelectorAll('.scroll-section');
+
+    // Smooth scrolling for menu links
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId.startsWith('#')) {
+                e.preventDefault();
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
+
+    // Scroll spy to update active menu link
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (scrollY >= (sectionTop - 150)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        menuLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    });
+});
+
+// Interactivity: Smooth Scrolling & Scroll Spy
+document.addEventListener('DOMContentLoaded', () => {
+    const menuLinks = document.querySelectorAll('.menu-link');
+    const sections = document.querySelectorAll('.scroll-section');
+
+    // Smooth scrolling for menu links
+    menuLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href');
+            if (targetId.startsWith('#')) {
+                e.preventDefault();
+                const targetSection = document.querySelector(targetId);
+                if (targetSection) {
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        });
+    });
+
+    // Scroll spy to update active menu link
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (scrollY >= (sectionTop - 150)) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        menuLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active');
+            }
+        });
+    });
 });
 
 // Live search across both tabs

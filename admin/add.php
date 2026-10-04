@@ -134,18 +134,60 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     outline-offset: 2px;
 }
 
-/* ---------- Sidebar (same as dashboard) ---------- */
-.sidebar { position: fixed; inset: 0 auto 0 0; width: 240px; background: var(--forest); padding: 26px 16px; display: flex; flex-direction: column; }
-.brand { color: #fff; font-size: 20px; font-weight: 700; letter-spacing: -0.01em; padding: 0 12px 28px; display: flex; align-items: center; gap: 10px; }
-.sidebar nav { flex: 1; }
-.sidebar a { display: flex; align-items: center; gap: 14px; color: rgba(255,255,255,.78); text-decoration: none; padding: 12px 14px; border-radius: 10px; margin-bottom: 4px; font-weight: 500; }
-.sidebar a:hover { background: rgba(255,255,255,.08); color: #fff; }
-.sidebar a.active { background: rgba(255,255,255,.14); color: #fff; }
-.sidebar a i { width: 18px; text-align: center; }
-.sidebar .logout { margin-top: auto; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0 0 10px 10px; padding-top: 16px; }
+/* ---------- Navbar ---------- */
+.navbar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: var(--forest);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+    height: 70px;
+}
+
+.brand, .logo {
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 40px;
+}
+.brand strong, .logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
+.brand small, .logo p { display: none; }
+
+.navbar nav, .navbar .nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.navbar a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.78);
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-weight: 500;
+}
+
+.navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.navbar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
+.navbar a i { width: 18px; text-align: center; }
+.navbar .logout, .navbar li.logout { margin-left: auto; }
 
 /* ---------- Layout ---------- */
-.main { margin-left: 240px; padding: 28px 32px 48px; }
+.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
 .page { max-width: 760px; }
 
 .crumbs { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
@@ -202,12 +244,11 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px
 
 /* ---------- Responsive ---------- */
 @media (max-width: 768px) {
-    .sidebar { position: static; width: 100%; flex-direction: row; align-items: center; padding: 12px; overflow-x: auto; }
-    .brand { padding: 0 12px 0 4px; white-space: nowrap; }
-    .sidebar nav { display: flex; flex: 1; }
-    .sidebar a { white-space: nowrap; margin: 0 4px 0 0; padding: 10px 12px; }
-    .sidebar a span { display: none; }
-    .sidebar .logout { margin: 0; border: 0; padding: 10px 12px; }
+    .navbar { padding: 0 16px; overflow-x: auto; }
+    .brand, .logo { margin-right: 20px; white-space: nowrap; }
+    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
+    .navbar a { white-space: nowrap; }
+    .navbar a span { display: none; }
     .main { margin-left: 0; padding: 18px 14px 40px; }
     .panel { padding: 18px; }
 }
@@ -224,7 +265,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px
 
 <body>
 
-<aside class="sidebar">
+<nav class="navbar">
     <div class="brand"><i class="fa-solid fa-seedling"></i> Admin Panel</div>
 
     <nav>
@@ -235,7 +276,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 4px
     </nav>
 
     <a href="../logout.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></a>
-</aside>
+</nav>
 
 <main class="main">
 <div class="page">
