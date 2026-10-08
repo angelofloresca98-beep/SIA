@@ -772,7 +772,7 @@ session_start();
             
             <ul class="nav-links">
                 <li><a href="index.php" class="active">Home</a></li>
-                <li><a href="#">Products</a></li>
+                <li><a href="#categories">Products</a></li>
                 <li><a href="#">About Us</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#">Contact</a></li>
@@ -819,7 +819,7 @@ session_start();
     </section>
 
     <!-- Categories Section -->
-    <section class="categories">
+    <section class="categories" id="categories">
         <div class="container">
             <div class="section-header">
                 <div>

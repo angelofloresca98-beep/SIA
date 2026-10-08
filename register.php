@@ -1,51 +1,55 @@
-<?php
+﻿<?php
 session_start();
 require './database/connection.php';
 
-if(isset($_POST['create'])){
-    $firstName = trim($_POST['firstName']);
-    $middleName = trim($_POST['middleName']);
-    $lastName = trim($_POST['lastName']);
+if (isset($_POST['create'])) {
+    $firstName  = trim($_POST['firstName']  ?? '');
+    $middleName = trim($_POST['middleName'] ?? '');
+    $lastName   = trim($_POST['lastName']   ?? '');
+    $email      = trim($_POST['email']      ?? '');
+    $password   = trim($_POST['password']   ?? '');
+    $role       = trim($_POST['role']       ?? '');
 
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-    $role = "admin";
+    $allowedRoles = ['farmer', 'buyer'];
 
-    if(empty($firstName) || empty($middleName) || empty($lastName) || empty($email) || empty($password)){
-        $_SESSION['message'] = "All fields are required!";
-        $_SESSION['type'] = "danger";
+    if (empty($firstName) || empty($middleName) || empty($lastName) ||
+        empty($email) || empty($password) || empty($role)) {
+        $_SESSION['message'] = 'All fields are required!';
+        $_SESSION['type']    = 'danger';
+
+    } elseif (!in_array($role, $allowedRoles)) {
+        $_SESSION['message'] = 'Please select a valid role (Farmer or Buyer).';
+        $_SESSION['type']    = 'danger';
+
     } else {
-
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
+
         try {
-            // check email
-            $sql = "SELECT user_id FROM users WHERE email = ?";
+            $sql  = 'SELECT user_id FROM users WHERE email = ? LIMIT 1';
             $stmt = $conn->prepare($sql);
             $stmt->execute([$email]);
 
-            if($stmt->rowCount() > 0){
-                $_SESSION['message'] = "Email already exists!";
-                $_SESSION['type'] = "danger";
+            if ($stmt->rowCount() > 0) {
+                $_SESSION['message'] = 'That email is already registered.';
+                $_SESSION['type']    = 'danger';
             } else {
-
-                // insert user
-                $sql = "INSERT INTO users (firstName, middleName, lastName, email, password, role) VALUES (?,?,?,?,?,?)";
+                $sql  = "INSERT INTO users (firstName, middleName, lastName, email, password, role, status)
+                         VALUES (?, ?, ?, ?, ?, ?, 'active')";
                 $stmt = $conn->prepare($sql);
 
-                if($stmt->execute([$firstName, $middleName, $lastName, $email, $hashedPassword, $role])){
-                    $_SESSION['message'] = "Successfully Registered!";
-                    $_SESSION['type'] = "success";
+                if ($stmt->execute([$firstName, $middleName, $lastName, $email, $hashedPassword, $role])) {
+                    $_SESSION['message'] = 'Account created! You can now sign in.';
+                    $_SESSION['type']    = 'success';
                 }
             }
 
-        } catch(PDOException $e){
-            $_SESSION['message'] = "Error: " . $e->getMessage();
-            $_SESSION['type'] = "danger";
+        } catch (PDOException $e) {
+            $_SESSION['message'] = 'Error: ' . $e->getMessage();
+            $_SESSION['type']    = 'danger';
         }
     }
 
-    header("Location: register.php");
+    header('Location: register.php');
     exit;
 }
 ?>
@@ -55,7 +59,7 @@ if(isset($_POST['create'])){
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Create account · Farm to Market</title>
+<title>Create Account · Farm to Market</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -84,7 +88,7 @@ body {
     grid-template-columns: minmax(320px, 5fr) 6fr;
 }
 
-a:focus-visible, button:focus-visible, input:focus-visible {
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
     outline: 3px solid var(--harvest);
     outline-offset: 2px;
 }
@@ -107,15 +111,64 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 }
 
 .brand-copy h2 { font-size: 34px; line-height: 1.15; letter-spacing: -0.02em; max-width: 14ch; margin-bottom: 14px; }
-.brand-copy p { color: rgba(255,255,255,.75); max-width: 36ch; line-height: 1.55; }
-.brand-foot { color: rgba(255,255,255,.55); font-size: 13px; }
+.brand-copy p  { color: rgba(255,255,255,.75); max-width: 36ch; line-height: 1.55; }
+.brand-foot    { color: rgba(255,255,255,.55); font-size: 13px; }
+
+/* ---------- Role cards ---------- */
+.role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+
+.role-card input[type="radio"] { display: none; }
+
+.role-card label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 18px 10px;
+    border: 2px solid #cbd5cd;
+    border-radius: 12px;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+.role-card label i {
+    font-size: 24px;
+    color: var(--muted);
+    transition: color .15s;
+}
+
+.role-card label .role-desc {
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.role-card input[type="radio"]:checked + label {
+    border-color: var(--leaf);
+    background: var(--ok-soft);
+    box-shadow: 0 0 0 3px rgba(47,125,79,.15);
+}
+
+.role-card input[type="radio"]:checked + label i { color: var(--leaf); }
+
+.role-card label:hover { border-color: var(--leaf); }
 
 /* ---------- Form panel ---------- */
 .form-panel { display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
-.form-wrap { width: 100%; max-width: 420px; }
+.form-wrap  { width: 100%; max-width: 440px; }
 
-h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
+h1  { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; }
 .sub { color: var(--muted); margin-bottom: 26px; }
+
+.section-label {
+    font-size: 12px; font-weight: 700; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+}
 
 .alert {
     display: flex; gap: 10px; align-items: flex-start;
@@ -174,6 +227,7 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 
 @media (max-width: 480px) {
     .row { grid-template-columns: 1fr; gap: 0; }
+    .role-picker { grid-template-columns: 1fr 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -186,8 +240,8 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
     <div class="brand-mark"><i class="fa-solid fa-seedling"></i> Farm to Market</div>
 
     <div class="brand-copy">
-        <h2>Set up your account in a minute.</h2>
-        <p>Fill in your details and you can sign in right away.</p>
+        <h2>Join the Farm to Market community.</h2>
+        <p>Register as a Farmer to list your products, or as a Buyer to order fresh produce directly.</p>
     </div>
 
     <div class="brand-foot">&copy; <?= date('Y') ?> Farm to Market System</div>
@@ -197,10 +251,10 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
     <div class="form-wrap">
 
         <h1>Create account</h1>
-        <p class="sub">All fields are required.</p>
+        <p class="sub">Sign up as a Farmer or Buyer.</p>
 
         <!-- ALERT MESSAGE -->
-        <?php if(isset($_SESSION['message'])): ?>
+        <?php if (isset($_SESSION['message'])): ?>
             <div class="alert alert-<?= htmlspecialchars($_SESSION['type']); ?>" role="alert">
                 <i class="fa-solid <?= $_SESSION['type'] === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
                 <span><?= htmlspecialchars($_SESSION['message']); ?></span>
@@ -209,8 +263,34 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
         <?php endif; ?>
 
         <!-- REGISTER FORM -->
-        <form method="POST">
+        <form method="POST" id="registerForm">
 
+            <!-- ── Step 1: Choose a role ── -->
+            <p class="section-label">I am a&hellip;</p>
+            <div class="role-picker" role="group" aria-label="Select your role">
+
+                <div class="role-card">
+                    <input type="radio" id="roleFarmer" name="role" value="farmer" required>
+                    <label for="roleFarmer">
+                        <i class="fa-solid fa-tractor"></i>
+                        Farmer
+                        <span class="role-desc">List &amp; sell produce</span>
+                    </label>
+                </div>
+
+                <div class="role-card">
+                    <input type="radio" id="roleBuyer" name="role" value="buyer">
+                    <label for="roleBuyer">
+                        <i class="fa-solid fa-basket-shopping"></i>
+                        Buyer
+                        <span class="role-desc">Browse &amp; order produce</span>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- ── Step 2: Personal details ── -->
+            <p class="section-label">Personal details</p>
             <div class="row">
                 <div class="field">
                     <label for="firstName">First name</label>
@@ -228,6 +308,8 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
                 </div>
             </div>
 
+            <!-- ── Step 3: Credentials ── -->
+            <p class="section-label">Account credentials</p>
             <div class="field">
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" autocomplete="email" required>
@@ -243,16 +325,17 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
                 </div>
             </div>
 
-            <button type="submit" name="create" class="btn-register">Register</button>
+            <button type="submit" name="create" class="btn-register" id="submitBtn">Create account</button>
 
-            <p class="foot">Already have an account? <a href="login.php">Back to sign in</a></p>
+            <p class="foot">Already have an account? <a href="login.php">Sign in</a></p>
         </form>
 
     </div>
 </main>
 
 <script>
-const pw = document.getElementById('password');
+// Password toggle
+const pw     = document.getElementById('password');
 const toggle = document.getElementById('pwToggle');
 
 toggle.addEventListener('click', function () {
