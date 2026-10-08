@@ -1,24 +1,15 @@
 <?php
-/**
- * Admin Seeder
- * ─────────────────────────────────────────────────────
- * Run this script ONCE to insert the default admin
- * account into the `users` table.
- *
- * Usage: http://localhost/SIA/database/seed_admin.php
- * ─────────────────────────────────────────────────────
- */
 
 require __DIR__ . '/connection.php';
 
-// ── Default admin credentials (change before deploying) ──
+
 $admins = [
     [
         'firstName'  => 'Super',
         'middleName' => 'A',
         'lastName'   => 'Admin',
         'email'      => 'admin@farmtomarket.com',
-        'password'   => 'Admin@1234',   // plain-text; will be hashed below
+        'password'   => 'Admin@1234',   
         'role'       => 'admin',
         'status'     => 'active',
     ],
