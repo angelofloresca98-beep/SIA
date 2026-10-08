@@ -780,13 +780,8 @@ session_start();
             
             <div class="nav-actions">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="<?= ($_SESSION['role'] === 'admin') ? 'admin/admin.php' : ($_SESSION['role'] === 'buyer' ? 'buyers/buyer.php' : 'seller/farmer.php') ?>" class="btn btn-outline">Dashboard</a>
-                    <a href="logout.php" class="btn btn-primary">Logout</a>
-                <?php else: ?>
                     <a href="login.php" class="btn btn-outline">Login</a>
                     <a href="register.php" class="btn btn-primary">Sign Up</a>
-                <?php endif; ?>
             </div>
         </div>
     </nav>
