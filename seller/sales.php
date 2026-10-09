@@ -123,6 +123,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Add Product</span></a></li>
         <li><a href="sales.php" class="active"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
+        <li><a href="transaction.php" class="transaction"><i class="fa-solid fa-receipt"></i><span>Transactions</span></a></li>
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 </nav>

@@ -165,8 +165,10 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
     <ul class="nav">
         <li><a href="farmer.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
-        <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Add Product</span></a></li>
+        <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
+        <li><a href="transaction.php"><i class="fa-solid fa-receipt"></i><span>Transaction</span></a></li>
+        <li><a href="transaction_details.php"><i class="fa-solid fa-receipt"></i><span>My Transaction</span></a></li>
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 </nav>

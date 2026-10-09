@@ -6,6 +6,8 @@ if (isset($_POST['create'])) {
     $firstName  = trim($_POST['firstName']  ?? '');
     $middleName = trim($_POST['middleName'] ?? '');
     $lastName   = trim($_POST['lastName']   ?? '');
+    $contact    = trim($_POST['contact']    ?? '');
+    $address   = trim($_POST['location']   ?? '');
     $email      = trim($_POST['email']      ?? '');
     $password   = trim($_POST['password']   ?? '');
     $role       = trim($_POST['role']       ?? '');
@@ -13,11 +15,16 @@ if (isset($_POST['create'])) {
     $allowedRoles = ['farmer', 'buyer'];
 
     if (empty($firstName) || empty($middleName) || empty($lastName) ||
+        empty($contact) || empty($address) ||
         empty($email) || empty($password) || empty($role)) {
         $_SESSION['message'] = 'All fields are required!';
         $_SESSION['type']    = 'danger';
 
-    } elseif (!in_array($role, $allowedRoles)) {
+    } elseif (!preg_match('/^[0-9]{11}$/', $contact)) {
+    $_SESSION['message'] = 'Contact number must be 11 digits, numbers only.';
+    $_SESSION['type']    = 'danger'; 
+    
+   } elseif (!in_array($role, $allowedRoles)) {
         $_SESSION['message'] = 'Please select a valid role (Farmer or Buyer).';
         $_SESSION['type']    = 'danger';
 
@@ -33,11 +40,11 @@ if (isset($_POST['create'])) {
                 $_SESSION['message'] = 'That email is already registered.';
                 $_SESSION['type']    = 'danger';
             } else {
-                $sql  = "INSERT INTO users (firstName, middleName, lastName, email, password, role, status)
-                         VALUES (?, ?, ?, ?, ?, ?, 'active')";
+                $sql  = "INSERT INTO users (firstName, middleName, lastName, contact_number, address, email, password, role, status)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')";
                 $stmt = $conn->prepare($sql);
 
-                if ($stmt->execute([$firstName, $middleName, $lastName, $email, $hashedPassword, $role])) {
+                if ($stmt->execute([$firstName, $middleName, $lastName, $contact, $address, $email, $hashedPassword, $role])) {
                     $_SESSION['message'] = 'Account created! You can now sign in.';
                     $_SESSION['type']    = 'success';
                 }
@@ -184,7 +191,7 @@ h1  { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom:
 .field.full { grid-column: 1 / -1; }
 label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
 
-input[type=text], input[type=email], input[type=password] {
+input[type=text], input[type=email], input[type=password], input[type=tel] {
     width: 100%;
     padding: 12px 14px;
     border: 1px solid #cbd5cd;
@@ -306,6 +313,18 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
                     <label for="lastName">Last name</label>
                     <input type="text" id="lastName" name="lastName" autocomplete="family-name" required>
                 </div>
+
+                <div class="field">
+                    <label for="contact">Contact number</label>
+                    <input type="tel" id="contact" name="contact" autocomplete="tel"
+                        inputmode="numeric" maxlength="11" pattern="[0-9]{11}"
+                        title="Enter an 11-digit number, numbers only" required>
+                </div>
+
+                <div class="field">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" name="location" autocomplete="address-level2" required>
+                </div>
             </div>
 
             <!-- ── Step 3: Credentials ── -->
@@ -343,6 +362,10 @@ toggle.addEventListener('click', function () {
     pw.type = show ? 'text' : 'password';
     toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
     toggle.querySelector('i').className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+});
+
+document.getElementById('contact').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '');
 });
 </script>
 
