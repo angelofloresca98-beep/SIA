@@ -641,6 +641,19 @@ session_start();
             color: rgba(255,255,255,0.6);
         }
 
+        .footer-disclaimer {
+            background: #fff8d9;
+            border: 1px solid #f0e3a8;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin: 0 0 30px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #2b2f2c;       /* dark text so it's readable on the yellow */
+        }
+
+        .footer-disclaimer strong { font-weight: 700; }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .category-grid {
@@ -992,14 +1005,7 @@ session_start();
                 <div class="footer-brand">
                     <i class="fa-solid fa-leaf"></i>
                     <strong>AgriBayan</strong>
-                </div>
-                
-                <div class="footer-links">
-                    <a href="#">Home</a>
-                    <a href="#">Products</a>
-                    <a href="#">About Us</a>
-                    <a href="#">Contact</a>
-                </div>
+                </div>               
                 
                 <div class="footer-social">
                     <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
@@ -1007,9 +1013,25 @@ session_start();
                     <a href="#"><i class="fa-brands fa-tiktok"></i></a>
                 </div>
             </div>
+
+            <div class="footer-disclaimer" role="note">
+                <strong>Disclaimer:</strong>
+                This website is created for demonstration and academic purposes only as part of an SIA subject project.
+                It is not a real company, official service, registered business, or commercial website.
+                No claims are made regarding actual business operations, legal standing, or real-world services.
+            </div>
+            
             
             <div class="footer-bottom">
                 <p>&copy; 2026 AgriBayan. All rights reserved.</p>
+
+                <div class="footer-links">
+                    <a href="privacyPolicy.php">Privacy Policy</a>
+                    <a href="terms.php">Terms</a>
+                    <a href="moderation.php">Moderation</a>
+                    <a href="copyright.php">Copyright</a>
+                </div>
+
                 <div style="opacity:0.6;">Design inspired by a premium mockup.</div>
             </div>
         </div>

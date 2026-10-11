@@ -18,14 +18,150 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
 
-// DELETE PRODUCT / POST
+// CSRF TOKEN
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+$csrf_token = $_SESSION['csrf_token'];
+
+// FLASH MESSAGE (shown once after redirect)
+
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+
+function csrf_ok(): bool
+{
+    return isset($_POST['csrf_token'], $_SESSION['csrf_token'])
+        && hash_equals($_SESSION['csrf_token'], $_POST['csrf_token']);
+}
+
+
+// UPDATE PRODUCT (quantity / price / status / description)
+
+if (isset($_POST['update_post'])) {
+
+    $post_id     = $_POST['post_id'] ?? '';
+    $quantity    = trim($_POST['quantity'] ?? '');
+    $price       = trim($_POST['price'] ?? '');
+    $status      = $_POST['status'] ?? '';
+    $description = trim($_POST['description'] ?? '');
+
+    $errors = [];
+
+    if (!csrf_ok()) {
+        $errors[] = 'Invalid request. Please refresh the page and try again.';
+    }
+
+    if (empty($post_id)) {
+        $errors[] = 'Post not found.';
+    }
+
+    if ($quantity === '' || !is_numeric($quantity) || $quantity < 0) {
+        $errors[] = 'Quantity must be a number that is 0 or higher.';
+    }
+
+    if ($price === '' || !is_numeric($price) || $price < 0) {
+        $errors[] = 'Price must be a number that is 0 or higher.';
+    }
+
+    if (!in_array($status, ['available', 'unavailable'], true)) {
+        $errors[] = 'Invalid status.';
+    }
+
+    if (empty($errors)) {
+
+        // If the stock is 0, the product can't be available
+        if ((float) $quantity <= 0) {
+            $status = 'unavailable';
+        }
+
+        try {
+
+            $conn->beginTransaction();
+
+            // MAKE SURE THIS POST BELONGS TO THE LOGGED-IN USER
+
+            $stmt = $conn->prepare("
+                SELECT product_id
+                FROM post
+                WHERE post_id = :post_id
+                AND user_id = :user_id
+            ");
+
+            $stmt->execute([
+                ':post_id' => $post_id,
+                ':user_id' => $user_id
+            ]);
+
+            $post = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($post) {
+
+                // UPDATE THE PRODUCT
+
+                $stmtUpdate = $conn->prepare("
+                    UPDATE products
+                    SET quantity    = :quantity,
+                        price       = :price,
+                        status      = :status,
+                        description = :description
+                    WHERE product_id = :product_id
+                    AND user_id = :user_id
+                ");
+
+                $stmtUpdate->execute([
+                    ':quantity'    => $quantity,
+                    ':price'       => $price,
+                    ':status'      => $status,
+                    ':description' => $description,
+                    ':product_id'  => $post['product_id'],
+                    ':user_id'     => $user_id
+                ]);
+
+                $conn->commit();
+
+                $_SESSION['flash'] = ['type' => 'success', 'text' => 'Product updated successfully.'];
+
+            } else {
+
+                $conn->rollBack();
+
+                $_SESSION['flash'] = ['type' => 'error', 'text' => 'Post not found.'];
+
+            }
+
+        } catch (PDOException $e) {
+
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
+
+            $_SESSION['flash'] = ['type' => 'error', 'text' => 'Something went wrong while updating. Please try again.'];
+
+        }
+
+    } else {
+
+        $_SESSION['flash'] = ['type' => 'error', 'text' => implode(' ', $errors)];
+
+    }
+
+    // PRG: avoid resubmitting the form on refresh
+    header("Location: my_post.php");
+    exit();
+
+}
+
+
+// DELETE PRODUCT / POST
 
 if (isset($_POST['delete_post'])) {
 
     $post_id = $_POST['post_id'] ?? '';
 
-    if (!empty($post_id)) {
+    if (!empty($post_id) && csrf_ok()) {
 
         try {
 
@@ -91,9 +227,9 @@ if (isset($_POST['delete_post'])) {
 
                 // COMMIT
 
-
                 $conn->commit();
 
+                $_SESSION['flash'] = ['type' => 'success', 'text' => 'Product deleted.'];
 
                 // RETURN TO MY POSTS
 
@@ -193,7 +329,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
 
-a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
 
 /* ---------- Navbar ---------- */
 .navbar {
@@ -257,13 +393,19 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 .btn-primary {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--leaf); color: #fff; text-decoration: none;
+    border: 0; cursor: pointer; font: inherit;
     border-radius: 10px; padding: 10px 18px; font-weight: 600;
     transition: background .15s;
 }
 .btn-primary:hover { background: var(--forest); }
 
+/* ---------- Alerts ---------- */
+.alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; }
+.alert.success { background: var(--leaf-soft); color: var(--forest); }
+.alert.error   { background: var(--danger-soft); color: var(--danger); }
+
 /* ---------- Posts ---------- */
-.posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
 
 .post-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
 
@@ -287,7 +429,34 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 
 .description { margin-top: 14px; padding: 10px 12px; background: var(--paper); border-radius: 8px; font-size: 14px; color: #44524a; line-height: 1.5; }
 
-.delete-form { margin-top: auto; padding-top: 18px; }
+/* ---------- Update box ---------- */
+.update-box { margin-top: 18px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+
+.update-box summary {
+    list-style: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 14px; font-weight: 600; color: var(--forest);
+    border-radius: 10px; user-select: none;
+}
+.update-box summary::-webkit-details-marker { display: none; }
+.update-box summary:hover { background: var(--leaf-soft); }
+.update-box[open] summary { border-bottom: 1px solid var(--line); border-radius: 10px 10px 0 0; background: var(--leaf-soft); }
+
+.update-form { padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.update-form .field { display: flex; flex-direction: column; gap: 4px; }
+.update-form .field.full { grid-column: 1 / -1; }
+.update-form label { font-size: 13px; font-weight: 600; color: var(--muted); }
+
+.update-form input,
+.update-form select,
+.update-form textarea {
+    width: 100%; font: inherit; font-size: 14.5px; color: var(--ink);
+    padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+}
+.update-form textarea { resize: vertical; min-height: 70px; }
+.update-form .btn-primary { grid-column: 1 / -1; justify-content: center; }
+
+.delete-form { margin-top: 12px; }
 
 .delete-btn {
     width: 100%;
@@ -325,7 +494,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 
 <body>
 
-<!-- SIDEBAR -->
+<!-- NAVBAR -->
 <nav class="navbar">
 
     <div class="brand">
@@ -355,6 +524,14 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 
         <a href="farmer_post.php" class="btn-primary"><i class="fa-solid fa-plus"></i> Create post</a>
     </div>
+
+    <!-- FLASH MESSAGE -->
+    <?php if ($flash): ?>
+        <div class="alert <?= $flash['type'] === 'success' ? 'success' : 'error' ?>" role="status">
+            <i class="fa-solid <?= $flash['type'] === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' ?>"></i>
+            <?= htmlspecialchars($flash['text']) ?>
+        </div>
+    <?php endif; ?>
 
 
     <!-- POSTS -->
@@ -411,6 +588,66 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
                         <p class="description"><?= nl2br(htmlspecialchars($post['description'])) ?></p>
                     <?php endif; ?>
 
+                    <!-- UPDATE PRODUCT -->
+                    <details class="update-box">
+
+                        <summary><i class="fa-solid fa-pen-to-square"></i> Update product</summary>
+
+                        <form method="POST" action="" class="update-form">
+
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+                            <input type="hidden" name="post_id" value="<?= htmlspecialchars($post['post_id']) ?>">
+
+                            <div class="field">
+                                <label for="quantity-<?= (int) $post['post_id'] ?>">Quantity (<?= htmlspecialchars($post['unit']) ?>)</label>
+                                <input
+                                    type="number"
+                                    id="quantity-<?= (int) $post['post_id'] ?>"
+                                    name="quantity"
+                                    min="0"
+                                    step="any"
+                                    value="<?= htmlspecialchars($post['quantity']) ?>"
+                                    required
+                                >
+                            </div>
+
+                            <div class="field">
+                                <label for="price-<?= (int) $post['post_id'] ?>">Price (₱)</label>
+                                <input
+                                    type="number"
+                                    id="price-<?= (int) $post['post_id'] ?>"
+                                    name="price"
+                                    min="0"
+                                    step="0.01"
+                                    value="<?= htmlspecialchars($post['price']) ?>"
+                                    required
+                                >
+                            </div>
+
+                            <div class="field full">
+                                <label for="status-<?= (int) $post['post_id'] ?>">Status</label>
+                                <select id="status-<?= (int) $post['post_id'] ?>" name="status">
+                                    <option value="available" <?= $post['status'] === 'available' ? 'selected' : '' ?>>Available</option>
+                                    <option value="unavailable" <?= $post['status'] !== 'available' ? 'selected' : '' ?>>Unavailable</option>
+                                </select>
+                            </div>
+
+                            <div class="field full">
+                                <label for="description-<?= (int) $post['post_id'] ?>">Description</label>
+                                <textarea
+                                    id="description-<?= (int) $post['post_id'] ?>"
+                                    name="description"
+                                ><?= htmlspecialchars($post['description'] ?? '') ?></textarea>
+                            </div>
+
+                            <button type="submit" name="update_post" class="btn-primary">
+                                <i class="fa-solid fa-floppy-disk"></i> Save changes
+                            </button>
+
+                        </form>
+
+                    </details>
+
                     <!-- DELETE BUTTON -->
                     <div class="delete-form">
 
@@ -419,6 +656,8 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
                             action=""
                             onsubmit="return confirm('Are you sure you want to delete this product?');"
                         >
+
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
 
                             <input
                                 type="hidden"
