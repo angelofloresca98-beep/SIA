@@ -141,7 +141,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 INSERT INTO transactions
                 (
                     user_id,
-                    product_id,
                     buyer_name,
                     product_name,
                     quantity,
@@ -156,7 +155,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 VALUES
                 (
                     :user_id,
-                    :product_id,
                     :buyer_name,
                     :product_name,
                     :quantity,
@@ -174,7 +172,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $stmt->execute([
                 ':user_id'          => $user_id,
-                ':product_id'       => $product_id,
                 ':buyer_name'       => $buyer_name,
                 ':product_name'     => $product,
                 ':quantity'         => $quantity,

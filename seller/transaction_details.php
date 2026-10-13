@@ -125,9 +125,19 @@ try {
 
     // The rows for this page
     $stmt = $conn->prepare("
-        SELECT t.*, p.variety
+        SELECT
+            t.transaction_id,
+            t.transaction_date,
+            t.buyer_name,
+            t.product_name,
+            t.quantity,
+            t.unit,
+            t.price,
+            t.total_amount,
+            t.payment_method,
+            t.status,
+            t.notes
         FROM transactions t
-        LEFT JOIN products p ON p.product_id = t.product_id
         WHERE $whereSql
         ORDER BY t.transaction_date DESC, t.transaction_id DESC
         LIMIT :limit OFFSET :offset
@@ -499,7 +509,7 @@ td.total { font-weight: 700; }
             <div class="actions">
                 <button type="submit" class="btn"><i class="fa-solid fa-filter"></i> Filter</button>
                 <?php if ($filtersActive): ?>
-                    <a href="farmer_transaction_details.php" class="btn-outline">Reset</a>
+                    <a href="transaction_details.php" class="btn-outline">Reset</a>
                 <?php endif; ?>
             </div>
 
@@ -543,9 +553,6 @@ td.total { font-weight: 700; }
                             <td><span class="main-text"><?= e($t['buyer_name']) ?></span></td>
                             <td>
                                 <span class="main-text"><?= e($t['product_name']) ?></span>
-                                <?php if (!empty($t['variety'])): ?>
-                                    <span class="sub-text"><?= e($t['variety']) ?></span>
-                                <?php endif; ?>
                                 <?php if ($notes !== ''): ?>
                                     <span class="sub-text" title="<?= e($notes) ?>"><i class="fa-regular fa-note-sticky"></i> <?= e($notes) ?></span>
                                 <?php endif; ?>
@@ -594,7 +601,7 @@ td.total { font-weight: 700; }
                         : "Record your first sale and it will show up here." ?>
                 </p>
                 <?php if ($filtersActive): ?>
-                    <a href="farmer_transaction_details.php" class="btn-outline">Reset filters</a>
+                    <a href="transaction_details.php" class="btn-outline">Reset filters</a>
                 <?php else: ?>
                     <a href="farmer_transaction.php" class="btn"><i class="fa-solid fa-plus"></i> Record transaction</a>
                 <?php endif; ?>
