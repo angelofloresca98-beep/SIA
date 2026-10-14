@@ -13,7 +13,6 @@ $pages = [
     'terms' => 'Terms and Conditions',
     'moderation' => 'Moderation Policy',
     'copyright' => 'Copyright Notice',
-    'disclaimer' => 'Disclaimer'
 ];
 
 $title = $pages[$page];
