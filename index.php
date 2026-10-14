@@ -1026,7 +1026,7 @@ session_start();
                 <p>&copy; 2026 AgriBayan. All rights reserved.</p>
 
                 <div class="footer-links">
-                    <a href="privacyPolicy.php">Privacy Policy</a>
+                    <a href="privacy.php">Privacy Policy</a>
                     <a href="terms.php">Terms</a>
                     <a href="moderation.php">Moderation</a>
                     <a href="copyright.php">Copyright</a>
