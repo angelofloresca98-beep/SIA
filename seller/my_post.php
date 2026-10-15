@@ -303,6 +303,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1f4d3a">
 <title>My Posts</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -323,11 +324,21 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     --danger: #c0392b;
     --danger-soft: #fbe3e0;
     --radius: 12px;
+    --pad-x: clamp(14px, 3vw, 32px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+    font-family: 'Figtree', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
 
 a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 3px solid var(--harvest); outline-offset: 2px; }
 
@@ -337,7 +348,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     top: 0;
     width: 100%;
     background: var(--forest);
-    padding: 0 32px;
+    padding: 0 var(--pad-x);
     display: flex;
     align-items: center;
     z-index: 1000;
@@ -353,6 +364,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     align-items: center;
     gap: 10px;
     margin-right: 40px;
+    white-space: nowrap;
 }
 .brand strong, .logo h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
 .brand small, .logo p { margin: 0; display: none; }
@@ -376,6 +388,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     padding: 8px 16px;
     border-radius: 99px;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
@@ -383,33 +396,53 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .navbar a i { width: 18px; text-align: center; }
 .navbar .logout, .navbar li.logout { margin-left: auto; }
 
+/* Hamburger (shown on tablets/phones only) */
+.nav-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.nav-toggle:hover { background: rgba(255, 255, 255, 0.2); }
+
 /* ---------- Layout ---------- */
-.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
+.main { margin: 0 auto; padding: 28px var(--pad-x) 48px; max-width: 1280px; width: 100%; }
 
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
-.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header h1 { font-size: clamp(22px, 3.4vw, 26px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
 .header p { color: var(--muted); }
 
 .btn-primary {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     background: var(--leaf); color: #fff; text-decoration: none;
     border: 0; cursor: pointer; font: inherit;
     border-radius: 10px; padding: 10px 18px; font-weight: 600;
     transition: background .15s;
+    white-space: nowrap;
 }
 .btn-primary:hover { background: var(--forest); }
 
 /* ---------- Alerts ---------- */
-.alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; }
+.alert { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; overflow-wrap: anywhere; }
 .alert.success { background: var(--leaf-soft); color: var(--forest); }
 .alert.error   { background: var(--danger-soft); color: var(--danger); }
 
 /* ---------- Posts ---------- */
-.posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+/* Auto-fits: 3 columns on desktop, 2 on tablet, 1 on phones */
+.posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 18px; align-items: start; }
 
-.post-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
+.post-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; min-width: 0; }
 
-.card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 14px; }
+.card-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
 
 .post-type { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 99px; font-size: 13px; font-weight: 600; }
 .sell   { background: var(--leaf-soft); color: var(--forest); }
@@ -419,15 +452,15 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .available   { background: var(--leaf-soft); color: var(--forest); }
 .unavailable { background: var(--danger-soft); color: var(--danger); }
 
-.post-card h2 { font-size: 20px; font-weight: 700; line-height: 1.25; }
-.variety { color: var(--muted); font-size: 14px; margin-top: 2px; }
+.post-card h2 { font-size: 20px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.variety { color: var(--muted); font-size: 14px; margin-top: 2px; overflow-wrap: anywhere; }
 
 .details { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin-top: 16px; font-size: 14.5px; }
 .details dt { color: var(--muted); }
-.details dd { font-weight: 500; overflow-wrap: anywhere; }
+.details dd { font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
 .details dd.price { color: var(--forest); font-weight: 700; }
 
-.description { margin-top: 14px; padding: 10px 12px; background: var(--paper); border-radius: 8px; font-size: 14px; color: #44524a; line-height: 1.5; }
+.description { margin-top: 14px; padding: 10px 12px; background: var(--paper); border-radius: 8px; font-size: 14px; color: #44524a; line-height: 1.5; overflow-wrap: anywhere; }
 
 /* ---------- Update box ---------- */
 .update-box { margin-top: 18px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
@@ -437,24 +470,25 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 10px 14px; font-weight: 600; color: var(--forest);
     border-radius: 10px; user-select: none;
+    min-height: 44px;
 }
 .update-box summary::-webkit-details-marker { display: none; }
 .update-box summary:hover { background: var(--leaf-soft); }
 .update-box[open] summary { border-bottom: 1px solid var(--line); border-radius: 10px 10px 0 0; background: var(--leaf-soft); }
 
 .update-form { padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.update-form .field { display: flex; flex-direction: column; gap: 4px; }
+.update-form .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .update-form .field.full { grid-column: 1 / -1; }
 .update-form label { font-size: 13px; font-weight: 600; color: var(--muted); }
 
 .update-form input,
 .update-form select,
 .update-form textarea {
-    width: 100%; font: inherit; font-size: 14.5px; color: var(--ink);
+    width: 100%; min-width: 0; font: inherit; font-size: 14.5px; color: var(--ink);
     padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
 }
 .update-form textarea { resize: vertical; min-height: 70px; }
-.update-form .btn-primary { grid-column: 1 / -1; justify-content: center; }
+.update-form .btn-primary { grid-column: 1 / -1; }
 
 .delete-form { margin-top: 12px; }
 
@@ -465,6 +499,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     padding: 10px 14px; border-radius: 10px;
     font: inherit; font-weight: 600; cursor: pointer;
     transition: background .15s, color .15s, border-color .15s;
+    min-height: 44px;
 }
 .delete-btn:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
 
@@ -474,18 +509,67 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .no-post h2 { font-size: 20px; margin-bottom: 6px; }
 .no-post p { color: var(--muted); margin-bottom: 20px; }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 1100px) { .posts { grid-template-columns: repeat(2, 1fr); } }
+/* =========================================================
+   RESPONSIVE
+   768 tablet portrait / large phone · 560 phone · 400 small phone
+   ========================================================= */
 
+/* Collapse navigation into a hamburger menu */
 @media (max-width: 768px) {
-    .navbar { padding: 0 16px; overflow-x: auto; }
-    .brand, .logo { margin-right: 20px; white-space: nowrap; }
-    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
-    .navbar a { white-space: nowrap; }
-    .navbar a span { display: none; }
-    .main { margin-left: 0; padding: 18px 14px 40px; }
-    .header { flex-direction: column; align-items: flex-start; }
-    .posts { grid-template-columns: 1fr; }
+    .navbar { height: 64px; }
+    .brand, .logo { margin-right: 0; font-size: 18px; }
+    .brand strong, .logo h2 { font-size: 18px; }
+    .nav-toggle { display: inline-flex; }
+
+    .navbar .nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        background: var(--forest);
+        padding: 8px var(--pad-x) 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 24px rgba(0, 0, 0, 0.18);
+        max-height: calc(100vh - 64px);
+        max-height: calc(100dvh - 64px);
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .navbar .nav.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    .navbar .nav a { padding: 14px 16px; border-radius: 10px; font-size: 16px; }
+    .navbar .nav li.logout { margin-left: 0; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+    .main { padding-top: 18px; padding-bottom: 40px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+}
+
+@media (max-width: 560px) {
+    .header .btn-primary { width: 100%; padding: 12px 18px; }
+    .post-card { padding: 16px; }
+    .post-card h2 { font-size: 18px; }
+    .no-post { padding: 40px 18px; }
+
+    /* 16px inputs stop iOS Safari from zooming on focus; taller targets for thumbs */
+    .update-form input,
+    .update-form select,
+    .update-form textarea { font-size: 16px; min-height: 44px; }
+    .update-form textarea { min-height: 90px; }
+    .update-form .btn-primary { min-height: 46px; }
+}
+
+@media (max-width: 400px) {
+    .update-form { grid-template-columns: 1fr; padding: 12px; }
+    .details { grid-template-columns: 1fr; gap: 2px; }
+    .details dd { margin-bottom: 8px; }
+    .details dd:last-child { margin-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -495,14 +579,18 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar">
+<nav class="navbar" aria-label="Main navigation">
 
     <div class="brand">
         <strong><i class="fa-solid fa-seedling"></i> FarmMarket</strong>
         <small>Farm-to-Market System</small>
     </div>
 
-    <ul class="nav">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="my_post.php" class="active"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
@@ -606,6 +694,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
                                     name="quantity"
                                     min="0"
                                     step="any"
+                                    inputmode="decimal"
                                     value="<?= htmlspecialchars($post['quantity']) ?>"
                                     required
                                 >
@@ -619,6 +708,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
                                     name="price"
                                     min="0"
                                     step="0.01"
+                                    inputmode="decimal"
                                     value="<?= htmlspecialchars($post['price']) ?>"
                                     required
                                 >
@@ -697,6 +787,36 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
     <?php endif; ?>
 
 </main>
+
+<script>
+// Mobile menu
+(function () {
+    const toggle = document.getElementById('nav-toggle');
+    const nav = document.getElementById('main-nav');
+    const icon = toggle.querySelector('i');
+
+    function setMenu(open) {
+        nav.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    }
+
+    toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        setMenu(!nav.classList.contains('open'));
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.navbar')) setMenu(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setMenu(false);
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) setMenu(false);
+    });
+})();
+</script>
 
 </body>
 </html>

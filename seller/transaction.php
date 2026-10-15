@@ -208,6 +208,7 @@ function old($key, $default = '') {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1f4d3a">
 <title>Record Transaction</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -227,11 +228,21 @@ function old($key, $default = '') {
     --danger: #b3261e;
     --danger-soft: #fbe3e0;
     --radius: 12px;
+    --pad-x: clamp(14px, 3vw, 32px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+    font-family: 'Figtree', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
 
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 3px solid var(--harvest);
@@ -244,7 +255,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     top: 0;
     width: 100%;
     background: var(--forest);
-    padding: 0 32px;
+    padding: 0 var(--pad-x);
     display: flex;
     align-items: center;
     z-index: 1000;
@@ -260,6 +271,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     align-items: center;
     gap: 10px;
     margin-right: 40px;
+    white-space: nowrap;
 }
 .brand strong, .logo h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
 .brand small, .logo p { margin: 0; display: none; }
@@ -283,6 +295,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 8px 16px;
     border-radius: 99px;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
@@ -290,22 +303,40 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .navbar a i { width: 18px; text-align: center; }
 .navbar .logout, .navbar li.logout { margin-left: auto; }
 
+/* Hamburger (tablet/phone only) */
+.nav-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.nav-toggle:hover { background: rgba(255, 255, 255, 0.2); }
+
 /* ---------- Layout ---------- */
-.main { margin: 0 auto; padding: 22px 32px 32px; max-width: 1600px; }
+.main { margin: 0 auto; padding: 22px var(--pad-x) 32px; max-width: 1600px; width: 100%; }
 .page { max-width: 100%; }
 
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
-.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header h1 { font-size: clamp(22px, 3.4vw, 26px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
 .header p { color: var(--muted); }
 
-.profile { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px 6px 6px; font-weight: 600; }
+.profile { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px 6px 6px; font-weight: 600; flex-shrink: 0; }
 .profile i { width: 38px; height: 38px; border-radius: 50%; background: var(--leaf-soft); color: var(--forest); display: inline-flex; align-items: center; justify-content: center; }
 
 /* ---------- Form ---------- */
 .form-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px 28px; }
 .form-card h2 { font-size: 19px; font-weight: 700; margin-bottom: 18px; }
 
-.message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; font-size: 14.5px; }
+.message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 20px; font-weight: 500; font-size: 14.5px; overflow-wrap: anywhere; }
 .message::before { font-family: "Font Awesome 6 Free"; font-weight: 900; margin-top: 1px; }
 .message.error   { background: var(--danger-soft); color: var(--danger); }
 .message.error::before   { content: "\f06a"; }
@@ -314,7 +345,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 20px; }
 .form-group.span-2 { grid-column: span 2; }
-.form-group { display: flex; flex-direction: column; }
+.form-group { display: flex; flex-direction: column; min-width: 0; }
 .form-group.full { grid-column: 1 / -1; }
 
 .form-group label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
@@ -323,6 +354,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .form-group input,
 .form-group textarea,
 .form-group select {
+    width: 100%;
+    min-width: 0;
     padding: 11px 13px;
     border: 1px solid #cbd5cd;
     border-radius: 10px;
@@ -340,7 +373,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 .total-box input { font-size: 18px; color: var(--forest); }
 
-.button-container { margin-top: 22px; justify-content: flex-end; display: flex; gap: 12px; }
+.button-container { margin-top: 22px; justify-content: flex-end; display: flex; flex-wrap: wrap; gap: 12px; }
 
 .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -352,33 +385,77 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .btn:hover { background: var(--forest); }
 
 .cancel-btn {
-    display: inline-flex; align-items: center;
+    display: inline-flex; align-items: center; justify-content: center;
     background: #fff; color: var(--ink); text-decoration: none;
     border: 1px solid var(--line); padding: 11px 24px; border-radius: 10px; font-weight: 600;
 }
 .cancel-btn:hover { background: var(--paper); }
 
-/* ---------- Responsive ---------- */
+/* =========================================================
+   RESPONSIVE
+   1024 tablet (2-col form) · 768 hamburger nav · 560 phone (1-col) · 400 small phone
+   ========================================================= */
+
 @media (max-width: 1024px) {
     .form-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Collapse navigation into a hamburger menu */
 @media (max-width: 768px) {
-    .navbar { padding: 0 16px; overflow-x: auto; }
-    .brand, .logo { margin-right: 20px; white-space: nowrap; }
-    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
-    .navbar a { white-space: nowrap; }
-    .navbar a span { display: none; }
-    .main { margin-left: 0; padding: 18px 14px 40px; }
-    .header { flex-direction: column; align-items: flex-start; }
-    .form-card { padding: 18px; }
+    .navbar { height: 64px; }
+    .brand, .logo { margin-right: 0; font-size: 18px; }
+    .brand strong, .logo h2 { font-size: 18px; }
+    .nav-toggle { display: inline-flex; }
+
+    .navbar .nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        background: var(--forest);
+        padding: 8px var(--pad-x) 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 24px rgba(0, 0, 0, 0.18);
+        max-height: calc(100vh - 64px);
+        max-height: calc(100dvh - 64px);
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .navbar .nav.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    .navbar .nav a { padding: 14px 16px; border-radius: 10px; font-size: 16px; }
+    .navbar .nav li.logout { margin-left: 0; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+    .main { padding-top: 18px; padding-bottom: 40px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .form-card { padding: 20px; }
 }
 
 @media (max-width: 560px) {
-    .form-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; gap: 16px; }
     .form-group.full, .form-group.span-2 { grid-column: auto; }
+
+    /* 16px+ inputs stop iOS Safari from zooming on focus; taller targets for thumbs */
+    .form-group input,
+    .form-group select,
+    .form-group textarea { font-size: 16px; min-height: 46px; }
+    .form-group textarea { min-height: 100px; }
+    .total-box input { font-size: 18px; }
+
     .button-container { flex-direction: column-reverse; }
-    .btn, .cancel-btn { width: 100%; justify-content: center; }
+    .btn, .cancel-btn { width: 100%; min-height: 48px; }
+}
+
+@media (max-width: 400px) {
+    .form-card { padding: 16px; }
+    .form-card h2 { font-size: 17px; margin-bottom: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -388,14 +465,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar">
+<nav class="navbar" aria-label="Main navigation">
 
     <div class="logo">
         <h2><i class="fa-solid fa-seedling"></i> FarmMarket</h2>
         <p>Farm-to-Market System</p>
     </div>
 
-    <ul class="nav">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
@@ -506,6 +587,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         name="quantity"
                         min="0.01"
                         step="0.01"
+                        inputmode="decimal"
                         placeholder="e.g. 50"
                         value="<?= old('quantity') ?>"
                         required
@@ -534,6 +616,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         name="price"
                         min="0"
                         step="0.01"
+                        inputmode="decimal"
                         placeholder="e.g. 2500"
                         value="<?= old('price') ?>"
                         required
@@ -611,6 +694,34 @@ product.addEventListener('change', function () {
 qty.addEventListener('input', updateTotal);
 price.addEventListener('input', updateTotal);
 updateTotal();
+
+// Mobile menu
+(function () {
+    const toggle = document.getElementById('nav-toggle');
+    const nav = document.getElementById('main-nav');
+    const icon = toggle.querySelector('i');
+
+    function setMenu(open) {
+        nav.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    }
+
+    toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        setMenu(!nav.classList.contains('open'));
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.navbar')) setMenu(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setMenu(false);
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) setMenu(false);
+    });
+})();
 </script>
 
 </body>

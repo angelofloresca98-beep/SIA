@@ -52,40 +52,55 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update_order'])) {
     header("Location: sales.php"); exit();
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1f4d3a">
 <title>Sales Report · Farm to Market</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1c2a24;--muted:#6b7a72;--paper:#f4f6f2;--card:#fff;--line:#e4e9e2;--forest:#1f4d3a;--leaf:#2f7d4f;--leaf-soft:#dff0e5;--harvest:#b7791f;--harvest-soft:#fbeccb;--danger:#b3261e;--danger-soft:#fbe3e0;--radius:12px;}
+:root{--ink:#1c2a24;--muted:#6b7a72;--paper:#f4f6f2;--card:#fff;--line:#e4e9e2;--forest:#1f4d3a;--leaf:#2f7d4f;--leaf-soft:#dff0e5;--harvest:#b7791f;--harvest-soft:#fbeccb;--danger:#b3261e;--danger-soft:#fbe3e0;--radius:12px;--pad-x:clamp(14px,3vw,32px);}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Figtree',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;}
-.navbar{position:sticky;top:0;width:100%;background:var(--forest);padding:0 32px;display:flex;align-items:center;z-index:100;height:70px;}
-.brand{color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;margin-right:40px;text-decoration:none;}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+body{font-family:'Figtree',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;min-height:100dvh;overflow-x:hidden;}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--harvest);outline-offset:2px;}
+
+/* Navbar */
+.navbar{position:sticky;top:0;width:100%;background:var(--forest);padding:0 var(--pad-x);display:flex;align-items:center;z-index:100;height:70px;}
+.brand{color:#fff;font-size:20px;font-weight:700;display:flex;align-items:center;gap:10px;margin-right:40px;text-decoration:none;white-space:nowrap;}
 .nav{display:flex;align-items:center;gap:8px;flex:1;list-style:none;}
-.nav a{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.78);text-decoration:none;padding:8px 16px;border-radius:99px;font-weight:500;}
+.nav a{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.78);text-decoration:none;padding:8px 16px;border-radius:99px;font-weight:500;white-space:nowrap;}
 .nav a:hover{background:rgba(255,255,255,.08);color:#fff;}
 .nav a.active{background:rgba(255,255,255,.14);color:#fff;}
 .nav a i{width:18px;text-align:center;}
 .nav li.logout{margin-left:auto;}
-.main{margin:0 auto;padding:28px 32px 60px;max-width:1300px;}
+
+/* Hamburger (tablet/phone only) */
+.nav-toggle{display:none;width:44px;height:44px;align-items:center;justify-content:center;background:rgba(255,255,255,.12);color:#fff;border:none;border-radius:50%;font-size:18px;cursor:pointer;margin-left:auto;flex-shrink:0;}
+.nav-toggle:hover{background:rgba(255,255,255,.2);}
+
+/* Layout */
+.main{margin:0 auto;padding:28px var(--pad-x) 60px;max-width:1300px;width:100%;}
 .page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;}
-.page-header h1{font-size:26px;font-weight:700;letter-spacing:-.02em;}
+.page-header h1{font-size:clamp(22px,3.4vw,26px);font-weight:700;letter-spacing:-.02em;}
 .page-header p{color:var(--muted);}
 
+/* Stats */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;min-width:0;}
+.stat > div:last-child{min-width:0;}
 .stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .green{background:var(--leaf-soft);color:var(--forest);}
 .gold{background:var(--harvest-soft);color:var(--harvest);}
 .blue{background:#e8f0ff;color:#3b5bdb;}
 .red{background:var(--danger-soft);color:var(--danger);}
-.stat-n{font-size:26px;font-weight:700;line-height:1.1;}
+.stat-n{font-size:clamp(20px,2.3vw,26px);font-weight:700;line-height:1.1;overflow-wrap:anywhere;}
 .stat-l{font-size:13.5px;font-weight:600;margin-top:2px;}
 
+/* Filters */
 .toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px;}
 .search-wrap{position:relative;flex:1;min-width:220px;}
 .search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
@@ -93,32 +108,115 @@ body{font-family:'Figtree',system-ui,sans-serif;background:var(--paper);color:va
 .search-wrap input:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px rgba(47,125,79,.14);}
 select.filter{padding:9px 14px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;cursor:pointer;}
 
+/* Table */
 .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
 .table-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:14.5px;}
 th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);}
-th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;background:#fafbfa;}
+th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;background:#fafbfa;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#f8faf8;}
+.sub-muted{color:var(--muted);font-size:13px;}
 .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;}
 .status-pending{background:#fff8e6;color:#92610a;}
 .status-confirmed{background:#e8f0ff;color:#3b5bdb;}
 .status-completed{background:var(--leaf-soft);color:var(--forest);}
 .status-cancelled{background:var(--danger-soft);color:var(--danger);}
 select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;}
-.btn-xs{display:inline-flex;align-items:center;gap:4px;background:var(--leaf);color:#fff;border:none;padding:4px 10px;border-radius:6px;font:inherit;font-size:13px;cursor:pointer;}
+.status-form{display:inline-flex;gap:6px;align-items:center;}
+.btn-xs{display:inline-flex;align-items:center;justify-content:center;gap:4px;background:var(--leaf);color:#fff;border:none;padding:4px 10px;border-radius:6px;font:inherit;font-size:13px;cursor:pointer;}
 .btn-xs:hover{background:var(--forest);}
 .empty{text-align:center;padding:50px 20px;color:var(--muted);}
 .empty i{font-size:28px;opacity:.4;margin-bottom:12px;}
 .empty h3{color:var(--ink);font-size:16px;}
-@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){.navbar{padding:0 16px;overflow-x:auto;}.nav{min-width:max-content;}.nav a span{display:none;}.main{padding:18px 14px 40px;}.stats{grid-template-columns:1fr 1fr;}.page-header{flex-direction:column;align-items:flex-start;}}
+
+/* =========================================================
+   RESPONSIVE
+   1000 tablet · 900 table→cards · 768 large phone · 600 phone · 400 small phone
+   ========================================================= */
+
+/* Collapse navigation into a hamburger menu */
+@media(max-width:1000px){
+  .brand{margin-right:0;}
+  .nav-toggle{display:inline-flex;}
+  .nav{
+    position:absolute;top:100%;left:0;right:0;
+    flex-direction:column;align-items:stretch;gap:2px;flex:none;
+    background:var(--forest);padding:8px var(--pad-x) 16px;
+    border-top:1px solid rgba(255,255,255,.12);
+    box-shadow:0 16px 24px rgba(0,0,0,.18);
+    max-height:calc(100vh - 70px);max-height:calc(100dvh - 70px);overflow-y:auto;
+    opacity:0;visibility:hidden;transform:translateY(-8px);
+    transition:opacity .2s ease,transform .2s ease,visibility .2s;
+  }
+  .nav.open{opacity:1;visibility:visible;transform:translateY(0);}
+  .nav a{padding:14px 16px;border-radius:10px;font-size:16px;}
+  .nav li.logout{margin-left:0;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12);}
+  .stats{grid-template-columns:repeat(2,1fr);}
+}
+
+/* Turn the 9-column table into stacked cards */
+@media(max-width:900px){
+  .table-wrap{overflow:visible;}
+  table.sales,table.sales tbody,table.sales tr,table.sales td{display:block;width:100%;}
+  table.sales thead{position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;}
+  table.sales tbody tr{border:1px solid var(--line);border-radius:var(--radius);padding:6px 16px;margin-bottom:14px;background:#fff;}
+  table.sales tbody tr:last-child{margin-bottom:0;}
+  table.sales tbody tr:hover td{background:none;}
+  table.sales tbody tr td{
+    display:flex;justify-content:space-between;align-items:center;gap:16px;
+    padding:10px 0;border-bottom:1px dashed var(--line);text-align:right;
+    overflow-wrap:anywhere;white-space:normal !important;
+  }
+  table.sales tbody tr td:last-child{border-bottom:none;}
+  table.sales td::before{
+    content:attr(data-label);flex-shrink:0;text-align:left;
+    font-weight:600;font-size:12.5px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.04em;
+  }
+  select.st-sel{min-height:40px;font-size:14px;}
+  .btn-xs{min-height:40px;min-width:44px;}
+}
+
+@media(max-width:768px){
+  .navbar{height:64px;}
+  .nav{max-height:calc(100vh - 64px);max-height:calc(100dvh - 64px);}
+  .main{padding-top:18px;padding-bottom:40px;}
+  .page-header{flex-direction:column;align-items:flex-start;gap:12px;margin-bottom:18px;}
+  .stats{gap:12px;margin-bottom:22px;}
+  .section{padding:18px;}
+}
+
+@media(max-width:600px){
+  .brand{font-size:18px;}
+  .stat{padding:16px;gap:12px;}
+  .stat-icon{width:42px;height:42px;font-size:16px;}
+
+  /* Search on its own row, filter underneath at full width. 16px stops iOS zoom on focus. */
+  .toolbar{flex-direction:column;align-items:stretch;gap:10px;}
+  .search-wrap{min-width:0;flex:none;}
+  .search-wrap input,select.filter{font-size:16px;min-height:44px;width:100%;}
+}
+
+@media(max-width:520px){
+  .stats{grid-template-columns:1fr;}
+}
+
+@media(max-width:400px){
+  .section{padding:14px;}
+  table.sales tbody tr{padding:4px 12px;}
+}
+
+@media(prefers-reduced-motion:reduce){*{transition:none !important;}}
 </style>
 </head>
 <body>
-<nav class="navbar">
+<nav class="navbar" aria-label="Main navigation">
     <a class="brand" href="farmer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
-    <ul class="nav">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Add Product</span></a></li>
@@ -129,7 +227,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
 </nav>
 <main class="main">
     <div class="page-header">
-        <div><h1>Sales & Transactions</h1><p>Track all orders placed on your products.</p></div>
+        <div><h1>Sales &amp; Transactions</h1><p>Track all orders placed on your products.</p></div>
     </div>
 
     <div class="stats">
@@ -141,8 +239,8 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
 
     <!-- Filters -->
     <form method="GET" class="toolbar">
-        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" name="search" placeholder="Search product or buyer..." value="<?= htmlspecialchars($search) ?>"></div>
-        <select name="status" class="filter" onchange="this.form.submit()">
+        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" name="search" placeholder="Search product or buyer..." value="<?= htmlspecialchars($search) ?>" aria-label="Search product or buyer"></div>
+        <select name="status" class="filter" onchange="this.form.submit()" aria-label="Filter by status">
             <option value="all" <?= $statusFilter==='all'?'selected':'' ?>>All Statuses</option>
             <option value="pending" <?= $statusFilter==='pending'?'selected':'' ?>>Pending</option>
             <option value="confirmed" <?= $statusFilter==='confirmed'?'selected':'' ?>>Confirmed</option>
@@ -154,30 +252,30 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
     <div class="section">
         <?php if (!empty($orders)): ?>
         <div class="table-wrap">
-            <table>
+            <table class="sales">
                 <thead><tr><th>#</th><th>Product</th><th>Buyer</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Status</th><th>Update</th><th>Date</th></tr></thead>
                 <tbody>
                 <?php foreach ($orders as $o): ?>
                 <tr>
-                    <td><strong>#<?= $o['order_id'] ?></strong></td>
-                    <td><?= htmlspecialchars($o['product_name']) ?></td>
-                    <td><?= htmlspecialchars($o['firstName'].' '.$o['lastName']) ?><br><small style="color:var(--muted)"><?= htmlspecialchars($o['contact_number']??'') ?></small></td>
-                    <td><?= htmlspecialchars($o['order_qty']) ?> <?= htmlspecialchars($o['unit']) ?></td>
-                    <td>₱<?= number_format($o['price'],2) ?></td>
-                    <td><strong>₱<?= number_format($o['total_price'],2) ?></strong></td>
-                    <td><span class="badge status-<?= htmlspecialchars($o['status']) ?>"><?= ucfirst($o['status']) ?></span></td>
-                    <td>
-                        <form method="POST" style="display:inline-flex;gap:6px;align-items:center;">
+                    <td data-label="Order"><strong>#<?= $o['order_id'] ?></strong></td>
+                    <td data-label="Product"><?= htmlspecialchars($o['product_name']) ?></td>
+                    <td data-label="Buyer"><div><?= htmlspecialchars($o['firstName'].' '.$o['lastName']) ?><br><small class="sub-muted"><?= htmlspecialchars($o['contact_number']??'') ?></small></div></td>
+                    <td data-label="Qty"><?= htmlspecialchars($o['order_qty']) ?> <?= htmlspecialchars($o['unit']) ?></td>
+                    <td data-label="Unit price">₱<?= number_format($o['price'],2) ?></td>
+                    <td data-label="Total"><strong>₱<?= number_format($o['total_price'],2) ?></strong></td>
+                    <td data-label="Status"><span class="badge status-<?= htmlspecialchars($o['status']) ?>"><?= ucfirst($o['status']) ?></span></td>
+                    <td data-label="Update">
+                        <form method="POST" class="status-form">
                             <input type="hidden" name="order_id" value="<?= $o['order_id'] ?>">
-                            <select name="new_status" class="st-sel">
+                            <select name="new_status" class="st-sel" aria-label="Order status">
                                 <?php foreach(['pending','confirmed','completed','cancelled'] as $st): ?>
                                 <option value="<?= $st ?>" <?= $o['status']===$st?'selected':'' ?>><?= ucfirst($st) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <button name="update_order" class="btn-xs"><i class="fa-solid fa-check"></i></button>
+                            <button name="update_order" class="btn-xs" aria-label="Update status"><i class="fa-solid fa-check"></i></button>
                         </form>
                     </td>
-                    <td style="color:var(--muted);font-size:13px;white-space:nowrap;"><?= date('M d, Y', strtotime($o['created_at'])) ?></td>
+                    <td data-label="Date" class="sub-muted" style="white-space:nowrap;"><?= date('M d, Y', strtotime($o['created_at'])) ?></td>
                 </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -188,5 +286,35 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
         <?php endif; ?>
     </div>
 </main>
+
+<script>
+// Mobile menu
+(function () {
+    const toggle = document.getElementById('nav-toggle');
+    const nav = document.getElementById('main-nav');
+    const icon = toggle.querySelector('i');
+
+    function setMenu(open) {
+        nav.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    }
+
+    toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        setMenu(!nav.classList.contains('open'));
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.navbar')) setMenu(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setMenu(false);
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 1000) setMenu(false);
+    });
+})();
+</script>
 </body>
 </html>

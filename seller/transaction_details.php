@@ -179,6 +179,7 @@ $showingTo   = $offset + count($transactions);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1f4d3a">
 <title>My Transactions</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -199,11 +200,21 @@ $showingTo   = $offset + count($transactions);
     --danger: #b3261e;
     --danger-soft: #fbe3e0;
     --radius: 12px;
+    --pad-x: clamp(14px, 3vw, 32px);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+    font-family: 'Figtree', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+}
 
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
     outline: 3px solid var(--harvest);
@@ -216,7 +227,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     top: 0;
     width: 100%;
     background: var(--forest);
-    padding: 0 32px;
+    padding: 0 var(--pad-x);
     display: flex;
     align-items: center;
     z-index: 1000;
@@ -232,6 +243,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     align-items: center;
     gap: 10px;
     margin-right: 40px;
+    white-space: nowrap;
 }
 .brand strong, .logo h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
 .brand small, .logo p { margin: 0; display: none; }
@@ -255,6 +267,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 8px 16px;
     border-radius: 99px;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 .navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
@@ -262,13 +275,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .navbar a i { width: 18px; text-align: center; }
 .navbar .logout, .navbar li.logout { margin-left: auto; }
 
+/* Hamburger (tablet/phone only) */
+.nav-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+.nav-toggle:hover { background: rgba(255, 255, 255, 0.2); }
+
 /* ---------- Layout ---------- */
-.main { margin: 0 auto; padding: 22px 32px 32px; max-width: 1600px; }
+.main { margin: 0 auto; padding: 22px var(--pad-x) 32px; max-width: 1600px; width: 100%; }
 
 .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
-.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
+.header h1 { font-size: clamp(22px, 3.4vw, 26px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 2px; }
 .header p { color: var(--muted); }
-.header-actions { display: flex; gap: 10px; }
+.header-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 
 /* ---------- Buttons ---------- */
 .btn {
@@ -277,6 +308,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 10px 20px; border-radius: 10px;
     font: inherit; font-weight: 600; cursor: pointer;
     transition: background .15s;
+    white-space: nowrap;
 }
 .btn:hover { background: var(--forest); }
 
@@ -285,26 +317,29 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     background: #fff; color: var(--ink); text-decoration: none;
     border: 1px solid var(--line); padding: 10px 20px; border-radius: 10px;
     font: inherit; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
 }
 .btn-outline:hover { background: var(--paper); }
 
 /* ---------- Stats ---------- */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
-.stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 14px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.stat > div { min-width: 0; }
 .stat .icon { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .stat .icon.green  { background: var(--leaf-soft); color: var(--forest); }
 .stat .icon.gold   { background: var(--harvest-soft); color: var(--harvest); }
 .stat .icon.red    { background: var(--danger-soft); color: var(--danger); }
 .stat .icon.neutral { background: var(--paper); color: var(--ink); }
 .stat .label { font-size: 12.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
-.stat .value { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+.stat .value { font-size: clamp(18px, 2vw, 22px); font-weight: 700; letter-spacing: -0.01em; overflow-wrap: anywhere; }
 
 /* ---------- Filters ---------- */
 .filters { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 18px; }
 .filters form { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 14px; align-items: end; }
-.filters .field { display: flex; flex-direction: column; }
+.filters .field { display: flex; flex-direction: column; min-width: 0; }
 .filters label { font-weight: 600; font-size: 13px; margin-bottom: 5px; }
 .filters input, .filters select {
+    width: 100%; min-width: 0;
     padding: 10px 12px; border: 1px solid #cbd5cd; border-radius: 10px;
     font: inherit; background: #fff; color: var(--ink);
     transition: border-color .15s, box-shadow .15s;
@@ -352,10 +387,10 @@ td.total { font-weight: 700; }
 }
 .pager a:hover { background: var(--paper); }
 .pager span.disabled { color: #a7b2ab; background: var(--paper); cursor: not-allowed; }
-.pager .current { color: var(--ink); font-weight: 600; padding: 0 6px; }
+.pager .current { color: var(--ink); font-weight: 600; padding: 0 6px; white-space: nowrap; }
 
 /* Messages / empty */
-.message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; font-weight: 500; font-size: 14.5px; background: var(--danger-soft); color: var(--danger); }
+.message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; font-weight: 500; font-size: 14.5px; background: var(--danger-soft); color: var(--danger); overflow-wrap: anywhere; }
 .message::before { content: "\f06a"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-top: 1px; }
 
 .empty { text-align: center; padding: 56px 24px; }
@@ -363,30 +398,111 @@ td.total { font-weight: 700; }
 .empty h2 { font-size: 18px; margin-bottom: 6px; }
 .empty p { color: var(--muted); margin-bottom: 20px; }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 1100px) {
+/* =========================================================
+   RESPONSIVE (screen only, so Print keeps the normal table)
+   1100 laptop/tablet · 900 table→cards · 768 hamburger nav
+   560 phone · 400 small phone
+   ========================================================= */
+
+@media screen and (max-width: 1100px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
     .filters form { grid-template-columns: 1fr 1fr 1fr; }
     .filters .field.search { grid-column: 1 / -1; }
     .filters .actions { grid-column: 1 / -1; }
 }
 
-@media (max-width: 768px) {
-    .navbar { padding: 0 16px; overflow-x: auto; }
-    .brand, .logo { margin-right: 20px; white-space: nowrap; }
-    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
-    .navbar a { white-space: nowrap; }
-    .navbar a span { display: none; }
-    .main { padding: 18px 14px 32px; }
-    .header { flex-direction: column; align-items: flex-start; }
+/* Turn the 9-column table into stacked cards */
+@media screen and (max-width: 900px) {
+    .table-wrap { overflow: visible; }
+    table.transactions { min-width: 0; }
+    table.transactions,
+    table.transactions tbody,
+    table.transactions tr,
+    table.transactions td { display: block; width: 100%; }
+    table.transactions thead { position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+
+    .table-card { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+    table.transactions tbody tr {
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        padding: 6px 16px; margin-bottom: 14px;
+    }
+    table.transactions tbody tr:hover { background: var(--card); }
+    table.transactions tbody tr td {
+        display: flex; justify-content: space-between; align-items: center; gap: 16px;
+        padding: 10px 0; border-bottom: 1px dashed var(--line);
+        text-align: right; white-space: normal; overflow-wrap: anywhere;
+    }
+    table.transactions tbody tr td:last-child { border-bottom: 0; }
+    table.transactions td::before {
+        content: attr(data-label); flex-shrink: 0; text-align: left;
+        font-weight: 600; font-size: 12.5px; color: var(--muted);
+        text-transform: uppercase; letter-spacing: .04em;
+    }
+    td .sub-text { max-width: none; white-space: normal; overflow: visible; }
+
+    .table-footer { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
 }
 
-@media (max-width: 560px) {
+/* Collapse navigation into a hamburger menu */
+@media screen and (max-width: 768px) {
+    .navbar { height: 64px; }
+    .brand, .logo { margin-right: 0; font-size: 18px; }
+    .brand strong, .logo h2 { font-size: 18px; }
+    .nav-toggle { display: inline-flex; }
+
+    .navbar .nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex: none;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 2px;
+        background: var(--forest);
+        padding: 8px var(--pad-x) 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 24px rgba(0, 0, 0, 0.18);
+        max-height: calc(100vh - 64px);
+        max-height: calc(100dvh - 64px);
+        overflow-y: auto;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-8px);
+        transition: opacity .2s ease, transform .2s ease, visibility .2s;
+    }
+    .navbar .nav.open { opacity: 1; visibility: visible; transform: translateY(0); }
+
+    .navbar .nav a { padding: 14px 16px; border-radius: 10px; font-size: 16px; }
+    .navbar .nav li.logout { margin-left: 0; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.12); }
+
+    .main { padding-top: 18px; padding-bottom: 32px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .filters form { grid-template-columns: 1fr 1fr; }
+    .filters .field.search { grid-column: 1 / -1; }
+    .stats { gap: 12px; }
+}
+
+@media screen and (max-width: 560px) {
     .stats { grid-template-columns: 1fr; }
-    .filters form { grid-template-columns: 1fr; }
+    .filters { padding: 14px; }
+    .filters form { grid-template-columns: 1fr; gap: 12px; }
+
+    /* 16px inputs stop iOS Safari from zooming on focus; taller targets for thumbs */
+    .filters input, .filters select { font-size: 16px; min-height: 46px; }
+    .filters .actions .btn, .filters .actions .btn-outline { flex: 1; min-height: 46px; }
+
     .header-actions { width: 100%; flex-direction: column; }
-    .header-actions .btn, .header-actions .btn-outline { width: 100%; }
-    .table-footer { flex-direction: column; align-items: flex-start; }
+    .header-actions .btn, .header-actions .btn-outline { width: 100%; min-height: 46px; }
+
+    .table-footer { flex-direction: column; align-items: stretch; text-align: center; }
+    .pager { justify-content: space-between; }
+    .pager a, .pager span.disabled { min-height: 44px; }
+}
+
+@media screen and (max-width: 400px) {
+    table.transactions tbody tr { padding: 4px 12px; }
+    .empty { padding: 40px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -407,14 +523,18 @@ td.total { font-weight: 700; }
 <body>
 
 <!-- NAVBAR -->
-<nav class="navbar">
+<nav class="navbar" aria-label="Main navigation">
 
     <div class="logo">
         <h2><i class="fa-solid fa-seedling"></i> FarmMarket</h2>
         <p>Farm-to-Market System</p>
     </div>
 
-    <ul class="nav">
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="main-nav">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
@@ -522,7 +642,7 @@ td.total { font-weight: 700; }
         <?php if (!empty($transactions)): ?>
 
             <div class="table-wrap">
-                <table>
+                <table class="transactions">
                     <thead>
                         <tr>
                             <th>Ref #</th>
@@ -548,20 +668,22 @@ td.total { font-weight: 700; }
                         $notes = trim((string)($t['notes'] ?? ''));
                     ?>
                         <tr>
-                            <td class="ref"><?= e($refNo) ?></td>
-                            <td class="date"><?= e($dateText) ?></td>
-                            <td><span class="main-text"><?= e($t['buyer_name']) ?></span></td>
-                            <td>
-                                <span class="main-text"><?= e($t['product_name']) ?></span>
-                                <?php if ($notes !== ''): ?>
-                                    <span class="sub-text" title="<?= e($notes) ?>"><i class="fa-regular fa-note-sticky"></i> <?= e($notes) ?></span>
-                                <?php endif; ?>
+                            <td class="ref" data-label="Ref #"><?= e($refNo) ?></td>
+                            <td class="date" data-label="Date"><?= e($dateText) ?></td>
+                            <td data-label="Buyer"><span class="main-text"><?= e($t['buyer_name']) ?></span></td>
+                            <td data-label="Product">
+                                <div>
+                                    <span class="main-text"><?= e($t['product_name']) ?></span>
+                                    <?php if ($notes !== ''): ?>
+                                        <span class="sub-text" title="<?= e($notes) ?>"><i class="fa-regular fa-note-sticky"></i> <?= e($notes) ?></span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
-                            <td class="num"><?= e(qty($t['quantity'])) ?> <?= e($t['unit']) ?></td>
-                            <td class="num"><?= e(peso($t['price'])) ?></td>
-                            <td class="num total"><?= e(peso($t['total_amount'])) ?></td>
-                            <td><?= e($payText) ?></td>
-                            <td><span class="badge <?= e($statusKey) ?>"><?= e($statusText) ?></span></td>
+                            <td class="num" data-label="Quantity"><?= e(qty($t['quantity'])) ?> <?= e($t['unit']) ?></td>
+                            <td class="num" data-label="Price"><?= e(peso($t['price'])) ?></td>
+                            <td class="num total" data-label="Total"><?= e(peso($t['total_amount'])) ?></td>
+                            <td data-label="Payment"><?= e($payText) ?></td>
+                            <td data-label="Status"><span class="badge <?= e($statusKey) ?>"><?= e($statusText) ?></span></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -612,6 +734,36 @@ td.total { font-weight: 700; }
     </section>
 
 </main>
+
+<script>
+// Mobile menu
+(function () {
+    const toggle = document.getElementById('nav-toggle');
+    const nav = document.getElementById('main-nav');
+    const icon = toggle.querySelector('i');
+
+    function setMenu(open) {
+        nav.classList.toggle('open', open);
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        icon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+    }
+
+    toggle.addEventListener('click', e => {
+        e.stopPropagation();
+        setMenu(!nav.classList.contains('open'));
+    });
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.navbar')) setMenu(false);
+    });
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') setMenu(false);
+    });
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) setMenu(false);
+    });
+})();
+</script>
 
 </body>
 </html>

@@ -7,6 +7,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#154c34">
     <title>AgriBayan | Local Farms, Bigger Dreams</title>
     <meta name="description" content="AgriBayan connects farmers and buyers in one platform, making it easier to sell, buy, and support local agricultural products.">
     
@@ -41,6 +42,10 @@ session_start();
             --cat-4: #f7e6e5;
             --cat-5: #f2efe9;
             --cat-6: #eef3e6;
+
+            /* Fluid spacing used by sections */
+            --section-pad: clamp(48px, 8vw, 100px);
+            --gutter: clamp(16px, 4vw, 24px);
         }
 
         * {
@@ -49,12 +54,19 @@ session_start();
             box-sizing: border-box;
         }
 
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+            scroll-padding-top: 90px; /* keeps anchored sections clear of sticky navbar */
+        }
+
         body {
             font-family: 'Figtree', sans-serif;
             background-color: var(--bg);
             color: var(--text-dark);
             line-height: 1.5;
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
         a {
@@ -71,11 +83,18 @@ session_start();
             display: block;
         }
 
+        :focus-visible {
+            outline: 3px solid #2f8f62;
+            outline-offset: 2px;
+            border-radius: 6px;
+        }
+
         /* Container */
         .container {
+            width: 100%;
             max-width: 1280px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 var(--gutter);
         }
 
         /* Buttons */
@@ -91,6 +110,7 @@ session_start();
             transition: all 0.2s ease;
             cursor: pointer;
             border: 1.5px solid transparent;
+            white-space: nowrap;
         }
 
         .btn-primary {
@@ -100,7 +120,6 @@ session_start();
 
         .btn-primary:hover {
             background-color: var(--primary-hover);
-            transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(21, 76, 52, 0.2);
         }
 
@@ -125,6 +144,11 @@ session_start();
             border-color: var(--primary);
         }
 
+        /* Lift effect only on devices that actually hover (avoids "stuck" hover on touch) */
+        @media (hover: hover) {
+            .btn-primary:hover { transform: translateY(-1px); }
+        }
+
         /* Navbar */
         .navbar {
             background-color: var(--white);
@@ -139,12 +163,14 @@ session_start();
             align-items: center;
             justify-content: space-between;
             height: 80px;
+            gap: 16px;
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-shrink: 0;
         }
 
         .brand-icon {
@@ -203,7 +229,7 @@ session_start();
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
 
         .search-icon {
@@ -215,6 +241,26 @@ session_start();
         
         .search-icon:hover {
             color: var(--primary);
+        }
+
+        /* Mobile menu toggle (hidden on desktop) */
+        .menu-toggle {
+            display: none;
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-soft);
+            color: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .menu-toggle:hover {
+            background: var(--accent);
         }
 
         /* Hero Section */
@@ -264,7 +310,7 @@ session_start();
         }
 
         .hero h1 {
-            font-size: 56px;
+            font-size: clamp(34px, 5.2vw, 56px);
             font-weight: 800;
             line-height: 1.1;
             letter-spacing: -0.03em;
@@ -273,7 +319,7 @@ session_start();
         }
 
         .hero p {
-            font-size: 18px;
+            font-size: clamp(16px, 2vw, 18px);
             color: var(--text-muted);
             margin-bottom: 32px;
             max-width: 480px;
@@ -281,6 +327,7 @@ session_start();
 
         .hero-buttons {
             display: flex;
+            flex-wrap: wrap;
             gap: 16px;
             align-items: center;
         }
@@ -293,11 +340,12 @@ session_start();
             right: 40px;
             top: 20px;
             transform: rotate(-5deg);
+            z-index: 2;
         }
 
         /* Categories */
         .categories {
-            padding: 80px 0;
+            padding: var(--section-pad) 0;
             background-color: var(--white);
         }
 
@@ -305,6 +353,8 @@ session_start();
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 16px;
             margin-bottom: 40px;
         }
 
@@ -320,10 +370,11 @@ session_start();
         }
 
         .section-title h2 {
-            font-size: 32px;
+            font-size: clamp(24px, 3.6vw, 32px);
             font-weight: 800;
             letter-spacing: -0.02em;
             color: var(--primary);
+            line-height: 1.2;
         }
 
         .section-title p {
@@ -358,10 +409,12 @@ session_start();
             display: block;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        .cat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
+
+        @media (hover: hover) {
+            .cat-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+            }
         }
 
         .cat-1 { background-color: var(--cat-1); }
@@ -390,6 +443,7 @@ session_start();
             align-items: center;
             justify-content: center;
             color: var(--primary);
+            flex-shrink: 0;
         }
 
         .cat-img {
@@ -408,7 +462,7 @@ session_start();
         /* Features */
         .features {
             background-color: var(--accent-soft);
-            padding: 60px 0;
+            padding: clamp(40px, 6vw, 60px) 0;
         }
 
         .feature-grid {
@@ -448,7 +502,7 @@ session_start();
 
         /* How It Works */
         .how-it-works {
-            padding: 100px 0;
+            padding: var(--section-pad) 0;
             background-color: var(--white);
             position: relative;
         }
@@ -463,6 +517,7 @@ session_start();
         .step {
             flex: 1;
             position: relative;
+            min-width: 0;
         }
 
         .step:not(:last-child)::after {
@@ -536,7 +591,7 @@ session_start();
             left: 50%;
             transform: translate(-50%, -50%) rotate(-5deg);
             font-family: 'Caveat', cursive;
-            font-size: 32px;
+            font-size: clamp(24px, 4vw, 32px);
             color: var(--primary);
             text-align: center;
             line-height: 1;
@@ -599,7 +654,8 @@ session_start();
 
         .footer-links {
             display: flex;
-            gap: 32px;
+            flex-wrap: wrap;
+            gap: 12px 32px;
         }
 
         .footer-links a {
@@ -619,8 +675,8 @@ session_start();
         }
 
         .footer-social a {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background-color: rgba(255,255,255,0.1);
             display: flex;
@@ -637,6 +693,8 @@ session_start();
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 16px 24px;
             font-size: 13px;
             color: rgba(255,255,255,0.6);
         }
@@ -654,34 +712,6 @@ session_start();
 
         .footer-disclaimer strong { font-weight: 700; }
 
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .category-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            .hiw-layout {
-                grid-template-columns: 1fr;
-            }
-            .hero h1 { font-size: 48px; }
-            .hero-bg { width: 100%; mask-image: linear-gradient(to bottom, transparent, black 60%); -webkit-mask-image: linear-gradient(to bottom, transparent, black 60%); }
-            .script-text { display: none; }
-        }
-
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero { padding: 40px 0 60px; }
-            .feature-grid { grid-template-columns: repeat(2, 1fr); }
-            .steps-container { flex-direction: column; gap: 40px; }
-            .step:not(:last-child)::after { display: none; }
-            .footer-content { flex-direction: column; gap: 24px; text-align: center; }
-        }
-        
-        @media (max-width: 480px) {
-            .category-grid { grid-template-columns: 1fr; }
-            .feature-grid { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 36px; }
-        }
-        
         /* Floating Leaves Decoration */
         .leaf-decor {
             position: absolute;
@@ -704,6 +734,7 @@ session_start();
             flex-direction: column;
             gap: 12px;
             z-index: 9999;
+            max-width: calc(100vw - 32px);
         }
 
         .toast {
@@ -751,6 +782,9 @@ session_start();
 
         .ripple {
             position: absolute;
+            width: 100px;
+            height: 100px;
+            margin: -50px 0 0 -50px;
             border-radius: 50%;
             transform: scale(0);
             animation: ripple-anim 0.6s linear;
@@ -768,12 +802,200 @@ session_start();
                 opacity: 0;
             }
         }
+
+        /* =========================================================
+           RESPONSIVE BREAKPOINTS
+           1280 large laptop · 1100 small laptop · 1024 tablet landscape
+           900 tablet portrait · 768 large phone · 600 phone · 400 small phone
+           ========================================================= */
+
+        /* Large laptops / small desktops */
+        @media (max-width: 1280px) {
+            .category-grid { gap: 16px; }
+            .cat-card { padding: 16px 16px 0; }
+        }
+
+        /* Small laptops: free up room for the 4 steps */
+        @media (max-width: 1100px) {
+            .hiw-layout {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+            .banner-img { height: clamp(180px, 28vw, 260px); }
+            .category-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        /* Tablet landscape */
+        @media (max-width: 1024px) {
+            .hero { padding: 64px 0 100px; }
+            .hero-bg {
+                width: 100%;
+                opacity: 0.45;
+                border-radius: 0;
+                mask-image: linear-gradient(to bottom, transparent, black 70%);
+                -webkit-mask-image: linear-gradient(to bottom, transparent, black 70%);
+            }
+            .script-text { display: none; }
+        }
+
+        /* Tablet portrait: collapse navigation into a menu */
+        @media (max-width: 900px) {
+            .menu-toggle { display: inline-flex; }
+
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                background-color: var(--white);
+                padding: 8px var(--gutter) 16px;
+                border-top: 1px solid var(--border);
+                box-shadow: 0 16px 24px rgba(21, 76, 52, 0.10);
+                max-height: calc(100vh - 80px);
+                overflow-y: auto;
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(-8px);
+                transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+            }
+
+            .nav-links.open {
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+            }
+
+            .nav-links li + li { border-top: 1px solid var(--border); }
+
+            .nav-links a {
+                display: block;
+                padding: 16px 4px;
+                font-size: 16px;
+            }
+
+            .nav-links a.active::after { display: none; }
+            .nav-links a.active { color: var(--primary); font-weight: 700; }
+
+            .feature-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 24px; }
+        }
+
+        /* Large phones */
+        @media (max-width: 768px) {
+            .navbar .container { height: 68px; }
+            .nav-links { max-height: calc(100vh - 68px); }
+            html { scroll-padding-top: 78px; }
+
+            .hero { padding: 40px 0 72px; }
+
+            .section-header { margin-bottom: 28px; }
+
+            .category-grid { grid-template-columns: repeat(2, 1fr); }
+            .cat-card { height: 170px; }
+
+            .steps-container {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 32px 24px;
+                margin-top: 32px;
+            }
+            .step:not(:last-child)::after { display: none; }
+
+            .footer { padding: 48px 0 24px; }
+            .footer-content {
+                flex-direction: column;
+                gap: 24px;
+                text-align: center;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+            }
+            .footer-links { justify-content: center; }
+            .footer-disclaimer { font-size: 14px; padding: 16px; }
+        }
+
+        /* Phones */
+        @media (max-width: 600px) {
+            .nav-actions { gap: 8px; }
+            .nav-actions .btn { padding: 8px 16px; font-size: 14px; }
+            .brand-icon { font-size: 24px; }
+            .brand-text strong { font-size: 19px; }
+            .brand-text small { display: none; }
+
+            .hero h1 br { display: none; }
+            .hero-buttons { gap: 12px; }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .section-title { align-items: flex-start; gap: 12px; }
+            .section-title i { font-size: 26px; margin-top: 2px; }
+
+            #toast-container { left: 16px; right: 16px; bottom: 16px; }
+        }
+
+        /* Small phones */
+        @media (max-width: 480px) {
+            .hero-buttons { flex-direction: column; align-items: stretch; }
+            .hero-buttons .btn { width: 100%; padding: 13px 24px; }
+            .tag { font-size: 12px; padding: 6px 12px; }
+
+            .category-grid { gap: 12px; }
+            .cat-card { height: 150px; padding: 14px 14px 0; }
+            .cat-title { font-size: 14px; gap: 6px; }
+            .cat-icon { width: 24px; height: 24px; font-size: 12px; }
+            .cat-img { height: 100px; }
+
+            .feature-grid { grid-template-columns: 1fr; gap: 24px; }
+            .steps-container { grid-template-columns: 1fr; gap: 28px; }
+
+            .banner-text { white-space: normal; width: 90%; }
+        }
+
+        /* Very small phones (≤ 400px) */
+        @media (max-width: 400px) {
+            .navbar .container { gap: 8px; }
+            .search-icon { display: none; }
+            .nav-actions { gap: 6px; }
+            .nav-actions .btn { padding: 7px 11px; font-size: 13px; }
+            .menu-toggle { width: 40px; height: 40px; font-size: 16px; }
+            .brand { gap: 6px; }
+            .brand-icon { font-size: 21px; }
+            .brand-text strong { font-size: 17px; }
+            .footer-links { gap: 10px 20px; }
+        }
+
+        /* Tiny screens (≤ 340px): tighten a little more so nothing overflows */
+        @media (max-width: 340px) {
+            .nav-actions .btn { padding: 6px 9px; font-size: 12px; }
+            .brand-text strong { font-size: 16px; }
+        }
+
+        /* Very short landscape phones: keep the menu scrollable */
+        @media (max-height: 480px) and (orientation: landscape) {
+            .hero { padding: 32px 0 56px; }
+        }
+
+        /* Respect reduced-motion preferences */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+            .reveal { opacity: 1; transform: none; }
+        }
     </style>
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar">
+    <nav class="navbar" aria-label="Main navigation">
         <div class="container">
             <a href="index.php" class="brand">
                 <i class="fa-solid fa-leaf brand-icon"></i>
@@ -783,7 +1005,7 @@ session_start();
                 </div>
             </a>
             
-            <ul class="nav-links">
+            <ul class="nav-links" id="nav-links">
                 <li><a href="index.php" class="active">Home</a></li>
                 <li><a href="#categories">Products</a></li>
                 <li><a href="#">About Us</a></li>
@@ -792,9 +1014,12 @@ session_start();
             </ul>
             
             <div class="nav-actions">
-                <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <a href="login.php" class="btn btn-outline">Login</a>
-                    <a href="register.php" class="btn btn-primary">Sign Up</a>
+                <i class="fa-solid fa-magnifying-glass search-icon" role="button" aria-label="Search"></i>
+                <a href="login.php" class="btn btn-outline">Login</a>
+                <a href="register.php" class="btn btn-primary">Sign Up</a>
+                <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
         </div>
     </nav>
@@ -848,7 +1073,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-wheat-awn"></i></div> Rice
                     </div>
-                    <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80" alt="Rice" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80" alt="Rice" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 2 -->
@@ -856,7 +1081,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-carrot"></i></div> Vegetables
                     </div>
-                    <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&q=80" alt="Vegetables" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&q=80" alt="Vegetables" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 3 -->
@@ -864,7 +1089,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-apple-whole"></i></div> Fruits
                     </div>
-                    <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&q=80" alt="Fruits" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&q=80" alt="Fruits" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 4 -->
@@ -872,15 +1097,15 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-seedling"></i></div> Root Crops
                     </div>
-                    <img src="https://images.unsplash.com/photo-1596547609652-9fc5d8d42e74?w=400&q=80" alt="Root Crops" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1596547609652-9fc5d8d42e74?w=400&q=80" alt="Root Crops" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 5 -->
                 <a href="#" class="cat-card cat-5">
                     <div class="cat-title">
-                        <div class="cat-icon"><i class="fa-solid fa-egg"></i></div> Eggs & Poultry
+                        <div class="cat-icon"><i class="fa-solid fa-egg"></i></div> Eggs &amp; Poultry
                     </div>
-                    <img src="https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=400&q=80" alt="Eggs & Poultry" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=400&q=80" alt="Eggs &amp; Poultry" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 6 -->
@@ -888,7 +1113,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-jar"></i></div> Other Products
                     </div>
-                    <img src="https://images.unsplash.com/photo-1587049352847-4d4b126a5405?w=400&q=80" alt="Other Products" class="cat-img">
+                    <img src="https://images.unsplash.com/photo-1587049352847-4d4b126a5405?w=400&q=80" alt="Other Products" class="cat-img" loading="lazy">
                 </a>
             </div>
         </div>
@@ -907,9 +1132,9 @@ session_start();
                 </div>
                 
                 <div class="feature-item">
-                    <div class="feature-icon"><i class="fa-solid fa-shield-check"></i></div>
+                    <div class="feature-icon"><i class="fa-solid fa-shield-halved"></i></div>
                     <div>
-                        <h3>Safe & Trusted</h3>
+                        <h3>Safe &amp; Trusted</h3>
                         <p>Verified sellers and secure transactions.</p>
                     </div>
                 </div>
@@ -925,7 +1150,7 @@ session_start();
                 <div class="feature-item">
                     <div class="feature-icon"><i class="fa-solid fa-spa"></i></div>
                     <div>
-                        <h3>Fresh & Healthy</h3>
+                        <h3>Fresh &amp; Healthy</h3>
                         <p>Enjoy naturally grown and chemical-free produce.</p>
                     </div>
                 </div>
@@ -979,7 +1204,7 @@ session_start();
                                 <div class="step-num">4</div>
                                 <div class="step-icon"><i class="fa-solid fa-truck"></i></div>
                             </div>
-                            <h3>Track & Receive</h3>
+                            <h3>Track &amp; Receive</h3>
                             <p>Get updates and receive your products safely.</p>
                         </div>
                     </div>
@@ -1008,9 +1233,9 @@ session_start();
                 </div>               
                 
                 <div class="footer-social">
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#"><i class="fa-brands fa-tiktok"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
                 </div>
             </div>
 
@@ -1038,7 +1263,7 @@ session_start();
     </footer>
 
     <!-- Toast Container -->
-    <div id="toast-container"></div>
+    <div id="toast-container" aria-live="polite"></div>
 
     <!-- Interactivity Scripts -->
     <script>
@@ -1067,7 +1292,38 @@ session_start();
                 }, 3000);
             }
 
-            // 2. Handle empty/dummy links
+            // 2. Mobile menu (hamburger)
+            const menuToggle = document.getElementById('menu-toggle');
+            const navLinks = document.getElementById('nav-links');
+            const menuIcon = menuToggle.querySelector('i');
+
+            function setMenu(open) {
+                navLinks.classList.toggle('open', open);
+                menuToggle.setAttribute('aria-expanded', String(open));
+                menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+                menuIcon.className = open ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+            }
+
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setMenu(!navLinks.classList.contains('open'));
+            });
+
+            // Close when a link is tapped, when tapping outside, on Escape, or when resizing to desktop
+            navLinks.addEventListener('click', (e) => {
+                if (e.target.closest('a')) setMenu(false);
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.navbar')) setMenu(false);
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') setMenu(false);
+            });
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 900) setMenu(false);
+            });
+
+            // 3. Handle empty/dummy links
             const dummyLinks = document.querySelectorAll('a[href="#"]');
             dummyLinks.forEach(link => {
                 link.addEventListener('click', (e) => {
@@ -1076,7 +1332,7 @@ session_start();
                 });
             });
 
-            // 3. Smooth scrolling for internal anchors
+            // 4. Smooth scrolling for internal anchors
             document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -1099,11 +1355,11 @@ session_start();
                 });
             });
 
-            // 4. Ripple effect on buttons
+            // 5. Ripple effect on buttons
             const buttons = document.querySelectorAll('.btn');
             buttons.forEach(btn => {
                 btn.addEventListener('click', function (e) {
-                    const rect = e.target.getBoundingClientRect();
+                    const rect = this.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     
@@ -1124,7 +1380,7 @@ session_start();
                 });
             });
 
-            // 5. Scroll Animations (Intersection Observer)
+            // 6. Scroll Animations (Intersection Observer)
             const revealElements = document.querySelectorAll('.cat-card, .feature-item, .step, .section-title, .hero-content');
             
             // Add reveal class to all targets
