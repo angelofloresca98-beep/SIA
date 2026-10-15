@@ -105,6 +105,8 @@ function renderUserTable(array $users, string $role): void {
     <?php
 }
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -132,6 +134,7 @@ function renderUserTable(array $users, string $role): void {
     --danger: #c0392b;
     --danger-soft: #fbe3e0;
     --radius: 12px;
+    --sidebar-w: 250px;
 }
 
 * { box-sizing: border-box; }
@@ -148,60 +151,119 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     outline-offset: 2px;
 }
 
-/* ---------- Navbar ---------- */
-.navbar {
-    position: sticky;
+/* ---------- Sidebar ---------- */
+.sidebar {
+    position: fixed;
     top: 0;
-    width: 100%;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
     background: var(--forest);
-    padding: 0 32px;
+    color: #fff;
     display: flex;
-    align-items: center;
-    z-index: 1000;
-    height: 70px;
+    flex-direction: column;
+    padding: 24px 16px;
+    z-index: 1040;
+    overflow-y: auto;
+    transition: transform .25s ease;
 }
 
-.brand, .logo {
-    color: #fff;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     font-size: 20px;
     font-weight: 700;
     letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-right: 40px;
-}
-.brand strong, .logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
-.brand small, .logo p { display: none; }
-
-.navbar nav, .navbar .nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    padding: 0 10px 24px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.navbar a {
+.brand i {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.14);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
+.side-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 18px 12px 8px;
+}
+
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sidebar a {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     color: rgba(255, 255, 255, 0.78);
     text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 99px;
+    padding: 11px 14px;
+    border-radius: 10px;
     font-weight: 500;
+    transition: background .15s, color .15s;
 }
 
-.navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.navbar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
-.navbar a i { width: 18px; text-align: center; }
-.navbar .logout, .navbar li.logout { margin-left: auto; }
+.sidebar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.sidebar a.active { background: rgba(255, 255, 255, 0.16); color: #fff; font-weight: 600; }
+.sidebar a i { width: 20px; text-align: center; }
+
+.sidebar .logout {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 0 0 10px 10px;
+    padding-top: 16px;
+}
+
+.sidebar .logout:hover { background: rgba(255, 255, 255, 0.08); }
+
+/* Mobile top bar (hidden on desktop) */
+.mobile-bar {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 58px;
+    background: var(--forest);
+    color: #fff;
+    align-items: center;
+    gap: 14px;
+    padding: 0 16px;
+    z-index: 1030;
+    font-weight: 700;
+}
+
+.menu-toggle {
+    width: 40px; height: 40px;
+    border: 0; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 42, 36, 0.5);
+    z-index: 1035;
+}
 
 /* ---------- Layout ---------- */
-.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
+.main {
+    margin-left: var(--sidebar-w);
+    padding: 28px 36px 48px;
+}
 
 .topbar {
     display: flex;
@@ -360,18 +422,22 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 .empty p { margin-bottom: 12px; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 992px) {
+@media (max-width: 1100px) {
     .stats { grid-template-columns: 1fr 1fr; }
     .stat-card.total { grid-column: 1 / -1; }
 }
 
-@media (max-width: 768px) {
-    .navbar { padding: 0 16px; overflow-x: auto; }
-    .brand, .logo { margin-right: 20px; white-space: nowrap; }
-    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
-    .navbar a { white-space: nowrap; }
-    .navbar a span { display: none; }
-    .main { margin-left: 0; padding: 18px 14px 40px; }
+/* Sidebar becomes a slide-in drawer */
+@media (max-width: 992px) {
+    .mobile-bar { display: flex; }
+
+    .sidebar { transform: translateX(-100%); box-shadow: none; }
+    .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,.35); }
+    .sidebar-backdrop.show { display: block; }
+
+    .main { margin-left: 0; padding: 78px 16px 40px; }
+    .scroll-section { scroll-margin-top: 74px; }
+
     .topbar { flex-direction: column; align-items: flex-start; }
     .search input { width: 100%; }
     .search, .tools { width: 100%; }
@@ -390,17 +456,29 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 <body>
 
-<nav class="navbar">
+<!-- Mobile top bar (only visible on small screens) -->
+<div class="mobile-bar">
+    <button type="button" class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <span><i class="fa-solid fa-seedling me-2"></i>Admin Panel</span>
+</div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <div class="brand"><i class="fa-solid fa-seedling"></i> Admin Panel</div>
 
-        <nav>
+    <div class="side-label">Menu</div>
+    <nav class="side-nav">
         <a href="#dashboard" class="menu-link active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
         <a href="#users" class="menu-link"><i class="fa-solid fa-users"></i><span>User Management</span></a>
         <a href="#sales" class="menu-link"><i class="fa-solid fa-chart-line"></i><span>Sales Overview</span></a>
     </nav>
 
     <a href="../logout.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></a>
-</nav>
+</aside>
 
 <main class="main">
 
@@ -569,52 +647,33 @@ document.getElementById('deleteModal').addEventListener('show.bs.modal', functio
     document.getElementById('deleteUserName').textContent = btn.dataset.name;
 });
 
-// Interactivity: Smooth Scrolling & Scroll Spy
-document.addEventListener('DOMContentLoaded', () => {
-    const menuLinks = document.querySelectorAll('.menu-link');
-    const sections = document.querySelectorAll('.scroll-section');
+// Sidebar: mobile open/close
+const sidebar   = document.getElementById('sidebar');
+const backdrop  = document.getElementById('sidebarBackdrop');
+const menuBtn   = document.getElementById('menuToggle');
 
-    // Smooth scrolling for menu links
-    menuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId.startsWith('#')) {
-                e.preventDefault();
-                const targetSection = document.querySelector(targetId);
-                if (targetSection) {
-                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-        });
-    });
+function setSidebar(open) {
+    sidebar.classList.toggle('open', open);
+    backdrop.classList.toggle('show', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
 
-    // Scroll spy to update active menu link
-    window.addEventListener('scroll', () => {
-        let current = '';
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (scrollY >= (sectionTop - 150)) {
-                current = section.getAttribute('id');
-            }
-        });
-
-        menuLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
-            }
-        });
-    });
+menuBtn.addEventListener('click', function () {
+    setSidebar(!sidebar.classList.contains('open'));
+});
+backdrop.addEventListener('click', function () { setSidebar(false); });
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setSidebar(false);
 });
 
-// Interactivity: Smooth Scrolling & Scroll Spy
+// Smooth scrolling & scroll spy
 document.addEventListener('DOMContentLoaded', () => {
     const menuLinks = document.querySelectorAll('.menu-link');
     const sections = document.querySelectorAll('.scroll-section');
 
-    // Smooth scrolling for menu links
+    // Smooth scrolling for menu links (also closes the mobile drawer)
     menuLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             const targetId = this.getAttribute('href');
             if (targetId.startsWith('#')) {
                 e.preventDefault();
@@ -622,11 +681,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (targetSection) {
                     targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+                setSidebar(false);
             }
         });
     });
 
-    // Scroll spy to update active menu link
+    // Scroll spy to update the active sidebar link
     window.addEventListener('scroll', () => {
         let current = '';
         sections.forEach(section => {

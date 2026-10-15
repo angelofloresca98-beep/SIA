@@ -145,12 +145,15 @@ function cls(array $errors, string $name, string $base = 'form-control'): string
 $displayName = trim($user['firstName'] . ' ' . ($user['middleName'] ?? '') . ' ' . $user['lastName']);
 $initials    = strtoupper(mb_substr($user['firstName'], 0, 1) . mb_substr($user['lastName'], 0, 1));
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Edit <?= e($displayName) ?> · Admin</title>
+<title>Edit <?= e($displayName) ?> · AgriBayan Admin</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -169,258 +172,824 @@ $initials    = strtoupper(mb_substr($user['firstName'], 0, 1) . mb_substr($user[
     --radius: 12px;
 }
 
-* { box-sizing: border-box; }
+* {
+    box-sizing: border-box;
+}
 
-body { font-family: 'Figtree', system-ui, sans-serif; background: var(--paper); color: var(--ink); margin: 0; }
+body {
+    font-family: 'Figtree', system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    margin: 0;
+}
 
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
     outline: 3px solid var(--harvest);
     outline-offset: 2px;
 }
 
-/* ---------- Navbar ---------- */
-.navbar {
-    position: sticky;
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar {
+    position: fixed;
     top: 0;
-    width: 100%;
+    left: 0;
+    width: 250px;
+    height: 100vh;
     background: var(--forest);
-    padding: 0 32px;
+    color: white;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    padding: 25px 16px 18px;
     z-index: 1000;
-    height: 70px;
+    overflow-y: auto;
 }
 
-.brand, .logo {
-    color: #fff;
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 10px 25px;
+    border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.sidebar-brand > i {
+    font-size: 29px;
+    color: #b9e4c8;
+}
+
+.sidebar-brand strong {
+    display: block;
     font-size: 20px;
     font-weight: 700;
-    letter-spacing: -0.01em;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-right: 40px;
-}
-.brand strong, .logo h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; letter-spacing: -0.01em; }
-.brand small, .logo p { display: none; }
-
-.navbar nav, .navbar .nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    list-style: none;
-    margin: 0;
-    padding: 0;
 }
 
-.navbar a {
+.sidebar-brand small {
+    display: block;
+    margin-top: 3px;
+    color: #c4d9cc;
+    font-size: 12px;
+}
+
+.sidebar-section-title {
+    margin: 28px 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    color: #a9c4b3;
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.sidebar a {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.78);
+    gap: 13px;
+    padding: 13px 14px;
+    border-radius: 10px;
+    color: #dce9e0;
     text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 99px;
+    font-size: 14px;
     font-weight: 500;
+    transition: background .2s, color .2s;
 }
 
-.navbar a:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
-.navbar a.active { background: rgba(255, 255, 255, 0.14); color: #fff; }
-.navbar a i { width: 18px; text-align: center; }
-.navbar .logout, .navbar li.logout { margin-left: auto; }
+.sidebar a i {
+    width: 20px;
+    flex-shrink: 0;
+    text-align: center;
+    font-size: 16px;
+}
 
-/* ---------- Layout ---------- */
-.main { margin: 0 auto; padding: 28px 32px 48px; max-width: 1280px; }
-.page { max-width: 760px; }
+.sidebar-nav a:hover {
+    background: rgba(255,255,255,.09);
+    color: white;
+}
 
-.crumbs { color: var(--muted); font-size: 14px; margin-bottom: 8px; }
-.crumbs a { color: var(--muted); text-decoration: none; }
-.crumbs a:hover { color: var(--forest); text-decoration: underline; }
+.sidebar-nav a.active {
+    background: #e1f1e6;
+    color: var(--forest);
+    font-weight: 700;
+}
 
-.page-head { display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
-.avatar { width: 56px; height: 56px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-.avatar.farmer { background: #dff0e5; color: var(--forest); }
-.avatar.buyer  { background: #fbeccb; color: #7a4f0e; }
-h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
-.sub { color: var(--muted); margin: 2px 0 0; }
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 25px;
+}
 
-/* ---------- Form ---------- */
-.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; }
-.section-title { font-size: 15px; font-weight: 700; margin: 0 0 14px; }
-.section + .section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+.sidebar-divider {
+    height: 1px;
+    background: rgba(255,255,255,.15);
+    margin-bottom: 14px;
+}
 
-.form-label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
-.optional { color: var(--muted); font-weight: 400; }
+.sidebar a.sidebar-logout {
+    color: #ffdfd9;
+}
 
-.form-control, .form-select { border: 1px solid #cfd8d2; border-radius: 10px; padding: 10px 12px; font: inherit; }
-.form-control:focus, .form-select:focus { border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(47,125,79,.18); }
-.hint { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.sidebar a.sidebar-logout:hover {
+    background: rgba(255,255,255,.09);
+    color: white;
+}
 
-.pw-wrap { position: relative; }
-.pw-wrap .form-control { padding-right: 46px; }
-.pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: var(--muted); width: 36px; height: 36px; border-radius: 8px; }
-.pw-toggle:hover { color: var(--ink); background: var(--paper); }
+.sidebar-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 22px;
+    padding: 12px 5px;
+    border-radius: 10px;
+    background: rgba(255,255,255,.07);
+    color: #c4d9cc;
+    font-size: 12px;
+}
 
-.actions { display: flex; gap: 12px; margin-top: 28px; }
-.btn-primary { background: var(--leaf); border-color: var(--leaf); font-weight: 600; padding: 10px 22px; }
-.btn-primary:hover, .btn-primary:focus { background: var(--forest); border-color: var(--forest); }
-.btn-light { border: 1px solid var(--line); font-weight: 600; padding: 10px 22px; }
+/* =========================
+   MAIN CONTENT
+========================= */
+.main {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    min-height: 100vh;
+    padding: 32px;
+}
 
-/* ---------- Responsive ---------- */
+.page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.crumbs {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.crumbs a {
+    color: var(--muted);
+    text-decoration: none;
+}
+
+.crumbs a:hover {
+    color: var(--forest);
+    text-decoration: underline;
+}
+
+/* =========================
+   USER HEADER
+========================= */
+.page-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.avatar.farmer {
+    background: #dff0e5;
+    color: var(--forest);
+}
+
+.avatar.buyer {
+    background: #fbeccb;
+    color: #7a4f0e;
+}
+
+h1 {
+    font-size: 27px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.sub {
+    color: var(--muted);
+    margin: 4px 0 0;
+    overflow-wrap: anywhere;
+}
+
+/* =========================
+   FORM
+========================= */
+.panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 14px;
+}
+
+.section + .section {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+}
+
+.form-label {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.optional {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.form-control,
+.form-select {
+    width: 100%;
+    border: 1px solid #cfd8d2;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font: inherit;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--leaf);
+    box-shadow: 0 0 0 3px rgba(47,125,79,.18);
+}
+
+textarea.form-control {
+    resize: vertical;
+}
+
+.hint {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* Password visibility */
+.pw-wrap {
+    position: relative;
+}
+
+.pw-wrap .form-control {
+    padding-right: 46px;
+}
+
+.pw-toggle {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.pw-toggle:hover {
+    color: var(--ink);
+    background: var(--paper);
+}
+
+/* Buttons */
+.actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.btn-primary {
+    background: var(--leaf);
+    border-color: var(--leaf);
+    font-weight: 600;
+    padding: 10px 22px;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: var(--forest);
+    border-color: var(--forest);
+}
+
+.btn-light {
+    border: 1px solid var(--line);
+    font-weight: 600;
+    padding: 10px 22px;
+}
+
+/* =========================
+   TABLET
+========================= */
 @media (max-width: 768px) {
-    .navbar { padding: 0 16px; overflow-x: auto; }
-    .brand, .logo { margin-right: 20px; white-space: nowrap; }
-    .navbar nav, .navbar .nav { flex: 1; min-width: max-content; }
-    .navbar a { white-space: nowrap; }
-    .navbar a span { display: none; }
-    .main { margin-left: 0; padding: 18px 14px 40px; }
-    .panel { padding: 18px; }
+    .sidebar {
+        width: 190px;
+        padding: 22px 10px 14px;
+    }
+
+    .sidebar-brand {
+        padding-left: 8px;
+        gap: 8px;
+    }
+
+    .sidebar-brand strong {
+        font-size: 17px;
+    }
+
+    .sidebar a {
+        gap: 9px;
+        padding: 12px 9px;
+        font-size: 13px;
+    }
+
+    .main {
+        margin-left: 190px;
+        width: calc(100% - 190px);
+        padding: 22px 16px;
+    }
+
+    .panel {
+        padding: 20px;
+    }
 }
 
+/* =========================
+   MOBILE
+========================= */
 @media (max-width: 480px) {
-    .actions { flex-direction: column-reverse; }
-    .actions .btn { width: 100%; }
+    .sidebar {
+        width: 65px;
+        padding: 18px 7px;
+    }
+
+    .sidebar-brand {
+        justify-content: center;
+        padding: 0 0 22px;
+    }
+
+    .sidebar-brand > i {
+        font-size: 25px;
+    }
+
+    .sidebar-brand div,
+    .sidebar-section-title,
+    .sidebar a span,
+    .sidebar-footer {
+        display: none;
+    }
+
+    .sidebar-nav {
+        margin-top: 20px;
+    }
+
+    .sidebar a {
+        justify-content: center;
+        padding: 13px 5px;
+    }
+
+    .sidebar a i {
+        font-size: 18px;
+    }
+
+    .main {
+        margin-left: 65px;
+        width: calc(100% - 65px);
+        padding: 18px 10px;
+    }
+
+    .page-head {
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 45px;
+        height: 45px;
+        font-size: 15px;
+    }
+
+    h1 {
+        font-size: 21px;
+    }
+
+    .sub {
+        font-size: 13px;
+        overflow-wrap: anywhere;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    .actions {
+        flex-direction: column-reverse;
+    }
+
+    .actions .btn {
+        width: 100%;
+    }
 }
 
-@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
+}
 </style>
 </head>
 
 <body>
 
-<nav class="navbar">
-    <div class="brand"><i class="fa-solid fa-seedling"></i> Admin Panel</div>
+<!-- =========================
+     SIDEBAR
+========================= -->
+<aside class="sidebar">
 
-    <nav>
-        <a href="admin.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
-        <a href="admin.php#users" class="active"><i class="fa-solid fa-users"></i><span>Users</span></a>
-        <a href="admin.php?status=inactive#users"><i class="fa-solid fa-user-slash"></i><span>Inactive users</span></a>
-        <a href="add.php"><i class="fa-solid fa-user-plus"></i><span>Add user</span></a>
+    <div class="sidebar-brand">
+        <i class="fa-solid fa-seedling"></i>
+        <div>
+            <strong>AgriBayan</strong>
+            <small>Admin Panel</small>
+        </div>
+    </div>
+
+    <div class="sidebar-section-title">MAIN MENU</div>
+
+    <nav class="sidebar-nav">
+        <a href="admin.php">
+            <i class="fa-solid fa-house"></i>
+            <span>Dashboard</span>
+        </a>
+
+        <a href="admin.php#users" class="active" aria-current="page">
+            <i class="fa-solid fa-users"></i>
+            <span>Users</span>
+        </a>
+
+        <a href="admin.php?status=inactive#users">
+            <i class="fa-solid fa-user-slash"></i>
+            <span>Inactive Users</span>
+        </a>
+
+        <a href="add.php">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Add User</span>
+        </a>
     </nav>
 
-    <a href="../logout.php" class="logout"><i class="fa-solid fa-right-from-bracket"></i><span>Log out</span></a>
-</nav>
+    <div class="sidebar-bottom">
+        <div class="sidebar-divider"></div>
 
+        <a href="../logout.php" class="sidebar-logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Log Out</span>
+        </a>
+
+        <div class="sidebar-footer">
+            <i class="fa-solid fa-leaf"></i>
+            <span>Growing together</span>
+        </div>
+    </div>
+
+</aside>
+
+<!-- =========================
+     MAIN CONTENT
+========================= -->
 <main class="main">
 <div class="page">
 
-    <div class="crumbs"><a href="admin.php">Dashboard</a> / <a href="admin.php#users">Users</a> / Edit</div>
+    <div class="crumbs">
+        <a href="admin.php">Dashboard</a>
+        /
+        <a href="admin.php#users">Users</a>
+        / Edit User
+    </div>
 
+    <!-- USER INFORMATION -->
     <div class="page-head">
-        <span class="avatar <?= e($user['role']) ?>"><?= e($initials) ?></span>
+
+        <span class="avatar <?= e($user['role']) ?>">
+            <?= e($initials) ?>
+        </span>
+
         <div>
             <h1><?= e($displayName) ?></h1>
             <p class="sub"><?= e($user['email']) ?></p>
         </div>
+
     </div>
 
+    <!-- ERROR MESSAGES -->
     <?php if (isset($errors['form'])): ?>
-        <div class="alert alert-danger" role="alert"><?= e($errors['form']) ?></div>
+
+        <div class="alert alert-danger" role="alert">
+            <?= e($errors['form']) ?>
+        </div>
+
     <?php elseif ($errors): ?>
-        <div class="alert alert-danger" role="alert">Fix the highlighted fields and try again.</div>
+
+        <div class="alert alert-danger" role="alert">
+            Fix the highlighted fields and try again.
+        </div>
+
     <?php endif; ?>
 
+    <!-- EDIT USER FORM -->
     <form method="POST" class="panel" novalidate>
-        <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
 
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="<?= e($_SESSION['csrf_token']) ?>"
+        >
+
+        <!-- PERSONAL DETAILS -->
         <div class="section">
-            <h2 class="section-title">Personal details</h2>
+            <h2 class="section-title">Personal Details</h2>
+
             <div class="row g-3">
+
                 <div class="col-md-4">
-                    <label for="firstName" class="form-label">First name</label>
-                    <input type="text" id="firstName" name="firstName" class="<?= cls($errors, 'firstName') ?>"
-                           value="<?= e($old['firstName']) ?>" required>
+                    <label for="firstName" class="form-label">
+                        First Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="firstName"
+                        name="firstName"
+                        class="<?= cls($errors, 'firstName') ?>"
+                        value="<?= e($old['firstName']) ?>"
+                        autocomplete="given-name"
+                        required
+                    >
+
                     <?= fieldError($errors, 'firstName') ?>
                 </div>
+
                 <div class="col-md-4">
-                    <label for="middleName" class="form-label">Middle name <span class="optional">(optional)</span></label>
-                    <input type="text" id="middleName" name="middleName" class="form-control"
-                           value="<?= e($old['middleName']) ?>">
+                    <label for="middleName" class="form-label">
+                        Middle Name
+                        <span class="optional">(optional)</span>
+                    </label>
+
+                    <input
+                        type="text"
+                        id="middleName"
+                        name="middleName"
+                        class="form-control"
+                        value="<?= e($old['middleName']) ?>"
+                        autocomplete="additional-name"
+                    >
                 </div>
+
                 <div class="col-md-4">
-                    <label for="lastName" class="form-label">Last name</label>
-                    <input type="text" id="lastName" name="lastName" class="<?= cls($errors, 'lastName') ?>"
-                           value="<?= e($old['lastName']) ?>" required>
+                    <label for="lastName" class="form-label">
+                        Last Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="lastName"
+                        name="lastName"
+                        class="<?= cls($errors, 'lastName') ?>"
+                        value="<?= e($old['lastName']) ?>"
+                        autocomplete="family-name"
+                        required
+                    >
+
                     <?= fieldError($errors, 'lastName') ?>
                 </div>
 
                 <div class="col-md-6">
-                    <label for="contact_number" class="form-label">Contact number <span class="optional">(optional)</span></label>
-                    <input type="tel" id="contact_number" name="contact_number" class="<?= cls($errors, 'contact_number') ?>"
-                           value="<?= e($old['contact_number']) ?>" placeholder="09171234567">
+                    <label for="contact_number" class="form-label">
+                        Contact Number
+                        <span class="optional">(optional)</span>
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="contact_number"
+                        name="contact_number"
+                        class="<?= cls($errors, 'contact_number') ?>"
+                        value="<?= e($old['contact_number']) ?>"
+                        placeholder="09171234567"
+                        autocomplete="tel"
+                    >
+
                     <?= fieldError($errors, 'contact_number') ?>
                 </div>
+
                 <div class="col-md-6">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="<?= cls($errors, 'email') ?>"
-                           value="<?= e($old['email']) ?>" required>
+                    <label for="email" class="form-label">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        class="<?= cls($errors, 'email') ?>"
+                        value="<?= e($old['email']) ?>"
+                        autocomplete="email"
+                        required
+                    >
+
                     <?= fieldError($errors, 'email') ?>
                 </div>
 
                 <div class="col-12">
-                    <label for="address" class="form-label">Address <span class="optional">(optional)</span></label>
-                    <textarea id="address" name="address" class="form-control" rows="2"><?= e($old['address']) ?></textarea>
+                    <label for="address" class="form-label">
+                        Address
+                        <span class="optional">(optional)</span>
+                    </label>
+
+                    <textarea
+                        id="address"
+                        name="address"
+                        class="form-control"
+                        rows="2"
+                        autocomplete="street-address"
+                    ><?= e($old['address']) ?></textarea>
                 </div>
+
             </div>
         </div>
 
+        <!-- ACCOUNT SETTINGS -->
         <div class="section">
-            <h2 class="section-title">Account</h2>
+            <h2 class="section-title">Account Settings</h2>
+
             <div class="row g-3">
+
                 <div class="col-md-6">
-                    <label for="role" class="form-label">Role</label>
-                    <select id="role" name="role" class="<?= cls($errors, 'role', 'form-select') ?>" required>
-                        <option value="farmer" <?= $old['role'] === 'farmer' ? 'selected' : '' ?>>Farmer</option>
-                        <option value="buyer"  <?= $old['role'] === 'buyer'  ? 'selected' : '' ?>>Buyer</option>
+                    <label for="role" class="form-label">
+                        Account Role
+                    </label>
+
+                    <select
+                        id="role"
+                        name="role"
+                        class="<?= cls($errors, 'role', 'form-select') ?>"
+                        required
+                    >
+                        <option
+                            value="farmer"
+                            <?= $old['role'] === 'farmer' ? 'selected' : '' ?>
+                        >
+                            Farmer
+                        </option>
+
+                        <option
+                            value="buyer"
+                            <?= $old['role'] === 'buyer' ? 'selected' : '' ?>
+                        >
+                            Buyer
+                        </option>
                     </select>
+
                     <?= fieldError($errors, 'role') ?>
                 </div>
+
                 <div class="col-md-6">
-                    <label for="status" class="form-label">Status</label>
-                    <select id="status" name="status" class="<?= cls($errors, 'status', 'form-select') ?>" required>
-                        <option value="active"   <?= $old['status'] === 'active'   ? 'selected' : '' ?>>Active</option>
-                        <option value="inactive" <?= $old['status'] === 'inactive' ? 'selected' : '' ?>>Inactive</option>
+                    <label for="status" class="form-label">
+                        Account Status
+                    </label>
+
+                    <select
+                        id="status"
+                        name="status"
+                        class="<?= cls($errors, 'status', 'form-select') ?>"
+                        required
+                    >
+                        <option
+                            value="active"
+                            <?= $old['status'] === 'active' ? 'selected' : '' ?>
+                        >
+                            Active
+                        </option>
+
+                        <option
+                            value="inactive"
+                            <?= $old['status'] === 'inactive' ? 'selected' : '' ?>
+                        >
+                            Inactive
+                        </option>
                     </select>
+
                     <?= fieldError($errors, 'status') ?>
                 </div>
+
             </div>
         </div>
 
+        <!-- PASSWORD RESET -->
         <div class="section">
-            <h2 class="section-title">Reset password</h2>
-            <label for="new_password" class="form-label">New password <span class="optional">(optional)</span></label>
+            <h2 class="section-title">Reset Password</h2>
+
+            <label for="new_password" class="form-label">
+                New Password
+                <span class="optional">(optional)</span>
+            </label>
+
             <div class="pw-wrap">
-                <input type="password" id="new_password" name="new_password" class="<?= cls($errors, 'new_password') ?>"
-                       autocomplete="new-password" minlength="8">
-                <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">
+                <input
+                    type="password"
+                    id="new_password"
+                    name="new_password"
+                    class="<?= cls($errors, 'new_password') ?>"
+                    autocomplete="new-password"
+                    minlength="8"
+                >
+
+                <button
+                    type="button"
+                    class="pw-toggle"
+                    id="pwToggle"
+                    aria-label="Show password"
+                    aria-pressed="false"
+                >
                     <i class="fa-solid fa-eye"></i>
                 </button>
             </div>
+
             <?= fieldError($errors, 'new_password') ?>
-            <div class="hint">Leave blank to keep the current password.</div>
+
+            <div class="hint">
+                Leave blank to keep the current password.
+            </div>
         </div>
 
+        <!-- FORM BUTTONS -->
         <div class="actions">
-            <button type="submit" name="update" class="btn btn-primary">
-                <i class="fa-solid fa-floppy-disk me-1"></i> Save changes
+
+            <button
+                type="submit"
+                name="update"
+                class="btn btn-primary"
+            >
+                <i class="fa-solid fa-floppy-disk me-1"></i>
+                Save Changes
             </button>
-            <a href="admin.php" class="btn btn-light">Cancel</a>
+
+            <a href="admin.php" class="btn btn-light">
+                Cancel
+            </a>
+
         </div>
+
     </form>
 
 </div>
 </main>
 
+<!-- PASSWORD VISIBILITY -->
 <script>
 const pw = document.getElementById('new_password');
 const toggle = document.getElementById('pwToggle');
 
 toggle.addEventListener('click', function () {
     const show = pw.type === 'password';
+
     pw.type = show ? 'text' : 'password';
-    toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-    toggle.querySelector('i').className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+
+    toggle.setAttribute(
+        'aria-label',
+        show ? 'Hide password' : 'Show password'
+    );
+
+    toggle.setAttribute('aria-pressed', String(show));
+
+    toggle.querySelector('i').className = show
+        ? 'fa-solid fa-eye-slash'
+        : 'fa-solid fa-eye';
 });
 </script>
 
