@@ -35,6 +35,44 @@ $totalFarmers = count($farmers);
 $totalBuyers  = count($buyers);
 $farmerPct    = $totalUsers ? round($totalFarmers / $totalUsers * 100) : 0;
 
+// ---------- Posts (farmers + buyers), newest first ----------
+// post(post_id, user_id, product_id, post_type, created_at)
+// ASSUMED products table: products(product_id, product_name, description, price)  <-- rename to match yours
+$stmt = $conn->prepare(
+    "SELECT p.post_id, p.post_type, p.created_at,
+            pr.product_name AS title, pr.description, pr.price,
+            u.firstName, u.middleName, u.lastName, u.role
+     FROM post p
+     JOIN users u ON u.user_id = p.user_id
+     LEFT JOIN products pr ON pr.product_id = p.product_id
+     WHERE u.role IN ('farmer', 'buyer')
+     ORDER BY p.created_at DESC
+     LIMIT 200"
+);
+$stmt->execute();
+$posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ---------- Transactions ----------
+// transactions(transaction_id, user_id, product_id, buyer_name, product_name, quantity, unit,
+//              price, total_amount, payment_method, status, transaction_date, notes, created_at)
+// user_id = the user who made the transaction (the seller/farmer)
+$stmt = $conn->prepare(
+    "SELECT t.transaction_id, t.product_name, t.buyer_name, t.quantity, t.unit,
+            t.price, t.total_amount, t.payment_method, t.status, t.notes,
+            COALESCE(t.transaction_date, t.created_at) AS tx_date,
+            CONCAT_WS(' ', u.firstName, u.lastName) AS seller_name
+     FROM transactions t
+     LEFT JOIN users u ON u.user_id = t.user_id
+     ORDER BY COALESCE(t.transaction_date, t.created_at) DESC
+     LIMIT 200"
+);
+$stmt->execute();
+$transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Total of completed sales
+$stmt = $conn->query("SELECT COALESCE(SUM(total_amount), 0) FROM transactions WHERE status = 'completed'");
+$totalSales = (float)$stmt->fetchColumn();
+
 function e($v): string {
     return htmlspecialchars((string)($v ?? ''), ENT_QUOTES, 'UTF-8');
 }
@@ -45,6 +83,13 @@ function fullName(array $u): string {
 
 function initials(array $u): string {
     return strtoupper(mb_substr($u['firstName'] ?? '', 0, 1) . mb_substr($u['lastName'] ?? '', 0, 1));
+}
+
+function statusBadge(string $s): string {
+    $map = ['completed' => 'bg-success', 'pending' => 'bg-warning text-dark',
+            'cancelled' => 'bg-danger', 'failed' => 'bg-danger'];
+    $cls = $map[strtolower($s)] ?? 'bg-secondary';
+    return '<span class="badge ' . $cls . '">' . e(ucfirst($s)) . '</span>';
 }
 
 function renderUserTable(array $users, string $role): void {
@@ -293,7 +338,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 /* ---------- Stats ---------- */
 .stats {
     display: grid;
-    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
     gap: 16px;
     margin-bottom: 24px;
 }
@@ -307,6 +352,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
 
 .stat-card .label { color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 8px; }
 .stat-card .value { font-size: 38px; font-weight: 700; line-height: 1.1; margin: 8px 0 0; letter-spacing: -0.02em; }
+.stat-card.sales .value { font-size: 30px; }
 
 .stat-card.total { background: var(--forest); border-color: var(--forest); color: #fff; }
 .stat-card.total .label { color: rgba(255,255,255,.75); }
@@ -474,6 +520,8 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     <nav class="side-nav">
         <a href="#dashboard" class="menu-link active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
         <a href="#users" class="menu-link"><i class="fa-solid fa-users"></i><span>User Management</span></a>
+        <a href="add.php"><i class="fa-solid fa-user-plus"></i><span>Add User</span></a>
+        <a href="#posts" class="menu-link"><i class="fa-solid fa-newspaper"></i><span>Posts</span></a>
         <a href="#sales" class="menu-link"><i class="fa-solid fa-chart-line"></i><span>Sales Overview</span></a>
     </nav>
 
@@ -526,6 +574,11 @@ a:focus-visible, button:focus-visible, input:focus-visible {
             <div class="label"><i class="fa-solid fa-cart-shopping"></i> Buyers</div>
             <div class="value"><?= $totalBuyers ?></div>
         </div>
+
+        <div class="stat-card sales">
+            <div class="label"><i class="fa-solid fa-peso-sign"></i> Completed sales</div>
+            <div class="value">₱<?= number_format($totalSales, 2) ?></div>
+        </div>
     </section>
 
     <section class="panel scroll-section" id="users">
@@ -567,11 +620,63 @@ a:focus-visible, button:focus-visible, input:focus-visible {
             </div>
         </div>
 
-        </section>
+    </section>
 
+    <!-- ===== Posts (farmers + buyers) ===== -->
+    <section class="panel scroll-section" id="posts" style="margin-top: 24px;">
+        <div class="panel-head">
+            <h2>Posts <span class="count"><?= count($posts) ?></span></h2>
+            <div class="btn-group" role="group" aria-label="Filter posts">
+                <button type="button" class="btn btn-outline-secondary btn-sm active" data-post-filter="all">All</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-post-filter="farmer">Farmers</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-post-filter="buyer">Buyers</button>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle" id="postsTable">
+                <thead>
+                    <tr>
+                        <th>Posted by</th>
+                        <th>Product</th>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!$posts): ?>
+                    <tr><td colspan="5" class="text-center text-muted py-4">No posts yet.</td></tr>
+                <?php endif; ?>
+                <?php foreach ($posts as $p): ?>
+                    <tr data-role="<?= e($p['role']) ?>">
+                        <td>
+                            <div class="person">
+                                <span class="avatar <?= e($p['role']) ?>"><?= e(initials($p)) ?></span>
+                                <div>
+                                    <div class="person-name"><?= e(fullName($p)) ?></div>
+                                    <div class="person-email"><?= e(ucfirst($p['role'])) ?></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="person-name"><?= e($p['title'] ?? '—') ?></div>
+                            <div class="person-email"><?= e(mb_strimwidth((string)($p['description'] ?? ''), 0, 80, '…')) ?></div>
+                        </td>
+                        <td><span class="badge bg-secondary"><?= e(ucfirst((string)$p['post_type'])) ?></span></td>
+                        <td>₱<?= number_format((float)($p['price'] ?? 0), 2) ?></td>
+                        <td><?= e(date('M d, Y g:i A', strtotime($p['created_at']))) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===== Sales / Transactions ===== -->
     <section class="panel scroll-section" id="sales" style="margin-top: 24px;">
         <div class="panel-head">
-            <h2>Sales Overview</h2>
+            <h2>Sales Overview <span class="count"><?= count($transactions) ?></span></h2>
             <div class="tools">
                 <button class="btn btn-primary" onclick="alert('Exporting report...')"><i class="fa-solid fa-download me-1"></i> Export Report</button>
             </div>
@@ -583,33 +688,34 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                     <tr>
                         <th>Transaction ID</th>
                         <th>Product</th>
-                        <th>Amount</th>
+                        <th>Buyer</th>
+                        <th>Seller</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                        <th>Payment</th>
                         <th>Status</th>
                         <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
+                <?php if (!$transactions): ?>
+                    <tr><td colspan="10" class="text-center text-muted py-4">No transactions yet.</td></tr>
+                <?php endif; ?>
+                <?php foreach ($transactions as $t): ?>
                     <tr>
-                        <td>#TRX-98234</td>
-                        <td>Organic Tomatoes</td>
-                        <td>₱1,250.00</td>
-                        <td><span class="badge bg-success">Completed</span></td>
-                        <td>Today, 10:23 AM</td>
+                        <td>#TRX-<?= e($t['transaction_id']) ?></td>
+                        <td><?= e($t['product_name'] ?? '—') ?></td>
+                        <td><?= e($t['buyer_name'] ?? '—') ?></td>
+                        <td><?= e($t['seller_name'] ?: '—') ?></td>
+                        <td><?= e(rtrim(rtrim(number_format((float)$t['quantity'], 2), '0'), '.')) ?> <?= e($t['unit']) ?></td>
+                        <td>₱<?= number_format((float)$t['price'], 2) ?></td>
+                        <td><strong>₱<?= number_format((float)$t['total_amount'], 2) ?></strong></td>
+                        <td><?= e($t['payment_method'] ?? '—') ?></td>
+                        <td><?= statusBadge((string)$t['status']) ?></td>
+                        <td><?= e(date('M d, Y g:i A', strtotime($t['tx_date']))) ?></td>
                     </tr>
-                    <tr>
-                        <td>#TRX-98233</td>
-                        <td>Fresh Carrots</td>
-                        <td>₱450.00</td>
-                        <td><span class="badge bg-success">Completed</span></td>
-                        <td>Today, 09:15 AM</td>
-                    </tr>
-                    <tr>
-                        <td>#TRX-98232</td>
-                        <td>Jasmine Rice (50kg)</td>
-                        <td>₱2,800.00</td>
-                        <td><span class="badge bg-warning text-dark">Pending</span></td>
-                        <td>Yesterday</td>
-                    </tr>
+                <?php endforeach; ?>
                 </tbody>
             </table>
         </div>
@@ -725,6 +831,18 @@ searchInput.addEventListener('input', function () {
 
         const badge = document.querySelector('[data-count="' + table.dataset.role + '"]');
         if (badge) badge.textContent = visible;
+    });
+});
+
+// Filter posts by farmer / buyer
+document.querySelectorAll('[data-post-filter]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        const f = this.dataset.postFilter;
+        document.querySelectorAll('[data-post-filter]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('#postsTable tbody tr[data-role]').forEach(function (row) {
+            row.hidden = f !== 'all' && row.dataset.role !== f;
+        });
     });
 });
 </script>
