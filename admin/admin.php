@@ -775,7 +775,14 @@ document.addEventListener('keydown', function (e) {
 // Smooth scrolling & scroll spy
 document.addEventListener('DOMContentLoaded', () => {
     const menuLinks = document.querySelectorAll('.menu-link');
-    const sections = document.querySelectorAll('.scroll-section');
+    const sections  = document.querySelectorAll('.scroll-section');
+    let clickedId = null;   // section chosen by clicking; wins until the user scrolls by hand
+
+    function setActive(id) {
+        menuLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+        });
+    }
 
     // Smooth scrolling for menu links (also closes the mobile drawer)
     menuLinks.forEach(link => {
@@ -785,6 +792,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 const targetSection = document.querySelector(targetId);
                 if (targetSection) {
+                    clickedId = targetId.slice(1);
+                    setActive(clickedId);
                     targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
                 setSidebar(false);
@@ -792,22 +801,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Manual scrolling hands control back to the scroll spy
+    ['wheel', 'touchmove', 'keydown'].forEach(evt =>
+        window.addEventListener(evt, () => { clickedId = null; }, { passive: true })
+    );
+
     // Scroll spy to update the active sidebar link
     window.addEventListener('scroll', () => {
-        let current = '';
+        if (clickedId) return;
+
+        let current = sections[0].id;
         sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            if (scrollY >= (sectionTop - 150)) {
-                current = section.getAttribute('id');
-            }
+            if (window.scrollY >= section.offsetTop - 150) current = section.id;
         });
 
-        menuLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${current}`) {
-                link.classList.add('active');
-            }
-        });
+        // At the very bottom the last section may never reach the top, so pick it
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+            current = sections[sections.length - 1].id;
+        }
+
+        setActive(current);
     });
 });
 
