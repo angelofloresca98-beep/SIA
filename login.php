@@ -277,7 +277,7 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 <!-- Google Sign-In configuration -->
 <div
     id="g_id_onload"
-    data-client_id="YOUR_ACTUAL_CLIENT_ID.apps.googleusercontent.com"
+    data-client_id="867338478390-0d6a06kjso3dect629o0mk7mq681jr9c.apps.googleusercontent.com"
     data-callback="handleCredentialResponse"
     data-auto_prompt="false">
 </div>
