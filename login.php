@@ -106,7 +106,7 @@ $emailValue = htmlspecialchars($email ?? '', ENT_QUOTES, 'UTF-8');
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root {
     --ink: #1c2a24;
@@ -272,20 +272,36 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 
         <div class="divider">or</div>
 
-        <!-- g_id_onload contains Google Identity Services settings -->
-        <div
-          id="g_id_onload"
-          data-auto_prompt="false"
-          data-callback="handleCredentialResponse"
-          data-client_id="867338478390-0d6a06kjso3dect629o0mk7mq681jr9c.apps.googleusercontent.com"
-        ></div>
-        <!-- g_id_signin places the button on a page and supports customization -->
-        <div class="g_id_signin"></div>
+
+    
+<!-- Google Sign-In configuration -->
+<div
+    id="g_id_onload"
+    data-client_id="YOUR_ACTUAL_CLIENT_ID.apps.googleusercontent.com"
+    data-callback="handleCredentialResponse"
+    data-auto_prompt="false">
+</div>
+
+<!-- Google Sign-In button -->
+<div
+    class="g_id_signin"
+    data-type="standard"
+    data-size="large"
+    data-theme="outline"
+    data-text="continue_with"
+    data-shape="rectangular"
+    data-width="300">
+</div>
 
     </div>
 </main>
 
 <script>
+function handleCredentialResponse(response) {
+    console.log("Google sign-in response received.");
+    console.log("Credential received:", !!response.credential);
+}
+
 const pw = document.getElementById('password');
 const toggle = document.getElementById('pwToggle');
 
