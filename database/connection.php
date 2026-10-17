@@ -1,16 +1,32 @@
 <?php
-$serverhost = "localhost";
-$username = "root";
-$password = "";
+require_once __DIR__ . '/../vendor/autoload.php';
 
-try{
-    $conn = new PDO("mysql:host=$serverhost;dbname=market", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e){
-    echo $e->getMessage();
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->safeLoad();
+
+$serverhost = $_ENV['DB_HOST'] ?? 'localhost';
+$dbname = $_ENV['DB_NAME'] ?? 'market';
+$username = $_ENV['DB_USERNAME'] ?? 'root';
+$password = $_ENV['DB_PASSWORD'] ?? '';
+
+try {
+    $conn = new PDO(
+        "mysql:host=$serverhost;dbname=$dbname;charset=utf8mb4",
+        $username,
+        $password
+    );
+
+    $conn->setAttribute(
+        PDO::ATTR_ERRMODE,
+        PDO::ERRMODE_EXCEPTION
+    );
+
+    $conn->setAttribute(
+        PDO::ATTR_DEFAULT_FETCH_MODE,
+        PDO::FETCH_ASSOC
+    );
+
+} catch (PDOException $e) {
+    error_log($e->getMessage());
+    die('Database connection failed. Please try again later.');
 }
-
-
-
-
-?>
