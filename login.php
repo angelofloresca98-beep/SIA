@@ -144,14 +144,12 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     flex-direction: column;
     justify-content: space-between;
 }
-
 .brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; }
 .brand-mark i {
     width: 40px; height: 40px; border-radius: 10px;
     background: rgba(255,255,255,.14);
     display: inline-flex; align-items: center; justify-content: center;
 }
-
 .brand-copy h2 { font-size: 34px; line-height: 1.15; letter-spacing: -0.02em; max-width: 14ch; margin-bottom: 14px; }
 .brand-copy p { color: rgba(255,255,255,.75); max-width: 36ch; line-height: 1.55; }
 .brand-foot { color: rgba(255,255,255,.55); font-size: 13px; }
@@ -210,6 +208,25 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 .divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; margin: 24px 0 18px; }
 .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #dfe5dd; }
 
+/* ---------- Google role picker ---------- */
+.role-label { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.role-picker {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    background: #e8ede6; padding: 4px; border-radius: 12px; margin-bottom: 14px;
+}
+.role-picker input { position: absolute; opacity: 0; pointer-events: none; }
+.role-picker label {
+    margin: 0; padding: 10px 8px; text-align: center; cursor: pointer;
+    border-radius: 9px; font-weight: 600; color: var(--muted);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background .15s, color .15s;
+}
+.role-picker input:checked + label { background: #fff; color: var(--forest); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.role-picker input:focus-visible + label { outline: 3px solid var(--harvest); outline-offset: 2px; }
+
+.google-wrap { display: flex; justify-content: center; min-height: 44px; }
+.google-error { color: var(--danger); font-size: 14px; font-weight: 500; text-align: center; margin-top: 12px; min-height: 20px; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 860px) {
     body { grid-template-columns: 1fr; }
@@ -217,7 +234,6 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
     .brand-copy, .brand-foot { display: none; }
     .form-panel { align-items: flex-start; padding-top: 40px; }
 }
-
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -272,39 +288,64 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 
         <div class="divider">or</div>
 
+        <!-- Choose which kind of account the Google sign-in is for -->
+        <p class="role-label" id="roleLabel">Continue with Google as</p>
+        <div class="role-picker" role="radiogroup" aria-labelledby="roleLabel">
+            <input type="radio" name="google_role" id="roleBuyer" value="buyer" checked>
+            <label for="roleBuyer"><i class="fa-solid fa-basket-shopping"></i> Buyer</label>
 
-    
-<!-- Google Sign-In configuration -->
-<div
-    id="g_id_onload"
-    data-client_id="867338478390-0d6a06kjso3dect629o0mk7mq681jr9c.apps.googleusercontent.com"
-    data-callback="handleCredentialResponse"
-    data-auto_prompt="false">
-</div>
+            <input type="radio" name="google_role" id="roleFarmer" value="farmer">
+            <label for="roleFarmer"><i class="fa-solid fa-tractor"></i> Farmer</label>
+        </div>
 
-<!-- Google Sign-In button -->
-<div
-    class="g_id_signin"
-    data-type="standard"
-    data-size="large"
-    data-theme="outline"
-    data-text="continue_with"
-    data-shape="rectangular"
-    data-width="300">
-</div>
+        <div class="google-wrap">
+            <div id="g_id_onload"
+                 data-client_id="867338478390-0d6a06kjso3dect629o0mk7mq681jr9c.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false"></div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="continue_with"
+                 data-shape="rectangular"
+                 data-width="300"></div>
+        </div>
+        <p class="google-error" id="googleError" role="alert"></p>
 
     </div>
 </main>
 
 <script>
-function handleCredentialResponse(response) {
-    console.log("Google sign-in response received.");
-    console.log("Credential received:", !!response.credential);
+// Called by Google after the user picks an account.
+async function handleCredentialResponse(response) {
+    const errBox = document.getElementById('googleError');
+    errBox.textContent = '';
+
+    const role = document.querySelector('input[name="google_role"]:checked').value; // buyer | farmer
+
+    try {
+        const res = await fetch('google_login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ credential: response.credential, role: role })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            window.location.href = data.redirect;   // buyer or farmer dashboard
+        } else {
+            errBox.textContent = data.error || 'Google sign-in failed. Please try again.';
+        }
+    } catch (e) {
+        errBox.textContent = 'Could not reach the server. Check your connection and try again.';
+    }
 }
 
 const pw = document.getElementById('password');
 const toggle = document.getElementById('pwToggle');
-
 toggle.addEventListener('click', function () {
     const show = pw.type === 'password';
     pw.type = show ? 'text' : 'password';

@@ -5,6 +5,8 @@ require '../database/connection.php';
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
 if ($_SESSION['role'] !== 'buyer') { header("Location: ../login.php"); exit(); }
 
+require 'profile_check.php';
+
 $user_id   = $_SESSION['user_id'];
 $buyerName = $_SESSION['user'] ?? 'Buyer';
 
