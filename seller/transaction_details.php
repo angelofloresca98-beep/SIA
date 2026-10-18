@@ -725,7 +725,7 @@ td.total { font-weight: 700; }
                 <?php if ($filtersActive): ?>
                     <a href="transaction_details.php" class="btn-outline">Reset filters</a>
                 <?php else: ?>
-                    <a href="farmer_transaction.php" class="btn"><i class="fa-solid fa-plus"></i> Record transaction</a>
+                    <a href="transaction.php" class="btn"><i class="fa-solid fa-plus"></i> Record transaction</a>
                 <?php endif; ?>
             </div>
 
