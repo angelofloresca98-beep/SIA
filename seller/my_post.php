@@ -592,8 +592,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="my_post.php" class="active"><i class="fa-solid fa-clipboard-list"></i><span>My Posts</span></a></li>
-        <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Post</span></a></li>
+        <li><a href="my_post.php" class="active"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
+        <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
+        <li><a href="sales.php"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
+        <li><a href="transaction.php"><i class="fa-solid fa-receipt"></i><span>Transaction</span></a></li>
+        <li><a href="transaction_details.php"><i class="fa-solid fa-receipt"></i><span>My Transaction</span></a></li>
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 

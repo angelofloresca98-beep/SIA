@@ -106,6 +106,8 @@ input[type=number]:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <li><a href="marketplace.php" class="active"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
+        <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
+        <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
         <li><a href="orders.php"><i class="fa-solid fa-box-open"></i><span>My Orders</span></a></li>
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
