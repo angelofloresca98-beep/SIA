@@ -318,7 +318,8 @@ $sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.varie
         JOIN users u ON p.user_id=u.user_id
         WHERE p.post_type='sell' AND u.role='farmer' AND pr.status='available'
         ORDER BY p.created_at DESC LIMIT 6";
-$stmt = $conn->prepare($sql); $stmt->execute(); $farmerPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $conn->prepare($sql); $stmt->execute(); 
+$farmerPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Recent orders by this buyer
 $sql = "SELECT o.order_id, o.quantity AS order_qty, o.total_price, o.status, o.created_at,
@@ -398,6 +399,9 @@ th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);}
 th{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.04em;background:#fafbfa;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#f8faf8;}
+.req-note{font-size:13.5px;color:#44524a;background:var(--paper);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere;}
+.req-date{font-size:13px;color:var(--muted);}
+
 .badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;}
 .status-pending{background:#fff8e6;color:#92610a;}
 .status-confirmed{background:#e8f0ff;color:#3b5bdb;}
@@ -494,7 +498,12 @@ tr:hover td{background:#f8faf8;}
                         <dt>Available</dt><dd><?= htmlspecialchars($fp['quantity']) ?> <?= htmlspecialchars($fp['unit']) ?></dd>
                         <dt>Price</dt><dd class="price-val">₱<?= number_format($fp['price'],2) ?>/<?= htmlspecialchars($fp['unit']) ?></dd>
                         <dt>Location</dt><dd><?= htmlspecialchars($fp['address']??'—') ?></dd>
+                        <dt>Contact</dt><dd><?= htmlspecialchars($fp['contact_number'] ?? '—') ?></dd>
                     </dl>
+                    <?php if ($fp['description']): ?>
+                    <p class="req-note"><?= htmlspecialchars($fp['description']) ?></p>
+                    <?php endif; ?>
+                    <p class="req-date">Posted <?= date('M d, Y', strtotime($fp['created_at'])) ?></p>
                     <a href="place_order.php?product_id=<?= $fp['product_id'] ?>" class="order-btn"><i class="fa-solid fa-basket-shopping"></i> Place Order</a>
                 </div>
                 <?php endforeach; ?>
