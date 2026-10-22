@@ -35,16 +35,22 @@ if (isset($_POST['create'])) {
 
     // Names: letters, spaces, . ' - ; 2 to 50 chars
     $nameRegex = "/^\p{L}[\p{L}\s.'-]{1,49}$/u";
+
+    // First and last name are required
     foreach ([
-        'firstName'  => [$firstName,  'First name'],
-        'middleName' => [$middleName, 'Middle name'],
-        'lastName'   => [$lastName,   'Last name'],
+        'firstName' => [$firstName, 'First name'],
+        'lastName'  => [$lastName,  'Last name'],
     ] as $key => [$val, $label]) {
         if ($val === '') {
             $errors[$key] = "$label is required.";
         } elseif (!preg_match($nameRegex, $val)) {
             $errors[$key] = "$label must be 2-50 letters (spaces, . ' - allowed).";
         }
+    }
+
+    // Middle name is optional: only check the format when something was typed
+    if ($middleName !== '' && !preg_match($nameRegex, $middleName)) {
+        $errors['middleName'] = "Middle name must be 2-50 letters (spaces, . ' - allowed).";
     }
 
     // Contact
@@ -249,6 +255,7 @@ h1  { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin-bottom:
 .field { margin-bottom: 18px; }
 .field.full { grid-column: 1 / -1; }
 label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.optional { color: var(--muted); font-weight: 400; }
 
 input[type=text], input[type=email], input[type=password], input[type=tel] {
     width: 100%; padding: 12px 14px;
@@ -429,7 +436,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
                 </div>
 
                 <div class="field">
-                    <label for="middleName">Middle name</label>
+                    <label for="middleName">Middle name <span class="optional">(optional)</span></label>
                     <input type="text" id="middleName" name="middleName" class="<?= inv('middleName') ?>" value="<?= old('middleName') ?>" maxlength="50" autocomplete="additional-name">
                     <small class="err" id="err-middleName"><?= err('middleName') ?></small>
                 </div>
@@ -516,11 +523,570 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     </div>
 </main>
 
-<!-- ============ POLICY MODALS ============ -->
-<!--
-  PASTE YOUR FOUR EXISTING <dialog> BLOCKS HERE, UNCHANGED:
-  #modal-privacy, #modal-terms, #modal-moderation, #modal-copyright
--->
+<dialog class="policy-modal" id="modal-privacy" aria-labelledby="privacy-title">
+    <div class="modal-head">
+        <h2 id="privacy-title">Privacy Policy</h2>
+        <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+       <p><strong>Last Updated:</strong> October 12, 2026</p>
+
+    <p>
+        <strong>Disclaimer:</strong>
+        This website is created for demonstration and academic
+        purposes only as part of an SIA subject project.
+        It is not a real company, official service, registered
+        business, or commercial website. No claims are made
+        regarding actual business operations, legal standing,
+        or real-world services.
+    </p>
+
+    <p>
+        The Farm Products and Market Sales Management System
+        is designed to help farmers and buyers in the fictional
+        Avengers City, Wakanda, manage agricultural products,
+        inventory, buyer requests, and sales transactions.
+        This policy explains how user information may be
+        collected, used, stored, and protected.
+    </p>
+
+    <!-- 1.1 INFORMATION COLLECTION -->
+    <h3>1.1 Information We Collect</h3>
+    <p>We may collect the following information:</p>
+    <ul>
+        <li>User names, emails, contact details, and account roles.</li>
+        <li>Farmer, buyer, and supplier profile information.</li>
+        <li>Product images, descriptions, prices, and stock quantities.</li>
+        <li>Buyer requests, proposed budgets, and order details.</li>
+        <li>Transaction histories, order statuses, and digital receipts.</li>
+        <li>Supplier details and restocking records.</li>
+        <li>AI chatbot interactions, when logging is enabled.</li>
+        <li>IP addresses, browser details, and server logs, if collected.</li>
+        <li>Information submitted when contacting administrators.</li>
+    </ul>
+
+    <!-- 1.2 INFORMATION USAGE -->
+    <h3>1.2 How We Use the Information</h3>
+    <p>
+        Information is used for account authentication,
+        product posting, inventory management, buyer
+        requests, order approval, sales recording,
+        digital receipt generation, and reporting.
+        It may also support chatbot recommendations,
+        system troubleshooting, and security monitoring.
+    </p>
+
+    <!-- 1.3 PUBLIC INFORMATION -->
+    <h3>1.3 User Profiles and Product Information</h3>
+    <p>
+        Farmers may display products, prices, quantities,
+        and relevant seller details. Buyers may submit
+        product requests with their proposed budgets.
+        Information included in public listings may
+        be visible to other users. Private account
+        details and restricted records should not
+        be publicly disclosed.
+    </p>
+
+    <!-- 1.4 DATA RETENTION -->
+    <h3>1.4 Data Retention</h3>
+    <p>
+        Account details, product listings, buyer requests,
+        supplier records, and transaction histories may
+        be stored in the MySQL database for academic
+        testing and demonstration. Information should
+        only be retained as long as reasonably necessary
+        for the project's intended purposes.
+    </p>
+
+    <!-- 1.5 SECURITY -->
+    <h3>1.5 Security</h3>
+    <p>
+        The system is intended to use secure authentication,
+        password hashing, role-based access, and database
+        protection measures. However, no online system
+        can guarantee absolute security. Users are
+        encouraged to provide fictional or test data.
+    </p>
+
+    <!-- 1.6 THIRD-PARTY SERVICES -->
+    <h3>1.6 Third-Party Services</h3>
+    <p>
+        The website may use hosting services, software
+        libraries, and AI chatbot providers. These
+        services may process information according
+        to their own privacy policies and configurations.
+    </p>
+
+    <!-- 1.7 COOKIES -->
+    <h3>1.7 Cookies</h3>
+    <p>
+        Cookies may be used for login sessions,
+        authentication, and website functionality.
+        Disabling cookies may affect dashboard access
+        and other features.
+    </p>
+
+    <!-- 1.8 PRIVACY RIGHTS -->
+    <h3>1.8 Your Privacy Rights</h3>
+    <p>
+        Depending on applicable laws, users may request
+        access to, correction of, or deletion of their
+        personal information. Requests may be submitted
+        to the project administrators for review.
+    </p>
+
+    <!-- 1.9 POLICY UPDATES -->
+    <h3>1.9 Changes to This Privacy Policy</h3>
+    <p>
+        This policy may be updated when system features,
+        security practices, or academic requirements
+        change. Revisions will be reflected through
+        an updated date on this page.
+    </p>
+
+    <!-- 1.10 CONTACT -->
+    <h3>1.10 Contact</h3>
+    <p>
+        For privacy questions or information requests,
+        please contact:
+    </p>
+
+    <p>
+        <strong>Project:</strong>
+        Farm Products and Market Sales Management System
+    </p>
+
+    <p>
+        <strong>Academic Adviser:</strong> Sir Jerico Garcia
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        <a href="mailto:garciaj@udd.edu.ph">
+            garciaj@udd.edu.ph
+        </a>
+    </p>
+
+    <p>
+        <strong>Website:</strong> [Insert your website URL]
+    </p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="modal-close-btn" data-close>Close</button>
+    </div>
+</dialog>
+
+<dialog class="policy-modal" id="modal-terms" aria-labelledby="terms-title">
+    <div class="modal-head">
+        <h2 id="terms-title">Terms of Service</h2>
+        <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+            <p><strong>Last Updated:</strong> October 12, 2026</p>
+
+    <p>
+        <strong>Disclaimer:</strong>
+        This website is created for demonstration and academic
+        purposes only as part of an SIA subject project.
+        It is not a real company, official service, registered
+        business, or commercial website. No claims are made
+        regarding actual business operations, legal standing,
+        or real-world services.
+    </p>
+
+    <p>
+        The Farm Products and Market Sales Management System
+        is an academic platform demonstrating how farmers
+        and buyers in the fictional Avengers City, Wakanda,
+        can manage products, inventory, requests, and sales.
+        By using this website, you agree to follow these
+        Terms and Conditions.
+    </p>
+
+    <!-- 2.1 ACCEPTANCE OF TERMS -->
+    <h3>2.1 Acceptance of Terms</h3>
+    <p>
+        Users agree to use this website only for lawful,
+        educational, and demonstration purposes.
+        Activities that harm others, compromise security,
+        or interfere with the system are prohibited.
+    </p>
+
+    <!-- 2.2 PRODUCT LISTINGS -->
+    <h3>2.2 Product Listings and Buyer Requests</h3>
+    <p>
+        Farmers may post products with images, descriptions,
+        prices, and available quantities. Buyers may browse
+        products and submit requests containing desired
+        quantities and proposed budgets.
+        Submitted information may be stored and displayed
+        to authorized users for academic demonstration.
+    </p>
+
+    <!-- 2.3 USER RESPONSIBILITIES -->
+    <h3>2.3 User Responsibilities</h3>
+    <p>Users must not:</p>
+    <ul>
+        <li>Post false product prices, quantities, or descriptions.</li>
+        <li>Submit fraudulent requests or misleading offers.</li>
+        <li>Post abusive, threatening, or discriminatory content.</li>
+        <li>Upload copyrighted materials without permission.</li>
+        <li>Disclose another user's private information.</li>
+        <li>Upload malicious files or attempt unauthorized access.</li>
+        <li>Manipulate inventory, transaction records, or receipts.</li>
+        <li>Misuse the AI chatbot or access restricted information.</li>
+    </ul>
+
+    <!-- 2.4 MODERATION RIGHTS -->
+    <h3>2.4 Moderation Rights</h3>
+    <p>
+        Project administrators may review, edit, reject,
+        restrict, or remove inappropriate product listings,
+        buyer requests, images, or other submitted content.
+        Repeated violations may result in account restrictions
+        when moderation functions are implemented.
+    </p>
+
+    <!-- 2.5 NO WARRANTIES -->
+    <h3>2.5 No Warranties</h3>
+    <p>
+        This website is provided on an "as is" and
+        "as available" basis for academic demonstration.
+        Uninterrupted access, complete security, and
+        error-free functionality are not guaranteed.
+    </p>
+
+    <!-- 2.6 LIMITATION OF LIABILITY -->
+    <h3>2.6 Limitation of Liability</h3>
+    <p>
+        The website does not facilitate real commercial
+        transactions. To the extent permitted by law,
+        the developers do not accept responsibility
+        for losses arising from simulated transactions,
+        inaccurate listings, chatbot errors, or downtime.
+        This does not exclude legally non-excludable duties.
+    </p>
+
+    <!-- 2.7 THIRD-PARTY CONTENT -->
+    <h3>2.7 Third-Party Content</h3>
+    <p>
+        External links, software libraries, product images,
+        and chatbot services may be provided by third parties.
+        Their respective licenses, ownership rights, and
+        privacy policies apply.
+    </p>
+
+    <!-- 2.8 WEBSITE CHANGES -->
+    <h3>2.8 Changes to the Website</h3>
+    <p>
+        Developers may update or remove features involving
+        product posting, inventory monitoring, buyer requests,
+        order management, chatbot assistance, and reporting
+        during system development and testing.
+    </p>
+
+    <!-- 2.9 TERMINATION -->
+    <h3>2.9 Termination</h3>
+    <p>
+        Administrators may restrict access or remove
+        content when users violate these Terms.
+        Such restrictions depend on the moderation
+        features implemented in the system.
+    </p>
+
+    <!-- 2.10 GOVERNING LAW -->
+    <h3>2.10 Governing Law</h3>
+    <p>
+        These Terms are intended to be interpreted under
+        applicable laws of the Republic of the Philippines.
+        Avengers City, Wakanda, is a fictional setting
+        and not an actual legal jurisdiction.
+    </p>
+
+    <!-- 2.11 CONTACT -->
+    <h3>2.11 Contact</h3>
+    <p>
+        For questions about these Terms, contact:
+    </p>
+
+    <p>
+        <strong>Project:</strong>
+        Farm Products and Market Sales Management System
+    </p>
+
+    <p>
+        <strong>Academic Adviser:</strong> Sir Jerico Garcia
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        <a href="mailto:garciaj@udd.edu.ph">
+            garciaj@udd.edu.ph
+        </a>
+    </p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="modal-close-btn" data-close>Close</button>
+    </div>
+</dialog>
+
+<dialog class="policy-modal" id="modal-moderation" aria-labelledby="moderation-title">
+    <div class="modal-head">
+        <h2 id="moderation-title">Moderation Policy</h2>
+        <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+     <h2>3. Moderation and Removal Policy</h2>
+
+    <p><strong>Last Updated:</strong> October 12, 2026</p>
+
+    <p>
+        <strong>Disclaimer:</strong>
+        This website is created for demonstration and academic
+        purposes only as part of an SIA subject project.
+        It is not a real company, official service, registered
+        business, or commercial website. No claims are made
+        regarding actual business operations, legal standing,
+        or real-world services.
+    </p>
+
+    <p>
+        The Farm Products and Market Sales Management System
+        aims to provide a safe, respectful, and organized
+        platform for farmers, buyers, and suppliers in the
+        fictional Avengers City, Wakanda. This policy explains
+        how product listings, buyer requests, user interactions,
+        and transaction-related content may be reviewed,
+        reported, moderated, or removed.
+    </p>
+
+    <!-- 3.1 PROHIBITED CONTENT -->
+    <h3>3.1 Content That Is Not Allowed</h3>
+    <p>We may remove or moderate content that includes:</p>
+
+    <ul>
+        <li>Threats, harassment, abusive language, or discrimination.</li>
+        <li>False product prices, quantities, descriptions, or availability.</li>
+        <li>Fraudulent buyer requests or deceptive offers.</li>
+        <li>Spam, repeated advertisements, or irrelevant postings.</li>
+        <li>Illegal activities or attempts to compromise system security.</li>
+        <li>Unauthorized sharing of another user's personal information.</li>
+        <li>Copyrighted images or materials used without permission.</li>
+        <li>Falsified receipts, order statuses, or inventory records.</li>
+    </ul>
+
+    <!-- 3.2 CONTENT REVIEW -->
+    <h3>3.2 How Content Is Reviewed</h3>
+    <p>
+        Authorized project administrators may review product
+        listings, uploaded images, buyer requests, and other
+        submitted content when moderation features are
+        available. Reviews may occur before or after publication
+        or following a report. Violating content may be
+        corrected, restricted, hidden, or removed.
+    </p>
+
+    <!-- 3.3 REPORTING CONTENT -->
+    <h3>3.3 Reporting Content</h3>
+    <p>
+        Users may report misleading product listings,
+        inappropriate messages, suspicious buyer requests,
+        or other violations to the project administrators.
+        Reports should include the content involved, reason
+        for reporting, and relevant details or supporting
+        information without unnecessary personal data.
+    </p>
+
+    <!-- 3.4 REMOVAL REQUESTS -->
+    <h3>3.4 Removal Requests</h3>
+    <p>
+        Administrators may remove or restrict inappropriate
+        listings, misleading requests, unauthorized images,
+        or other violating content following a valid complaint,
+        appropriate legal request, or identified violation.
+        Related transaction records may be retained when
+        necessary and consistent with privacy requirements.
+    </p>
+
+    <!-- 3.5 REPEAT VIOLATIONS -->
+    <h3>3.5 Repeat Violations</h3>
+    <p>
+        Users who repeatedly submit fraudulent listings,
+        misleading requests, abusive messages, or inappropriate
+        content may receive warnings or restrictions.
+        Account access or posting privileges may be limited
+        when these moderation features are implemented.
+    </p>
+
+    <!-- 3.6 PUBLICATION -->
+    <h3>3.6 No Guarantee of Publication</h3>
+    <p>
+        The system does not guarantee publication or continued
+        availability of submitted content. Administrators
+        may reject, hide, or remove content that violates
+        marketplace guidelines or interferes with the
+        system's academic purpose.
+    </p>
+
+    <!-- 3.7 USER RESPONSIBILITY -->
+    <h3>3.7 User Responsibility</h3>
+    <p>
+        Farmers must provide appropriate product information,
+        images, prices, and quantities. Buyers must submit
+        legitimate requests with reasonable budgets.
+        All users must respect privacy, communicate
+        professionally, avoid misleading transactions,
+        and use the AI chatbot responsibly.
+    </p>
+
+    <!-- 3.8 CONTACT -->
+    <h3>3.8 Contact</h3>
+    <p>
+        For moderation concerns or content removal requests,
+        please contact:
+    </p>
+
+    <p>
+        <strong>Project:</strong>
+        Farm Products and Market Sales Management System
+    </p>
+
+    <p>
+        <strong>Academic Adviser:</strong> Sir Jerico Garcia
+    </p>
+
+    <p>
+        <strong>Email:</strong>
+        <a href="mailto:garciaj@udd.edu.ph">
+            garciaj@udd.edu.ph
+        </a>
+    </p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="modal-close-btn" data-close>Close</button>
+    </div>
+</dialog>
+
+<dialog class="policy-modal" id="modal-copyright" aria-labelledby="copyright-title">
+    <div class="modal-head">
+        <h2 id="copyright-title">Copyright Policy</h2>
+        <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+        <h2>4. Copyright and DMCA Notice</h2>
+
+        <p><strong>Last Updated:</strong> October 12, 2026</p>
+
+        <p>
+            <strong>Disclaimer:</strong>
+            This website is created for demonstration and academic
+            purposes only as part of an SIA subject project.
+            It is not a real company, official service, registered
+            business, or commercial website. No claims are made
+            regarding actual business operations, legal standing,
+            or real-world services.
+        </p>
+
+        <p>
+            The Farm Products and Market Sales Management System
+            respects the intellectual property rights of others.
+            Farmers may upload agricultural product images,
+            descriptions, and other product-related materials
+            for academic demonstration. Users are responsible
+            for ensuring that their submitted content does not
+            infringe the rights of others.
+        </p>
+
+        <!-- 4.1 COPYRIGHT POLICY -->
+        <h3>4.1 Copyright Policy</h3>
+        <p>
+            Agricultural product images, descriptions, logos,
+            graphics, interface designs, and uploaded materials
+            may be protected by copyright laws.
+            Users must not upload copyrighted content without
+            permission or another lawful basis.
+        </p>
+
+        <p>
+            Original project code, designs, and documentation
+            remain subject to applicable intellectual property
+            laws and school policies. Third-party materials
+            remain the property of their respective owners.
+            Avengers City and Wakanda are fictional references;
+            the project is not affiliated with Marvel or Disney.
+        </p>
+
+        <!-- 4.2 REPORTING INFRINGEMENT -->
+        <h3>4.2 Reporting Copyright Infringement</h3>
+        <p>
+            If you believe that a product image, description,
+            logo, or other material infringes your copyright,
+            please submit a written notice containing:
+        </p>
+
+        <ul>
+            <li>Your full name and contact information.</li>
+            <li>A description of the copyrighted work.</li>
+            <li>The URL or location of the disputed material.</li>
+            <li>A statement explaining the suspected unauthorized use.</li>
+            <li>A statement confirming the accuracy of your report.</li>
+            <li>Your physical or electronic signature, when applicable.</li>
+        </ul>
+
+    <!-- 4.3 RESPONSE -->
+        <h3>4.3 Response to Copyright Complaints</h3>
+        <p>
+            Project administrators may review copyright reports
+            and investigate disputed product listings, images,
+            or descriptions. Content may be removed, restricted,
+            or disabled when a valid violation is identified
+            and the necessary moderation functions are available.
+            The uploader may be contacted for clarification.
+        </p>
+
+    <!-- 4.4 COUNTER-NOTICE -->
+        <h3>4.4 Counter-Notice</h3>
+        <p>
+            Users who believe their content was removed by
+            mistake or misidentification may submit a
+            counter-notice identifying the removed material,
+            explaining the dispute, and providing supporting
+            information. Administrators may review the request
+            and restore content when appropriate and lawful.
+        </p>
+
+    <!-- 4.5 CONTACT -->
+        <h3>4.5 Contact for Copyright Concerns</h3>
+        <p>
+            For copyright reports or removal requests,
+            please contact:
+        </p>
+
+        <p>
+        <strong>Project:</strong>
+            Farm Products and Market Sales Management System
+        </p>
+
+        <p>
+            <strong>Academic Adviser:</strong> Sir Jerico Garcia
+        </p>
+
+        <p>
+        <strong>Email:</strong>
+            <a href="mailto:garciaj@udd.edu.ph">
+                garciaj@udd.edu.ph
+            </a>
+        </p>
+
+        <p>
+            <strong>Website:</strong> [Insert your website URL]
+        </p>
+    </div>
+    <div class="modal-foot">
+        <button type="button" class="modal-close-btn" data-close>Close</button>
+    </div>
+</dialog>
 
 <script>
 (function () {
@@ -529,7 +1095,8 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     /* ---------- Policy modals ---------- */
     document.querySelectorAll('.policy-link').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            document.getElementById(btn.dataset.modal).showModal();
+            const dlg = document.getElementById(btn.dataset.modal);
+            if (dlg && typeof dlg.showModal === 'function') dlg.showModal();
         });
     });
     document.querySelectorAll('dialog.policy-modal').forEach(function (dlg) {
@@ -559,6 +1126,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     const nameRe = /^\p{L}[\p{L}\s.'-]{1,49}$/u;
     const val = id => document.getElementById(id).value;
 
+    // Required name
     const nameRule = label => v => {
         v = v.trim();
         if (!v) return label + ' is required.';
@@ -566,9 +1134,17 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         return '';
     };
 
+    // Optional name: empty is fine, otherwise the format must match
+    const optionalNameRule = label => v => {
+        v = v.trim();
+        if (!v) return '';
+        if (!nameRe.test(v)) return label + " must be 2-50 letters (spaces, . ' - allowed).";
+        return '';
+    };
+
     const rules = {
         firstName:  nameRule('First name'),
-        middleName: nameRule('Middle name'),
+        middleName: optionalNameRule('Middle name'),
         lastName:   nameRule('Last name'),
         contact: v => {
             if (!v) return 'Contact number is required.';
@@ -606,7 +1182,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         const out   = document.getElementById('err-' + id);
         out.textContent = msg;
         input.classList.toggle('is-invalid', !!msg);
-        input.classList.toggle('is-valid', !msg && input.value !== '');
+        input.classList.toggle('is-valid', !msg && input.value.trim() !== '');
         input.setAttribute('aria-invalid', msg ? 'true' : 'false');
         return !msg;
     }

@@ -311,7 +311,7 @@ TXT;
 /* ================= END CHATBOT API ================= */
 
 // Latest farmer sell posts
-$sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.variety, pr.unit, pr.price, pr.quantity, pr.description, pr.status AS product_status,
+$sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.variety, pr.unit, pr.price, pr.quantity, pr.description, pr.image, pr.status AS product_status,
                u.user_id AS farmer_id, CONCAT(u.firstName,' ',u.lastName) AS farmer_name, u.contact_number, u.address
         FROM post p
         JOIN products pr ON p.product_id=pr.product_id
@@ -411,6 +411,9 @@ tr:hover td{background:#f8faf8;}
 @media(max-width:520px){.stats{grid-template-columns:1fr;}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 
+.product-img{width:100%;height:170px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--paper);display:block;}
+.product-img.placeholder{display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--leaf);background:linear-gradient(135deg,var(--leaf-soft),var(--paper));}
+
 /* ---------- Chatbot ---------- */
 #cb-btn { position: fixed; right: 22px; bottom: 22px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #183d00; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 1000; }
 #cb-panel { position: fixed; right: 22px; bottom: 90px; width: 340px; max-width: calc(100vw - 32px); height: 460px; max-height: 70vh; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.2); display: none; flex-direction: column; overflow: hidden; z-index: 1000; }
@@ -472,6 +475,15 @@ tr:hover td{background:#f8faf8;}
                     $initials = strtoupper(mb_substr($parts[0]??'',0,1).mb_substr(end($parts)?:'',0,1));
                 ?>
                 <div class="product-card">
+                    <?php if (!empty($fp['image'])): ?>
+                        <img class="product-img"
+                        src="../<?= htmlspecialchars($fp['image']) ?>"
+                        alt="<?= htmlspecialchars($fp['product_name']) ?>"
+                        loading="lazy">
+                    <?php else: ?>
+                <div class="product-img placeholder"><i class="fa-solid fa-seedling"></i></div>
+                    <?php endif; ?>
+
                     <h3><?= htmlspecialchars($fp['product_name']) ?></h3>
                     <?php if ($fp['variety']): ?><div class="variety-label"><?= htmlspecialchars($fp['variety']) ?></div><?php endif; ?>
                     <div class="farmer-chip">

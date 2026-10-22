@@ -29,6 +29,41 @@ $user_id = $_SESSION['user_id'];
 $message = "";
 $message_type = "";
 
+// SUCCESS MESSAGE (set after a successful post, shown once)
+
+if (isset($_SESSION['flash_success'])) {
+
+    $message = $_SESSION['flash_success'];
+    $message_type = "success";
+
+    unset($_SESSION['flash_success']);
+
+}
+
+// IMAGE UPLOAD SETTINGS
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const ALLOWED_IMAGE_TYPES = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/webp' => 'webp',
+];
+
+$uploadDirRelative = 'uploads/products/';                 // saved in the database
+$uploadDirAbsolute = dirname(__DIR__) . '/' . $uploadDirRelative; // real path on disk
+
+// ALLOWED UNITS (also used to validate the submitted value)
+
+$unitOptions = [
+    'kg'    => 'Kilogram (kg)',
+    'sack'  => 'Sack',
+    'ton'   => 'Ton',
+    'piece' => 'Piece',
+    'box'   => 'Box',
+    'liter' => 'Liter',
+];
+
 
 // FORM SUBMISSION
 
@@ -43,141 +78,275 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $quantity = trim($_POST['quantity'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
+    $savedImagePath = null;  // path stored in DB
+    $savedImageFile = null;  // full path on disk (used for cleanup)
+
 
     // VALIDATION
 
-    if (
-        empty($product) ||
-        empty($unit) ||
-        empty($price) ||
-        empty($quantity)
-    ) {
+    // If the upload is larger than PHP's post_max_size, $_POST and $_FILES arrive empty
+    if (empty($_POST) && empty($_FILES) && ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+
+        $message = "The upload is too large. Please choose an image under 5 MB.";
+        $message_type = "error";
+
+    } elseif ($product === '' || $unit === '' || $price === '' || $quantity === '') {
 
         $message = "Please fill in all required fields.";
         $message_type = "error";
 
-    } elseif (!is_numeric($price) || $price < 0) {
+    } elseif (mb_strlen($product) < 2 || mb_strlen($product) > 100) {
 
-        $message = "Please enter a valid price.";
+        $message = "Product name must be between 2 and 100 characters.";
         $message_type = "error";
 
-    } elseif (!is_numeric($quantity) || $quantity <= 0) {
+    } elseif (!preg_match('/^[\p{L}\p{N}\s\-\'.,()&\/]+$/u', $product)) {
 
-        $message = "Please enter a valid quantity.";
+        $message = "Product name contains invalid characters.";
+        $message_type = "error";
+
+    } elseif (mb_strlen($variety) > 100) {
+
+        $message = "Variety must not exceed 100 characters.";
+        $message_type = "error";
+
+    } elseif (!array_key_exists($unit, $unitOptions)) {
+
+        $message = "Please select a valid unit.";
+        $message_type = "error";
+
+    } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $price) || (float)$price <= 0 || (float)$price > 1000000) {
+
+        $message = "Price must be greater than 0, up to 1,000,000, with at most 2 decimal places.";
+        $message_type = "error";
+
+    } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $quantity) || (float)$quantity < 1 || (float)$quantity > 1000000) {
+
+        $message = "Quantity must be between 1 and 1,000,000, with at most 2 decimal places.";
+        $message_type = "error";
+
+    } elseif (mb_strlen($description) > 1000) {
+
+        $message = "Description must not exceed 1000 characters.";
         $message_type = "error";
 
     } else {
 
+        // IMAGE VALIDATION (required field)
 
-        try {
+        $hasUpload = isset($_FILES['image'])
+            && $_FILES['image']['error'] !== UPLOAD_ERR_NO_FILE;
 
-            // Start transaction
-            $conn->beginTransaction();
+        if (!$hasUpload) {
 
+            $message = "Please upload a product image.";
+            $message_type = "error";
 
-            $sqlProduct = "
-                INSERT INTO products
-                (
-                    user_id,
-                    product_name,
-                    variety,
-                    unit,
-                    price,
-                    quantity,
-                    description,
-                    status
-                )
-                VALUES
-                (
-                    :user_id,
-                    :product_name,
-                    :variety,
-                    :unit,
-                    :price,
-                    :quantity,
-                    :description,
-                    'available'
-                )
-            ";
+        }
 
+        if ($hasUpload) {
 
-            $stmtProduct = $conn->prepare($sqlProduct);
+            $file = $_FILES['image'];
 
+            if ($file['error'] !== UPLOAD_ERR_OK) {
 
-            $stmtProduct->execute([
+                $message = ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE)
+                    ? "The image is too large. Maximum size is 5 MB."
+                    : "The image could not be uploaded. Please try again.";
+                $message_type = "error";
 
-                ':user_id' => $user_id,
+            } elseif ($file['size'] > MAX_IMAGE_SIZE) {
 
-                ':product_name' => $product,
+                $message = "The image is too large. Maximum size is 5 MB.";
+                $message_type = "error";
 
-                ':variety' => $variety !== ''
-                    ? $variety
-                    : null,
+            } else {
 
-                ':unit' => $unit,
+                // Check the real file type (not just the extension)
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $mime = $finfo->file($file['tmp_name']);
 
-                ':price' => $price,
+                $dims = @getimagesize($file['tmp_name']);
 
-                ':quantity' => $quantity,
+                if (!isset(ALLOWED_IMAGE_TYPES[$mime]) || $dims === false) {
 
-                ':description' => $description !== ''
-                    ? $description
-                    : null
+                    $message = "Only JPG, PNG, or WEBP images are allowed.";
+                    $message_type = "error";
 
-            ]);
+                } elseif ($dims[0] < 200 || $dims[1] < 200) {
 
+                    $message = "The image must be at least 200 x 200 pixels.";
+                    $message_type = "error";
 
-            $product_id = $conn->lastInsertId();
+                } elseif ($dims[0] > 6000 || $dims[1] > 6000) {
 
+                    $message = "The image must not be larger than 6000 x 6000 pixels.";
+                    $message_type = "error";
 
-            // Farmer posts are automatically "sell"
+                } else {
 
-            $sqlPost = "
-                INSERT INTO post
-                (
-                    user_id,
-                    product_id,
-                    post_type
-                )
-                VALUES
-                (
-                    :user_id,
-                    :product_id,
-                    'sell'
-                )
-            ";
+                    if (!is_dir($uploadDirAbsolute) && !mkdir($uploadDirAbsolute, 0755, true)) {
 
+                        $message = "Could not create the upload folder.";
+                        $message_type = "error";
 
-            $stmtPost = $conn->prepare($sqlPost);
+                    } else {
 
+                        // Random filename so uploads never overwrite each other
+                        $newName = bin2hex(random_bytes(16)) . '.' . ALLOWED_IMAGE_TYPES[$mime];
+                        $target = $uploadDirAbsolute . $newName;
 
-            $stmtPost->execute([
+                        if (move_uploaded_file($file['tmp_name'], $target)) {
 
-                ':user_id' => $user_id,
+                            $savedImageFile = $target;
+                            $savedImagePath = $uploadDirRelative . $newName;
 
-                ':product_id' => $product_id
+                        } else {
 
-            ]);
+                            $message = "Failed to save the uploaded image.";
+                            $message_type = "error";
 
-            $conn->commit();
+                        }
 
-            header("Location: farmer.php");
-            exit();
+                    }
 
-
-        } catch (PDOException $e) {
-
-            // Cancel database changes if something fails
-            if ($conn->inTransaction()) {
-
-                $conn->rollBack();
+                }
 
             }
 
+        }
 
-            $message = "Something went wrong: " . $e->getMessage();
+        // Only save to the database if there were no image errors
 
-            $message_type = "error";
+        if ($message === "") {
+
+            try {
+
+                // Start transaction
+                $conn->beginTransaction();
+
+
+                $sqlProduct = "
+                    INSERT INTO products
+                    (
+                        user_id,
+                        product_name,
+                        variety,
+                        unit,
+                        price,
+                        quantity,
+                        description,
+                        image,
+                        status
+                    )
+                    VALUES
+                    (
+                        :user_id,
+                        :product_name,
+                        :variety,
+                        :unit,
+                        :price,
+                        :quantity,
+                        :description,
+                        :image,
+                        'available'
+                    )
+                ";
+
+
+                $stmtProduct = $conn->prepare($sqlProduct);
+
+
+                $stmtProduct->execute([
+
+                    ':user_id' => $user_id,
+
+                    ':product_name' => $product,
+
+                    ':variety' => $variety !== ''
+                        ? $variety
+                        : null,
+
+                    ':unit' => $unit,
+
+                    ':price' => $price,
+
+                    ':quantity' => $quantity,
+
+                    ':description' => $description !== ''
+                        ? $description
+                        : null,
+
+                    ':image' => $savedImagePath
+
+                ]);
+
+
+                $product_id = $conn->lastInsertId();
+
+
+                // Farmer posts are automatically "sell"
+
+                $sqlPost = "
+                    INSERT INTO post
+                    (
+                        user_id,
+                        product_id,
+                        post_type
+                    )
+                    VALUES
+                    (
+                        :user_id,
+                        :product_id,
+                        'sell'
+                    )
+                ";
+
+
+                $stmtPost = $conn->prepare($sqlPost);
+
+
+                $stmtPost->execute([
+
+                    ':user_id' => $user_id,
+
+                    ':product_id' => $product_id
+
+                ]);
+
+                $conn->commit();
+
+                $_SESSION['flash_success'] = "Your product \"" . $product . "\" was posted successfully!";
+
+                header("Location: farmer_post.php");
+                exit();
+
+
+            } catch (PDOException $e) {
+
+                // Cancel database changes if something fails
+                if ($conn->inTransaction()) {
+
+                    $conn->rollBack();
+
+                }
+
+                // Remove the uploaded image so no orphan files are left behind
+                if ($savedImageFile && file_exists($savedImageFile)) {
+
+                    unlink($savedImageFile);
+
+                }
+
+                $message = "Something went wrong: " . $e->getMessage();
+
+                $message_type = "error";
+
+            }
+
+        } elseif ($savedImageFile && file_exists($savedImageFile)) {
+
+            unlink($savedImageFile);
 
         }
 
@@ -354,6 +523,77 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .form-group input[readonly] { background: var(--paper); color: var(--muted); cursor: default; }
 .form-group textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 
+/* ---------- Image upload ---------- */
+.upload-box {
+    position: relative;
+    border: 2px dashed #cbd5cd;
+    border-radius: var(--radius);
+    background: var(--paper);
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+}
+.upload-box:hover,
+.upload-box.dragover { border-color: var(--leaf); background: var(--leaf-soft); }
+.upload-box:focus-within { border-color: var(--leaf); box-shadow: 0 0 0 3px rgba(47,125,79,.18); }
+
+/* The real file input covers the whole box so it stays clickable and keyboard accessible */
+.upload-box input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    padding: 0;
+    border: 0;
+}
+
+.upload-prompt i { font-size: 30px; color: var(--leaf); margin-bottom: 8px; display: block; }
+.upload-prompt strong { display: block; font-size: 15px; }
+.upload-prompt span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; }
+
+.upload-box.has-image { padding: 12px; border-style: solid; background: var(--card); cursor: default; }
+.upload-box.has-image .upload-prompt { display: none; }
+.upload-box.has-image input[type="file"] { display: none; }
+
+.preview { display: none; align-items: center; gap: 14px; text-align: left; }
+.upload-box.has-image .preview { display: flex; }
+
+.preview img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+    background: var(--paper);
+}
+.preview-info { flex: 1; min-width: 0; }
+.preview-name { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview-size { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.remove-image {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff; color: var(--danger);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 8px 12px; font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+    flex-shrink: 0;
+}
+.remove-image:hover { background: var(--danger-soft); }
+
+.upload-error { color: var(--danger); font-size: 13.5px; font-weight: 500; margin-top: 8px; display: none; }
+.upload-error.show { display: block; }
+
+.field-error { color: var(--danger); font-size: 13px; font-weight: 500; margin-top: 5px; display: none; }
+.form-group.invalid .field-error { display: block; }
+.form-group.invalid input:not([type="file"]),
+.form-group.invalid select,
+.form-group.invalid textarea { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(179,38,30,.12); }
+.upload-box.invalid { border-color: var(--danger); }
+.char-count { color: var(--muted); font-size: 12px; text-align: right; margin-top: 4px; }
+
 .button-container { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 12px; }
 
 .btn {
@@ -425,6 +665,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     .form-group textarea { font-size: 16px; min-height: 46px; }
     .form-group textarea { min-height: 120px; }
 
+    .preview { flex-wrap: wrap; }
+    .preview img { width: 72px; height: 72px; }
+    .remove-image { width: 100%; justify-content: center; min-height: 44px; }
+
     .button-container { flex-direction: column-reverse; }
     .btn, .cancel-btn { width: 100%; min-height: 48px; }
 }
@@ -487,11 +731,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
         <?php if (isset($message) && $message !== ""): ?>
             <div class="message <?= htmlspecialchars($message_type ?? '') ?>" role="alert">
-                <span><?= htmlspecialchars($message) ?></span>
+                <span>
+                    <?= htmlspecialchars($message) ?>
+                    <?php if ($message_type === 'success'): ?>
+                        <a href="my_post.php" style="color:inherit;font-weight:700;margin-left:6px;">View my listings</a>
+                    <?php endif; ?>
+                </span>
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="">
+        <form method="POST" action="" enctype="multipart/form-data" id="post-form" novalidate>
 
             <div class="form-grid">
 
@@ -503,6 +752,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         id="product"
                         name="product"
                         placeholder="e.g. Rice"
+                        maxlength="100"
                         value="<?= htmlspecialchars($_POST['product'] ?? '') ?>"
                         required
                     >
@@ -516,6 +766,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         id="variety"
                         name="variety"
                         placeholder="e.g. Dinorado"
+                        maxlength="100"
                         value="<?= htmlspecialchars($_POST['variety'] ?? '') ?>"
                     >
                 </div>
@@ -528,6 +779,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         id="quantity"
                         name="quantity"
                         min="1"
+                        max="1000000"
                         step="0.01"
                         inputmode="decimal"
                         placeholder="e.g. 50"
@@ -541,16 +793,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                     <label for="unit">Unit *</label>
                     <select id="unit" name="unit" required>
                         <option value="">Select unit</option>
-                        <?php
-                        $unitOptions = [
-                            'kg'    => 'Kilogram (kg)',
-                            'sack'  => 'Sack',
-                            'ton'   => 'Ton',
-                            'piece' => 'Piece',
-                            'box'   => 'Box',
-                            'liter' => 'Liter',
-                        ];
-                        foreach ($unitOptions as $value => $label): ?>
+                        <?php foreach ($unitOptions as $value => $label): ?>
                             <option value="<?= $value ?>" <?= ($_POST['unit'] ?? '') === $value ? 'selected' : '' ?>>
                                 <?= $label ?>
                             </option>
@@ -565,7 +808,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         type="number"
                         id="price"
                         name="price"
-                        min="0"
+                        min="0.01"
+                        max="1000000"
                         step="0.01"
                         inputmode="decimal"
                         placeholder="e.g. 2500"
@@ -585,6 +829,42 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                     >
                 </div>
 
+                <!-- PRODUCT IMAGE -->
+                <div class="form-group full">
+                    <label for="image">Product image *</label>
+
+                    <div class="upload-box" id="upload-box">
+
+                        <input
+                            type="file"
+                            id="image"
+                            name="image"
+                            accept="image/jpeg,image/png,image/webp"
+                            required
+                        >
+
+                        <div class="upload-prompt">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <strong>Click to upload or drag and drop</strong>
+                            <span>JPG, PNG or WEBP &middot; up to 5 MB</span>
+                        </div>
+
+                        <div class="preview" id="preview">
+                            <img id="preview-img" src="" alt="Selected product image preview">
+                            <div class="preview-info">
+                                <div class="preview-name" id="preview-name"></div>
+                                <div class="preview-size" id="preview-size"></div>
+                            </div>
+                            <button type="button" class="remove-image" id="remove-image">
+                                <i class="fa-solid fa-trash-can"></i> Remove
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div class="upload-error" id="upload-error" role="alert"></div>
+                </div>
+
                 <!-- DESCRIPTION -->
                 <div class="form-group full">
                     <label for="description">Description</label>
@@ -592,6 +872,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
                         id="description"
                         name="description"
                         placeholder="Describe your product..."
+                        maxlength="1000"
                     ><?= htmlspecialchars($_POST['description'] ?? '') ?></textarea>
                 </div>
 
@@ -636,6 +917,213 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     });
     window.addEventListener('resize', () => {
         if (window.innerWidth > 768) setMenu(false);
+    });
+})();
+
+// Image upload preview
+(function () {
+    const MAX_SIZE = 5 * 1024 * 1024;
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+
+    const box = document.getElementById('upload-box');
+    const input = document.getElementById('image');
+    const img = document.getElementById('preview-img');
+    const nameEl = document.getElementById('preview-name');
+    const sizeEl = document.getElementById('preview-size');
+    const removeBtn = document.getElementById('remove-image');
+    const errorEl = document.getElementById('upload-error');
+
+    function showError(msg) {
+        errorEl.textContent = msg;
+        errorEl.classList.toggle('show', !!msg);
+    }
+
+    function formatSize(bytes) {
+        return bytes < 1024 * 1024
+            ? (bytes / 1024).toFixed(0) + ' KB'
+            : (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function clearImage() {
+        input.value = '';
+        if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
+        img.removeAttribute('src');
+        box.classList.remove('has-image');
+    }
+
+    function handleFile(file) {
+        showError('');
+
+        if (!file) { clearImage(); return; }
+
+        if (!ALLOWED.includes(file.type)) {
+            clearImage();
+            showError('Only JPG, PNG, or WEBP images are allowed.');
+            return;
+        }
+        if (file.size > MAX_SIZE) {
+            clearImage();
+            showError('The image is too large. Maximum size is 5 MB.');
+            return;
+        }
+
+        const url = URL.createObjectURL(file);
+        const probe = new Image();
+
+        probe.onload = () => {
+            if (probe.naturalWidth < 200 || probe.naturalHeight < 200) {
+                URL.revokeObjectURL(url);
+                clearImage();
+                showError('The image must be at least 200 x 200 pixels.');
+                return;
+            }
+            if (probe.naturalWidth > 6000 || probe.naturalHeight > 6000) {
+                URL.revokeObjectURL(url);
+                clearImage();
+                showError('The image must not be larger than 6000 x 6000 pixels.');
+                return;
+            }
+            if (img.src.startsWith('blob:')) URL.revokeObjectURL(img.src);
+            img.src = url;
+            nameEl.textContent = file.name;
+            sizeEl.textContent = formatSize(file.size);
+            box.classList.add('has-image');
+            box.classList.remove('invalid');
+        };
+
+        probe.onerror = () => {
+            URL.revokeObjectURL(url);
+            clearImage();
+            showError('That file could not be read as an image.');
+        };
+
+        probe.src = url;
+    }
+
+    input.addEventListener('change', () => handleFile(input.files[0]));
+
+    removeBtn.addEventListener('click', () => { showError(''); clearImage(); });
+
+    // Drag and drop
+    ['dragenter', 'dragover'].forEach(evt =>
+        box.addEventListener(evt, e => { e.preventDefault(); box.classList.add('dragover'); })
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+        box.addEventListener(evt, e => { e.preventDefault(); box.classList.remove('dragover'); })
+    );
+    box.addEventListener('drop', e => {
+        const file = e.dataTransfer.files[0];
+        if (!file) return;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        input.files = dt.files;
+        handleFile(file);
+    });
+})();
+
+// Hide the success message after a few seconds
+(function () {
+    const ok = document.querySelector('.message.success');
+    if (ok) setTimeout(() => { ok.style.display = 'none'; }, 8000);
+})();
+
+// Form validation
+(function () {
+    const form = document.getElementById('post-form');
+    const decimals = /^\d+(\.\d{1,2})?$/;
+
+    const rules = {
+        product: v => {
+            if (v === '') return 'Product name is required.';
+            if (v.length < 2) return 'Product name must be at least 2 characters.';
+            if (v.length > 100) return 'Product name must not exceed 100 characters.';
+            if (!/^[\p{L}\p{N}\s\-'.,()&\/]+$/u.test(v)) return 'Product name contains invalid characters.';
+            return '';
+        },
+        variety: v => v.length > 100 ? 'Variety must not exceed 100 characters.' : '',
+        quantity: v => {
+            if (v === '') return 'Quantity is required.';
+            if (!decimals.test(v)) return 'Enter a valid number (max 2 decimal places).';
+            if (parseFloat(v) < 1) return 'Quantity must be at least 1.';
+            if (parseFloat(v) > 1000000) return 'Quantity must not exceed 1,000,000.';
+            return '';
+        },
+        unit: v => v === '' ? 'Please select a unit.' : '',
+        price: v => {
+            if (v === '') return 'Price is required.';
+            if (!decimals.test(v)) return 'Enter a valid price (max 2 decimal places).';
+            if (parseFloat(v) <= 0) return 'Price must be greater than 0.';
+            if (parseFloat(v) > 1000000) return 'Price must not exceed 1,000,000.';
+            return '';
+        },
+        description: v => v.length > 1000 ? 'Description must not exceed 1000 characters.' : ''
+    };
+
+    function errorBox(field) {
+        let box = field.parentElement.querySelector('.field-error');
+        if (!box) {
+            box = document.createElement('div');
+            box.className = 'field-error';
+            box.setAttribute('role', 'alert');
+            field.parentElement.appendChild(box);
+        }
+        return box;
+    }
+
+    function check(name) {
+        const field = form.elements[name];
+        const msg = rules[name](field.value.trim());
+        field.parentElement.classList.toggle('invalid', msg !== '');
+        errorBox(field).textContent = msg;
+        field.setAttribute('aria-invalid', msg !== '' ? 'true' : 'false');
+        return msg === '';
+    }
+
+    function checkImage() {
+        const input = form.elements['image'];
+        const box = document.getElementById('upload-box');
+        const err = document.getElementById('upload-error');
+        if (input.files.length === 0) {
+            err.textContent = 'Please upload a product image.';
+            err.classList.add('show');
+            box.classList.add('invalid');
+            return false;
+        }
+        box.classList.remove('invalid');
+        return true;
+    }
+
+    Object.keys(rules).forEach(name => {
+        const field = form.elements[name];
+        field.addEventListener('blur', () => check(name));
+        field.addEventListener('input', () => {
+            if (field.parentElement.classList.contains('invalid')) check(name);
+        });
+    });
+
+    // Live character counter for the description
+    const desc = form.elements['description'];
+    const counter = document.createElement('div');
+    counter.className = 'char-count';
+    desc.parentElement.appendChild(counter);
+    const updateCount = () => { counter.textContent = desc.value.length + ' / 1000'; };
+    desc.addEventListener('input', updateCount);
+    updateCount();
+
+    form.addEventListener('submit', e => {
+        let firstInvalid = null;
+
+        Object.keys(rules).forEach(name => {
+            if (!check(name) && !firstInvalid) firstInvalid = form.elements[name];
+        });
+
+        if (!checkImage() && !firstInvalid) firstInvalid = document.getElementById('upload-box');
+
+        if (firstInvalid) {
+            e.preventDefault();
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (firstInvalid.focus && firstInvalid.tagName !== 'DIV') firstInvalid.focus({ preventScroll: true });
+        }
     });
 })();
 </script>

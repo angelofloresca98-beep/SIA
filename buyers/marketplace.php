@@ -25,7 +25,7 @@ $order = match($sortBy) {
     default      => 'p.created_at DESC',
 };
 
-$sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.variety, pr.unit, pr.price, pr.quantity, pr.description,
+$sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.variety, pr.unit, pr.price, pr.quantity, pr.description, pr.image,
                u.user_id AS farmer_id, CONCAT(u.firstName,' ',u.lastName) AS farmer_name, u.contact_number, u.address
         FROM post p
         JOIN products pr ON p.product_id=pr.product_id
@@ -86,6 +86,10 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
 .empty{text-align:center;padding:70px 20px;color:var(--muted);}
 .empty i{font-size:36px;opacity:.35;margin-bottom:14px;}
 .empty h2{color:var(--ink);font-size:20px;margin-bottom:8px;}
+
+.product-img{width:100%;height:190px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--paper);display:block;}
+.product-img.placeholder{display:flex;align-items:center;justify-content:center;font-size:38px;color:var(--leaf);background:linear-gradient(135deg,var(--leaf-soft),var(--paper));}
+
 @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:768px){.navbar{padding:0 16px;overflow-x:auto;}.nav{min-width:max-content;}.nav a span{display:none;}.main{padding:18px 14px 40px;}.page-header{flex-direction:column;align-items:flex-start;}.grid{grid-template-columns:1fr;}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
@@ -125,6 +129,14 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
             $initials= strtoupper(mb_substr($parts[0]??'',0,1).mb_substr(end($parts)?:'',0,1));
         ?>
         <div class="product-card">
+            <?php if (!empty($fp['image'])): ?>
+                <img class="product-img"
+                src="../<?= htmlspecialchars($fp['image']) ?>"
+                alt="<?= htmlspecialchars($fp['product_name']) ?>"
+                loading="lazy">
+            <?php else: ?>
+            <div class="product-img placeholder"><i class="fa-solid fa-seedling"></i></div>
+            <?php endif; ?>
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
                 <h2><?= htmlspecialchars($fp['product_name']) ?></h2>
                 <span class="qty-badge"><i class="fa-solid fa-boxes-stacked"></i><?= htmlspecialchars($fp['quantity']) ?> <?= htmlspecialchars($fp['unit']) ?></span>
