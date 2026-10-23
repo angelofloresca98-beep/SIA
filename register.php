@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require './database/connection.php';
 
@@ -197,7 +197,28 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     flex-direction: column;
     justify-content: space-between;
 }
-.brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; }
+.brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none; }
+.brand-mark:hover { color: #fff; opacity: .9; }
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #e8ede6;
+    transition: all .15s ease;
+    width: fit-content;
+}
+.back-link:hover {
+    color: var(--forest);
+    background: #dbe4d8;
+    transform: translateX(-2px);
+}
 .brand-mark i {
     width: 40px; height: 40px; border-radius: 10px;
     background: rgba(255,255,255,.14);
@@ -377,7 +398,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
 <body>
 
 <aside class="brand-panel">
-    <div class="brand-mark"><i class="fa-solid fa-seedling"></i> Farm to Market</div>
+    <a href="index.php" class="brand-mark" title="Back to AgriBayan Home"><i class="fa-solid fa-seedling"></i> Farm to Market</a>
     <div class="brand-copy">
         <h2>Join the Farm to Market community.</h2>
         <p>Register as a Farmer to list your products, or as a Buyer to order fresh produce directly.</p>
@@ -387,6 +408,10 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
 
 <main class="form-panel">
     <div class="form-wrap">
+
+        <a href="index.php" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
 
         <h1>Create account</h1>
         <p class="sub">Sign up as a Farmer or Buyer.</p>

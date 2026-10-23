@@ -276,7 +276,7 @@ session_start();
             right: 0;
             width: 65%;
             height: 100%;
-            background-image: url('https://images.unsplash.com/photo-1595841696650-6edbf679bebe?q=80&w=2000&auto=format&fit=crop');
+            background-image: url('https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2000&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
             mask-image: linear-gradient(to right, transparent, black 40%);
@@ -458,7 +458,161 @@ session_start();
             mix-blend-mode: multiply;
             opacity: 0.9;
         }
-        
+
+        /* About Us */
+        .about-us {
+            padding: var(--section-pad) 0;
+            background: linear-gradient(135deg, var(--accent-soft) 0%, var(--white) 50%, var(--accent-soft) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .about-us::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(21, 76, 52, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .about-us::after {
+            content: '';
+            position: absolute;
+            bottom: -60px;
+            left: -60px;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(21, 76, 52, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .about-us .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .about-header {
+            text-align: center;
+            max-width: 720px;
+            margin: 0 auto 48px;
+        }
+
+        .about-header .tag {
+            margin-bottom: 16px;
+        }
+
+        .about-header h2 {
+            font-size: clamp(28px, 4vw, 40px);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--primary);
+            line-height: 1.15;
+            margin-bottom: 12px;
+        }
+
+        .about-header .subtitle {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(20px, 3vw, 26px);
+            color: var(--primary);
+            opacity: 0.7;
+            margin-bottom: 24px;
+        }
+
+        .about-intro {
+            max-width: 800px;
+            margin: 0 auto 48px;
+            text-align: center;
+        }
+
+        .about-intro p {
+            font-size: clamp(15px, 1.8vw, 17px);
+            color: var(--text-muted);
+            line-height: 1.75;
+            margin-bottom: 16px;
+        }
+
+        .about-intro p:last-child {
+            margin-bottom: 0;
+        }
+
+        .about-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .about-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 36px 32px;
+            border: 1.5px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .about-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), #2f8f62);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        @media (hover: hover) {
+            .about-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+            }
+        }
+
+        .about-card-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary), #2f8f62);
+            color: var(--white);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .about-card h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .about-card p {
+            font-size: 15px;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        @media (max-width: 768px) {
+            .about-cards {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .about-card {
+                padding: 28px 24px;
+            }
+        }
+
         /* Features */
         .features {
             background-color: var(--accent-soft);
@@ -580,7 +734,7 @@ session_start();
             height: 200px;
             position: relative;
             overflow: hidden;
-            background-image: url('https://images.unsplash.com/photo-1595841696650-6edbf679bebe?q=80&w=800&auto=format&fit=crop');
+            background-image: url('https://images.unsplash.com/photo-1625246333195-78d9c38ad449?q=80&w=1000&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
         }
@@ -599,13 +753,337 @@ session_start();
             text-shadow: 2px 2px 10px rgba(255,255,255,0.8);
         }
 
+        /* Contact Us - Visual Green Theme */
+        .contact-section {
+            padding: calc(var(--section-pad) + 40px) 0 var(--section-pad);
+            background: linear-gradient(145deg, #0d3824 0%, #154c34 50%, #1d6143 100%);
+            position: relative;
+            color: var(--white);
+            overflow: hidden;
+        }
+
+        /* Top transition wave */
+        .contact-wave {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            line-height: 0;
+            transform: rotate(180deg);
+            z-index: 2;
+        }
+
+        .contact-wave svg {
+            display: block;
+            width: calc(100% + 1.3px);
+            height: 44px;
+        }
+
+        .contact-wave .shape-fill {
+            fill: var(--white);
+        }
+
+        /* Ambient background glow orbs */
+        .contact-section::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            right: -120px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(74, 222, 128, 0.16) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .contact-section::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -120px;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, rgba(52, 211, 153, 0.12) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .contact-section .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .contact-section .section-title i {
+            color: #6ee7b7;
+            font-size: 34px;
+            filter: drop-shadow(0 2px 8px rgba(110, 231, 183, 0.35));
+        }
+
+        .contact-section .section-title h2 {
+            color: #ffffff;
+        }
+
+        .contact-section .section-title p {
+            color: #bbf7d0;
+            opacity: 0.92;
+        }
+
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1.35fr;
+            gap: 40px;
+            align-items: stretch;
+            margin-top: 40px;
+        }
+
+        /* Left Column: Frosted Glass Information Card */
+        .contact-info-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .contact-info-card .tag {
+            background: rgba(110, 231, 183, 0.16);
+            color: #a7f3d0;
+            border: 1px solid rgba(110, 231, 183, 0.3);
+            margin-bottom: 20px;
+            width: fit-content;
+        }
+
+        .contact-info-card h3 {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
+        }
+
+        .contact-info-card p.contact-desc {
+            color: #e2f4ea;
+            font-size: 15px;
+            line-height: 1.65;
+            margin-bottom: 30px;
+        }
+
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+
+        .contact-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .contact-item-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.14);
+            color: #6ee7b7;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .contact-item:hover .contact-item-icon {
+            background: #6ee7b7;
+            color: #0d3824;
+            transform: scale(1.08) rotate(-4deg);
+            box-shadow: 0 6px 18px rgba(110, 231, 183, 0.45);
+        }
+
+        .contact-item-content h4 {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #a7f3d0;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .contact-item-content a,
+        .contact-item-content span {
+            font-size: 15px;
+            font-weight: 600;
+            color: #ffffff;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contact-item-content a:hover {
+            color: #6ee7b7;
+            text-decoration: underline;
+        }
+
+        /* Right Column: Elevated Crisp Form Card */
+        .contact-form-card {
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            padding: 42px 36px;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #10b981, #059669, #047857);
+        }
+
+        .contact-form-card h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #11231a;
+            margin-bottom: 6px;
+        }
+
+        .contact-form-card .form-subtitle {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 22px;
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .form-group label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #1c2a24;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group label i {
+            color: #059669;
+            font-size: 12px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #d5e2d9;
+            border-radius: var(--radius-md);
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--text-dark);
+            background-color: #fbfdfc;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            background-color: #ffffff;
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.16);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #154c34 0%, #1e6b49 100%);
+            color: #ffffff;
+            font-weight: 700;
+            padding: 13px 32px;
+            border-radius: var(--radius-pill);
+            box-shadow: 0 4px 14px rgba(21, 76, 52, 0.25);
+            transition: all 0.25s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            width: fit-content;
+        }
+
+        .btn-send:hover {
+            background: linear-gradient(135deg, #103b28 0%, #175439 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(21, 76, 52, 0.35);
+        }
+
+        @media (max-width: 900px) {
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            .contact-form-card,
+            .contact-info-card {
+                padding: 32px 24px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
         /* Footer */
         .footer {
             background-color: var(--primary);
             color: var(--white);
             padding: 60px 0 30px;
             position: relative;
-            margin-top: 40px;
+            margin-top: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .footer-wave {
+            display: none;
         }
         
         .footer-wave {
@@ -1007,10 +1485,10 @@ session_start();
             
             <ul class="nav-links" id="nav-links">
                 <li><a href="index.php" class="active">Home</a></li>
+                <li><a href="#about-us">About Us</a></li>
                 <li><a href="#categories">Products</a></li>
-                <li><a href="#">About Us</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="#contact">Contact</a></li>
             </ul>
             
             <div class="nav-actions">
@@ -1051,6 +1529,42 @@ session_start();
         </div>
     </section>
 
+    <!-- About Us Section -->
+    <section class="about-us" id="about-us">
+        <div class="container">
+            <div class="about-header">
+                <div class="tag">
+                    <i class="fa-solid fa-users"></i> Get to Know Us
+                </div>
+                <h2>About Us</h2>
+                <div class="subtitle">Connecting Farmers and Buyers Through Technology</div>
+            </div>
+
+            <div class="about-intro">
+                <p>Welcome to our Farm Products and Market Sales Management System, a web-based platform designed to make buying and selling agricultural products easier, more organized, and more accessible.</p>
+                <p>Our goal is to help farmers connect directly with potential buyers while providing a convenient way for consumers to find farm products that match their needs and budget. We also aim to help farmers manage their product listings, monitor inventory, track orders, and record sales in one organized system.</p>
+            </div>
+
+            <div class="about-cards">
+                <div class="about-card">
+                    <div class="about-card-icon">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                    <h3>Our Mission</h3>
+                    <p>Our mission is to support farmers and consumers by providing a reliable and user-friendly digital platform that improves agricultural product trading, simplifies inventory management, and promotes better communication between buyers and sellers.</p>
+                </div>
+
+                <div class="about-card">
+                    <div class="about-card-icon">
+                        <i class="fa-solid fa-eye"></i>
+                    </div>
+                    <h3>Our Vision</h3>
+                    <p>Our vision is to create a more connected agricultural marketplace where farmers can reach more customers, buyers can easily find available farm products at clear prices, and businesses can manage their operations more efficiently through technology.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Categories Section -->
     <section class="categories" id="categories">
         <div class="container">
@@ -1064,7 +1578,6 @@ session_start();
                         </div>
                     </div>
                 </div>
-                <a href="#" class="view-all">View All Products <i class="fa-solid fa-arrow-right"></i></a>
             </div>
 
             <div class="category-grid">
@@ -1073,7 +1586,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-wheat-awn"></i></div> Rice
                     </div>
-                    <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&q=80" alt="Rice" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=600&auto=format&fit=crop&q=80" alt="Rice and Grains" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 2 -->
@@ -1081,7 +1594,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-carrot"></i></div> Vegetables
                     </div>
-                    <img src="https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&q=80" alt="Vegetables" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop&q=80" alt="Fresh Farm Vegetables" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 3 -->
@@ -1089,7 +1602,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-apple-whole"></i></div> Fruits
                     </div>
-                    <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&q=80" alt="Fruits" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=600&auto=format&fit=crop&q=80" alt="Fresh Farm Fruits" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 4 -->
@@ -1097,7 +1610,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-seedling"></i></div> Root Crops
                     </div>
-                    <img src="https://images.unsplash.com/photo-1596547609652-9fc5d8d42e74?w=400&q=80" alt="Root Crops" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop&q=80" alt="Harvested Root Crops" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 5 -->
@@ -1105,7 +1618,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-egg"></i></div> Eggs &amp; Poultry
                     </div>
-                    <img src="https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=400&q=80" alt="Eggs &amp; Poultry" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1559738928-5d5dc5c2458d?w=600&auto=format&fit=crop&q=80" alt="Farm Fresh Eggs &amp; Poultry" class="cat-img" loading="lazy">
                 </a>
                 
                 <!-- Card 6 -->
@@ -1113,7 +1626,7 @@ session_start();
                     <div class="cat-title">
                         <div class="cat-icon"><i class="fa-solid fa-jar"></i></div> Other Products
                     </div>
-                    <img src="https://images.unsplash.com/photo-1587049352847-4d4b126a5405?w=400&q=80" alt="Other Products" class="cat-img" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1587049352846-4a222e784d38?w=600&auto=format&fit=crop&q=80" alt="Artisanal Honey and Farm Preserves" class="cat-img" loading="lazy">
                 </a>
             </div>
         </div>
@@ -1167,7 +1680,7 @@ session_start();
                         <i class="fa-solid fa-leaf"></i>
                         <div>
                             <h2>How It Works</h2>
-                            <p>Getting fresh farm products is easy!</p>
+                            <p>Connecting farmers and buyers with streamlined order and inventory management.</p>
                         </div>
                     </div>
                     
@@ -1175,43 +1688,159 @@ session_start();
                         <div class="step">
                             <div class="step-header">
                                 <div class="step-num">1</div>
-                                <div class="step-icon"><i class="fa-regular fa-id-badge"></i></div>
+                                <div class="step-icon"><i class="fa-solid fa-id-card-clip"></i></div>
                             </div>
-                            <h3>Create an Account</h3>
-                            <p>Sign up as a farmer, buyer, or both.</p>
+                            <h3>Register &amp; Access Dashboard</h3>
+                            <p>Sign up as a farmer or buyer to access your dedicated role-based management dashboard.</p>
                         </div>
                         
                         <div class="step">
                             <div class="step-header">
                                 <div class="step-num">2</div>
-                                <div class="step-icon"><i class="fa-solid fa-store"></i></div>
+                                <div class="step-icon"><i class="fa-solid fa-boxes-packing"></i></div>
                             </div>
-                            <h3>Browse or List Products</h3>
-                            <p>Find fresh products or add your own farm items.</p>
+                            <h3>Post Products or Request by Budget</h3>
+                            <p>Farmers list harvest stocks while buyers can browse or post custom requests with quantity and budget.</p>
                         </div>
                         
                         <div class="step">
                             <div class="step-header">
                                 <div class="step-num">3</div>
-                                <div class="step-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+                                <div class="step-icon"><i class="fa-solid fa-clipboard-check"></i></div>
                             </div>
-                            <h3>Place an Order</h3>
-                            <p>Buyers can order directly from farmers.</p>
+                            <h3>Review, Negotiate &amp; Approve</h3>
+                            <p>Farmers evaluate buyer requests, approve or negotiate pricing, and track live status from Pending to Approved.</p>
                         </div>
                         
                         <div class="step">
                             <div class="step-header">
                                 <div class="step-num">4</div>
-                                <div class="step-icon"><i class="fa-solid fa-truck"></i></div>
+                                <div class="step-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
                             </div>
-                            <h3>Track &amp; Receive</h3>
-                            <p>Get updates and receive your products safely.</p>
+                            <h3>Digital Receipts &amp; Inventory Sync</h3>
+                            <p>Get automated digital receipts and order breakdowns while product stocks and sales update automatically.</p>
                         </div>
                     </div>
                 </div>
                 
                 <div class="banner-img">
                     <div class="banner-text">Together for<br>a Greener Tomorrow &hearts;</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Us Section -->
+    <section class="contact-section" id="contact">
+        <!-- Top transition wave -->
+        <div class="contact-wave">
+            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0C75.32,18.4,146.7,35.5,214.34,47.88c42,7.6,84,12.55,126,11.5Z" class="shape-fill"></path>
+            </svg>
+        </div>
+
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <div class="section-title">
+                        <i class="fa-solid fa-envelope-open-text"></i>
+                        <div>
+                            <h2>Contact Us</h2>
+                            <p>Have questions, need assistance, or want to partner with us? We'd love to hear from you!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-wrapper">
+                <!-- Left: Contact Information (Frosted Glass Card) -->
+                <div class="contact-info-card">
+                    <div>
+                        <div class="tag">
+                            <i class="fa-solid fa-headset"></i> Support &amp; Inquiries
+                        </div>
+                        <h3>Get In Touch</h3>
+                        <p class="contact-desc">
+                            Whether you are a local farmer looking to list your produce or a buyer searching for fresh farm goods, reach out to our team anytime.
+                        </p>
+
+                        <div class="contact-list">
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="fa-solid fa-envelope"></i>
+                                </div>
+                                <div class="contact-item-content">
+                                    <h4>Email Us</h4>
+                                    <a href="mailto:support@agribayan.com">support@agribayan.com</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="fa-solid fa-phone"></i>
+                                </div>
+                                <div class="contact-item-content">
+                                    <h4>Call Us</h4>
+                                    <a href="tel:+639123456789">+63 (912) 345-6789</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                </div>
+                                <div class="contact-item-content">
+                                    <h4>Location</h4>
+                                    <span>Dagupan City, Pangasinan</span>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-item-icon">
+                                    <i class="fa-solid fa-clock"></i>
+                                </div>
+                                <div class="contact-item-content">
+                                    <h4>Office Hours</h4>
+                                    <span>Mon - Sat: 8:00 AM - 5:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Contact Form (Elevated Crisp Card) -->
+                <div class="contact-form-card">
+                    <h3>Send Us a Message</h3>
+                    <p class="form-subtitle">Fill out the form below and our team will get back to you shortly.</p>
+                    
+                    <form class="contact-form" id="contactForm" onsubmit="event.preventDefault(); handleContactSubmit(this);">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contact-name"><i class="fa-regular fa-user"></i> Full Name</label>
+                                <input type="text" id="contact-name" name="name" placeholder="Juan Dela Cruz" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contact-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                                <input type="email" id="contact-email" name="email" placeholder="juan@example.com" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-subject"><i class="fa-regular fa-comment-dots"></i> Subject</label>
+                            <input type="text" id="contact-subject" name="subject" placeholder="Inquiry about farm products or ordering" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contact-message"><i class="fa-solid fa-pencil"></i> Message</label>
+                            <textarea id="contact-message" name="message" rows="4" placeholder="Write your message or inquiry here..." required></textarea>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="btn-send">
+                                <i class="fa-solid fa-paper-plane"></i> Send Message
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1230,13 +1859,7 @@ session_start();
                 <div class="footer-brand">
                     <i class="fa-solid fa-leaf"></i>
                     <strong>AgriBayan</strong>
-                </div>               
-                
-                <div class="footer-social">
-                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-                </div>
+                </div>              
             </div>
 
             <div class="footer-disclaimer" role="note">
@@ -1323,14 +1946,6 @@ session_start();
                 if (window.innerWidth > 900) setMenu(false);
             });
 
-            // 3. Handle empty/dummy links
-            const dummyLinks = document.querySelectorAll('a[href="#"]');
-            dummyLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showToast('This feature is coming soon!', 'fa-solid fa-rocket');
-                });
-            });
 
             // 4. Smooth scrolling for internal anchors
             document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
@@ -1381,7 +1996,7 @@ session_start();
             });
 
             // 6. Scroll Animations (Intersection Observer)
-            const revealElements = document.querySelectorAll('.cat-card, .feature-item, .step, .section-title, .hero-content');
+            const revealElements = document.querySelectorAll('.cat-card, .feature-item, .step, .section-title, .hero-content, .about-header, .about-intro, .about-card, .contact-info-card, .contact-form-card');
             
             // Add reveal class to all targets
             revealElements.forEach(el => {
@@ -1407,6 +2022,13 @@ session_start();
             revealElements.forEach(el => {
                 revealObserver.observe(el);
             });
+
+            // 7. Contact Form Submission Handler
+            window.handleContactSubmit = function(form) {
+                const name = form.querySelector('[name="name"]').value;
+                showToast(`Thank you, ${name}! Your message has been sent successfully.`, 'fa-solid fa-paper-plane');
+                form.reset();
+            };
             
         });
     </script>

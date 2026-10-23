@@ -145,7 +145,28 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     flex-direction: column;
     justify-content: space-between;
 }
-.brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; }
+.brand-mark { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none; }
+.brand-mark:hover { color: #fff; opacity: .9; }
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: #e8ede6;
+    transition: all .15s ease;
+    width: fit-content;
+}
+.back-link:hover {
+    color: var(--forest);
+    background: #dbe4d8;
+    transform: translateX(-2px);
+}
 .brand-mark i {
     width: 40px; height: 40px; border-radius: 10px;
     background: rgba(255,255,255,.14);
@@ -288,7 +309,7 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 <body>
  
 <aside class="brand-panel">
-    <div class="brand-mark"><i class="fa-solid fa-seedling"></i> Farm to Market</div>
+    <a href="index.php" class="brand-mark" title="Back to AgriBayan Home"><i class="fa-solid fa-seedling"></i> Farm to Market</a>
  
     <div class="brand-copy">
         <h2>Fresh from the field to your table.</h2>
@@ -301,6 +322,10 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 <main class="form-panel">
     <div class="form-wrap">
  
+        <a href="index.php" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </a>
+
         <h1>Sign in</h1>
         <p class="sub">Use the email and password for your account.</p>
  
