@@ -479,14 +479,28 @@ tr:hover td{background:#f8faf8;}
                     $initials = strtoupper(mb_substr($parts[0]??'',0,1).mb_substr(end($parts)?:'',0,1));
                 ?>
                 <div class="product-card">
-                    <?php if (!empty($fp['image'])): ?>
-                        <img class="product-img"
-                        src="../<?= htmlspecialchars($fp['image']) ?>"
-                        alt="<?= htmlspecialchars($fp['product_name']) ?>"
-                        loading="lazy">
-                    <?php else: ?>
-                <div class="product-img placeholder"><i class="fa-solid fa-seedling"></i></div>
-                    <?php endif; ?>
+                    <?php
+                    $imagePath = trim($fp['image'] ?? '');
+
+                    if ($imagePath !== '') {
+                        // Keep absolute URLs and root-relative paths unchanged.
+                        if (preg_match('~^https?://~i', $imagePath) || strpos($imagePath, '/') === 0) {
+                            $imageSrc = $imagePath;
+                        } else {
+                            // Resolve relative image paths from the website root.
+                            $imageSrc = '/' . ltrim($imagePath, './');
+                        }
+                    ?>
+                        <img
+                            class="product-img"
+                            src="<?= htmlspecialchars($imageSrc, ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($fp['product_name'], ENT_QUOTES, 'UTF-8') ?>"
+                            loading="lazy"
+                            onerror="this.onerror=null; this.style.display='none';"
+                        >
+                    <?php } else { ?>
+                        <div class="product-img placeholder"><i class="fa-solid fa-seedling"></i></div>
+                    <?php } ?>
 
                     <h3><?= htmlspecialchars($fp['product_name']) ?></h3>
                     <?php if ($fp['variety']): ?><div class="variety-label"><?= htmlspecialchars($fp['variety']) ?></div><?php endif; ?>
