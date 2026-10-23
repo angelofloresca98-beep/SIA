@@ -5,6 +5,11 @@ ini_set('display_errors', 1);
 session_start();
 require '../database/connection.php';
 
+// CSRF token for the delete form
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 // CHECK LOGIN
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) {
@@ -123,6 +128,11 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 .header p { color: var(--muted); }
 .btn-primary { display: inline-flex; align-items: center; gap: 8px; background: var(--leaf); color: #fff; text-decoration: none; border-radius: 10px; padding: 10px 18px; font-weight: 600; transition: background .15s; }
 .btn-primary:hover { background: var(--forest); }
+
+/* Alerts */
+.alert { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 14.5px; }
+.alert.success { background: var(--leaf-soft); color: var(--forest); border: 1px solid #b9dcc5; }
+.alert.error   { background: var(--danger-soft); color: var(--danger); border: 1px solid #efc3bd; }
 
 /* Post cards */
 .posts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
@@ -243,6 +253,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
         <a href="buyer_post.php" class="btn-primary"><i class="fa-solid fa-plus"></i> Create post</a>
     </div>
 
+    <?php if (isset($_GET['deleted'])): ?>
+        <div class="alert success"><i class="fa-solid fa-circle-check"></i> Post deleted successfully.</div>
+    <?php elseif (isset($_GET['error'])): ?>
+        <div class="alert error"><i class="fa-solid fa-circle-exclamation"></i> Could not delete the post.</div>
+    <?php endif; ?>
+
     <?php if (count($posts) > 0): ?>
         <div class="posts">
             <?php foreach ($posts as $post): ?>
@@ -267,9 +283,12 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 
                     <div class="description">Short description of the request.</div>
 
-                    <div class="delete-form">
-                        <button type="button" class="delete-btn"><i class="fa-solid fa-trash"></i> Delete post</button>
-                    </div>
+                    <form class="delete-form" method="POST" action="delete_post.php"
+                          onsubmit="return confirm('Delete this post? This cannot be undone.');">
+                        <input type="hidden" name="post_id" value="<?= (int)$post['post_id'] ?>">
+                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+                        <button type="submit" class="delete-btn"><i class="fa-solid fa-trash"></i> Delete post</button>
+                    </form>
 
                 </div>
             <?php endforeach; ?>
