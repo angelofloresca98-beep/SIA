@@ -1879,8 +1879,6 @@ session_start();
                     <a href="moderation.php">Moderation</a>
                     <a href="copyright.php">Copyright</a>
                 </div>
-
-                <div style="opacity:0.6;">Design inspired by a premium mockup.</div>
             </div>
         </div>
     </footer>
