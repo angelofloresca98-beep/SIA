@@ -94,9 +94,12 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
 @media(max-width:768px){.navbar{padding:0 16px;overflow-x:auto;}.nav{min-width:max-content;}.nav a span{display:none;}.main{padding:18px 14px 40px;}.page-header{flex-direction:column;align-items:flex-start;}.grid{grid-template-columns:1fr;}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <nav class="navbar">
+    <input type="checkbox" id="nav-check" class="nav-check" aria-label="Toggle menu">
+    <label for="nav-check" class="nav-burger" aria-hidden="true"><span></span><span></span><span></span></label>
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>

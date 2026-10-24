@@ -209,6 +209,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
 
 @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <nav class="navbar" aria-label="Main navigation">

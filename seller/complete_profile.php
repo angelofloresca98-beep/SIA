@@ -72,6 +72,7 @@ button:hover{background:var(--forest);}
 .out{display:block;text-align:center;margin-top:14px;color:var(--muted);font-size:13.5px;text-decoration:none;}
 .out:hover{color:var(--ink);}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <form class="card" method="POST" novalidate>

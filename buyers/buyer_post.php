@@ -352,11 +352,14 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
 
 <nav class="navbar">
+    <input type="checkbox" id="nav-check" class="nav-check" aria-label="Toggle menu">
+    <label for="nav-check" class="nav-burger" aria-hidden="true"><span></span><span></span><span></span></label>
     <div class="brand">
         <strong><i class="fa-solid fa-seedling"></i> FarmMarket</strong>
         <small>Farm-to-Market System</small>

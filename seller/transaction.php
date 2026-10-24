@@ -460,6 +460,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>

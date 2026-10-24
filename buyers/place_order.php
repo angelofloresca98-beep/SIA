@@ -99,9 +99,12 @@ input[type=number]:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 
 .btn-cancel:hover{background:var(--paper);}
 @media(max-width:860px){.layout{grid-template-columns:1fr;}.main{padding:20px 16px 40px;}}
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <nav class="navbar">
+    <input type="checkbox" id="nav-check" class="nav-check" aria-label="Toggle menu">
+    <label for="nav-check" class="nav-burger" aria-hidden="true"><span></span><span></span><span></span></label>
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>

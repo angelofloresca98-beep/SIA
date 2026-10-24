@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require './database/connection.php';
 
@@ -188,9 +188,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     outline-offset: 2px;
 }
 
-/* ---------- Brand panel ---------- */
+/* ---------- Brand panel with background image and opacity blend ---------- */
 .brand-panel {
-    background: var(--forest);
+    position: relative;
+    background: linear-gradient(135deg, rgba(31, 77, 58, 0.85), rgba(27, 43, 36, 0.90)), 
+                url('farmpic4.jpg') center/cover no-repeat;
     color: #fff;
     padding: 48px;
     display: flex;
@@ -211,13 +213,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 8px 14px;
     border-radius: 8px;
     background: #e8ede6;
-    transition: all .15s ease;
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
     width: fit-content;
 }
 .back-link:hover {
     color: var(--forest);
     background: #dbe4d8;
-    transform: translateX(-2px);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+.back-link:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 .brand-mark i {
     width: 40px; height: 40px; border-radius: 10px;
@@ -225,8 +232,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     display: inline-flex; align-items: center; justify-content: center;
 }
 .brand-copy h2 { font-size: 34px; line-height: 1.15; letter-spacing: -0.02em; max-width: 14ch; margin-bottom: 14px; }
-.brand-copy p  { color: rgba(255,255,255,.75); max-width: 36ch; line-height: 1.55; }
-.brand-foot    { color: rgba(255,255,255,.55); font-size: 13px; }
+.brand-copy p  { color: rgba(255,255,255,.85); max-width: 36ch; line-height: 1.55; }
+.brand-foot    { color: rgba(255,255,255,.65); font-size: 13px; }
 
 /* ---------- Role cards ---------- */
 .role-picker { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 6px; }
@@ -237,7 +244,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     padding: 18px 10px;
     border: 2px solid #cbd5cd; border-radius: 12px; background: #fff;
     cursor: pointer; font-weight: 600; font-size: 14px; text-align: center;
-    transition: border-color .15s, box-shadow .15s, background .15s;
+    transition: border-color .15s, box-shadow .15s, background .15s, transform .15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .role-card label i { font-size: 24px; color: var(--muted); transition: color .15s; }
 .role-card label .role-desc { font-weight: 400; font-size: 12px; color: var(--muted); }
@@ -247,7 +254,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .role-card input[type="radio"]:checked + label i { color: var(--leaf); }
 .role-card input[type="radio"]:focus-visible + label { outline: 3px solid var(--harvest); outline-offset: 2px; }
-.role-card label:hover { border-color: var(--leaf); }
+.role-card label:hover { border-color: var(--leaf); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.role-card label:active { transform: translateY(0); box-shadow: none; }
 .role-picker.is-invalid .role-card label { border-color: var(--danger); }
 #roleBlock { margin-bottom: 22px; }
 
@@ -302,8 +310,10 @@ input.is-valid { border-color: var(--leaf); }
     position: absolute; right: 6px; top: 6px;
     width: 38px; height: 38px; border: 0; border-radius: 8px;
     background: transparent; color: var(--muted); cursor: pointer;
+    transition: background .15s, color .15s, transform .15s;
 }
 .pw-toggle:hover { color: var(--ink); background: var(--paper); }
+.pw-toggle:active { transform: scale(0.95); }
 
 /* Password strength */
 .strength { margin-top: 8px; }
@@ -350,6 +360,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
 .modal-x {
     width: 36px; height: 36px; border: 0; border-radius: 8px;
     background: transparent; color: var(--muted); font-size: 18px; cursor: pointer;
+    transition: background .15s, color .15s;
 }
 .modal-x:hover { background: var(--paper); color: var(--ink); }
 
@@ -365,17 +376,30 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
 .modal-close-btn {
     padding: 10px 20px; border: 0; border-radius: 10px;
     background: var(--leaf); color: #fff; font: inherit; font-weight: 600; cursor: pointer;
+    transition: background .15s, transform .15s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.modal-close-btn:hover { background: var(--forest); }
+.modal-close-btn:hover { background: var(--forest); transform: translateY(-1px); }
+.modal-close-btn:active { transform: translateY(0); }
 
+/* ---------- Main Register Button animations (Hover & Click) ---------- */
 .btn-register {
     width: 100%; padding: 13px; margin-top: 4px;
     background: var(--leaf); color: #fff; border: 0; border-radius: 10px;
     font: inherit; font-weight: 600; font-size: 16px;
-    cursor: pointer; transition: background .15s;
+    cursor: pointer; 
+    box-shadow: 0 4px 12px rgba(47, 125, 79, 0.25);
+    transition: background .2s ease, transform .15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 }
-.btn-register:hover { background: var(--forest); }
-.btn-register:disabled { opacity: .7; cursor: wait; }
+.btn-register:hover {
+    background: var(--forest);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(31, 77, 58, 0.35);
+}
+.btn-register:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 6px rgba(31, 77, 58, 0.2);
+}
+.btn-register:disabled { opacity: .7; cursor: wait; transform: none; box-shadow: none; }
 
 .foot { text-align: center; margin-top: 22px; color: var(--muted); font-size: 14.5px; }
 .foot a { color: var(--forest); font-weight: 600; text-decoration: none; }
@@ -425,7 +449,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
             <?php unset($_SESSION['message'], $_SESSION['type']); ?>
         <?php endif; ?>
 
-        <!-- REGISTER FORM (novalidate: JS shows friendly inline errors; server validates again) -->
+        <!-- REGISTER FORM -->
         <form method="POST" id="registerForm" novalidate>
             <input type="hidden" name="csrf" value="<?= e($_SESSION['csrf']) ?>">
 
@@ -555,147 +579,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     </div>
     <div class="modal-body">
        <p><strong>Last Updated:</strong> October 12, 2026</p>
-
-    <p>
-        <strong>Disclaimer:</strong>
-        This website is created for demonstration and academic
-        purposes only as part of an SIA subject project.
-        It is not a real company, official service, registered
-        business, or commercial website. No claims are made
-        regarding actual business operations, legal standing,
-        or real-world services.
-    </p>
-
-    <p>
-        The Farm Products and Market Sales Management System
-        is designed to help farmers and buyers in the fictional
-        Avengers City, Wakanda, manage agricultural products,
-        inventory, buyer requests, and sales transactions.
-        This policy explains how user information may be
-        collected, used, stored, and protected.
-    </p>
-
-    <!-- 1.1 INFORMATION COLLECTION -->
-    <h3>1.1 Information We Collect</h3>
-    <p>We may collect the following information:</p>
-    <ul>
-        <li>User names, emails, contact details, and account roles.</li>
-        <li>Farmer, buyer, and supplier profile information.</li>
-        <li>Product images, descriptions, prices, and stock quantities.</li>
-        <li>Buyer requests, proposed budgets, and order details.</li>
-        <li>Transaction histories, order statuses, and digital receipts.</li>
-        <li>Supplier details and restocking records.</li>
-        <li>AI chatbot interactions, when logging is enabled.</li>
-        <li>IP addresses, browser details, and server logs, if collected.</li>
-        <li>Information submitted when contacting administrators.</li>
-    </ul>
-
-    <!-- 1.2 INFORMATION USAGE -->
-    <h3>1.2 How We Use the Information</h3>
-    <p>
-        Information is used for account authentication,
-        product posting, inventory management, buyer
-        requests, order approval, sales recording,
-        digital receipt generation, and reporting.
-        It may also support chatbot recommendations,
-        system troubleshooting, and security monitoring.
-    </p>
-
-    <!-- 1.3 PUBLIC INFORMATION -->
-    <h3>1.3 User Profiles and Product Information</h3>
-    <p>
-        Farmers may display products, prices, quantities,
-        and relevant seller details. Buyers may submit
-        product requests with their proposed budgets.
-        Information included in public listings may
-        be visible to other users. Private account
-        details and restricted records should not
-        be publicly disclosed.
-    </p>
-
-    <!-- 1.4 DATA RETENTION -->
-    <h3>1.4 Data Retention</h3>
-    <p>
-        Account details, product listings, buyer requests,
-        supplier records, and transaction histories may
-        be stored in the MySQL database for academic
-        testing and demonstration. Information should
-        only be retained as long as reasonably necessary
-        for the project's intended purposes.
-    </p>
-
-    <!-- 1.5 SECURITY -->
-    <h3>1.5 Security</h3>
-    <p>
-        The system is intended to use secure authentication,
-        password hashing, role-based access, and database
-        protection measures. However, no online system
-        can guarantee absolute security. Users are
-        encouraged to provide fictional or test data.
-    </p>
-
-    <!-- 1.6 THIRD-PARTY SERVICES -->
-    <h3>1.6 Third-Party Services</h3>
-    <p>
-        The website may use hosting services, software
-        libraries, and AI chatbot providers. These
-        services may process information according
-        to their own privacy policies and configurations.
-    </p>
-
-    <!-- 1.7 COOKIES -->
-    <h3>1.7 Cookies</h3>
-    <p>
-        Cookies may be used for login sessions,
-        authentication, and website functionality.
-        Disabling cookies may affect dashboard access
-        and other features.
-    </p>
-
-    <!-- 1.8 PRIVACY RIGHTS -->
-    <h3>1.8 Your Privacy Rights</h3>
-    <p>
-        Depending on applicable laws, users may request
-        access to, correction of, or deletion of their
-        personal information. Requests may be submitted
-        to the project administrators for review.
-    </p>
-
-    <!-- 1.9 POLICY UPDATES -->
-    <h3>1.9 Changes to This Privacy Policy</h3>
-    <p>
-        This policy may be updated when system features,
-        security practices, or academic requirements
-        change. Revisions will be reflected through
-        an updated date on this page.
-    </p>
-
-    <!-- 1.10 CONTACT -->
-    <h3>1.10 Contact</h3>
-    <p>
-        For privacy questions or information requests,
-        please contact:
-    </p>
-
-    <p>
-        <strong>Project:</strong>
-        Farm Products and Market Sales Management System
-    </p>
-
-    <p>
-        <strong>Academic Adviser:</strong> Sir Jerico Garcia
-    </p>
-
-    <p>
-        <strong>Email:</strong>
-        <a href="mailto:garciaj@udd.edu.ph">
-            garciaj@udd.edu.ph
-        </a>
-    </p>
-
-    <p>
-        <strong>Website:</strong> [Insert your website URL]
-    </p>
+       <p>This website is created for demonstration and academic purposes only as part of an SIA subject project.</p>
     </div>
     <div class="modal-foot">
         <button type="button" class="modal-close-btn" data-close>Close</button>
@@ -708,148 +592,8 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-            <p><strong>Last Updated:</strong> October 12, 2026</p>
-
-    <p>
-        <strong>Disclaimer:</strong>
-        This website is created for demonstration and academic
-        purposes only as part of an SIA subject project.
-        It is not a real company, official service, registered
-        business, or commercial website. No claims are made
-        regarding actual business operations, legal standing,
-        or real-world services.
-    </p>
-
-    <p>
-        The Farm Products and Market Sales Management System
-        is an academic platform demonstrating how farmers
-        and buyers in the fictional Avengers City, Wakanda,
-        can manage products, inventory, requests, and sales.
-        By using this website, you agree to follow these
-        Terms and Conditions.
-    </p>
-
-    <!-- 2.1 ACCEPTANCE OF TERMS -->
-    <h3>2.1 Acceptance of Terms</h3>
-    <p>
-        Users agree to use this website only for lawful,
-        educational, and demonstration purposes.
-        Activities that harm others, compromise security,
-        or interfere with the system are prohibited.
-    </p>
-
-    <!-- 2.2 PRODUCT LISTINGS -->
-    <h3>2.2 Product Listings and Buyer Requests</h3>
-    <p>
-        Farmers may post products with images, descriptions,
-        prices, and available quantities. Buyers may browse
-        products and submit requests containing desired
-        quantities and proposed budgets.
-        Submitted information may be stored and displayed
-        to authorized users for academic demonstration.
-    </p>
-
-    <!-- 2.3 USER RESPONSIBILITIES -->
-    <h3>2.3 User Responsibilities</h3>
-    <p>Users must not:</p>
-    <ul>
-        <li>Post false product prices, quantities, or descriptions.</li>
-        <li>Submit fraudulent requests or misleading offers.</li>
-        <li>Post abusive, threatening, or discriminatory content.</li>
-        <li>Upload copyrighted materials without permission.</li>
-        <li>Disclose another user's private information.</li>
-        <li>Upload malicious files or attempt unauthorized access.</li>
-        <li>Manipulate inventory, transaction records, or receipts.</li>
-        <li>Misuse the AI chatbot or access restricted information.</li>
-    </ul>
-
-    <!-- 2.4 MODERATION RIGHTS -->
-    <h3>2.4 Moderation Rights</h3>
-    <p>
-        Project administrators may review, edit, reject,
-        restrict, or remove inappropriate product listings,
-        buyer requests, images, or other submitted content.
-        Repeated violations may result in account restrictions
-        when moderation functions are implemented.
-    </p>
-
-    <!-- 2.5 NO WARRANTIES -->
-    <h3>2.5 No Warranties</h3>
-    <p>
-        This website is provided on an "as is" and
-        "as available" basis for academic demonstration.
-        Uninterrupted access, complete security, and
-        error-free functionality are not guaranteed.
-    </p>
-
-    <!-- 2.6 LIMITATION OF LIABILITY -->
-    <h3>2.6 Limitation of Liability</h3>
-    <p>
-        The website does not facilitate real commercial
-        transactions. To the extent permitted by law,
-        the developers do not accept responsibility
-        for losses arising from simulated transactions,
-        inaccurate listings, chatbot errors, or downtime.
-        This does not exclude legally non-excludable duties.
-    </p>
-
-    <!-- 2.7 THIRD-PARTY CONTENT -->
-    <h3>2.7 Third-Party Content</h3>
-    <p>
-        External links, software libraries, product images,
-        and chatbot services may be provided by third parties.
-        Their respective licenses, ownership rights, and
-        privacy policies apply.
-    </p>
-
-    <!-- 2.8 WEBSITE CHANGES -->
-    <h3>2.8 Changes to the Website</h3>
-    <p>
-        Developers may update or remove features involving
-        product posting, inventory monitoring, buyer requests,
-        order management, chatbot assistance, and reporting
-        during system development and testing.
-    </p>
-
-    <!-- 2.9 TERMINATION -->
-    <h3>2.9 Termination</h3>
-    <p>
-        Administrators may restrict access or remove
-        content when users violate these Terms.
-        Such restrictions depend on the moderation
-        features implemented in the system.
-    </p>
-
-    <!-- 2.10 GOVERNING LAW -->
-    <h3>2.10 Governing Law</h3>
-    <p>
-        These Terms are intended to be interpreted under
-        applicable laws of the Republic of the Philippines.
-        Avengers City, Wakanda, is a fictional setting
-        and not an actual legal jurisdiction.
-    </p>
-
-    <!-- 2.11 CONTACT -->
-    <h3>2.11 Contact</h3>
-    <p>
-        For questions about these Terms, contact:
-    </p>
-
-    <p>
-        <strong>Project:</strong>
-        Farm Products and Market Sales Management System
-    </p>
-
-    <p>
-        <strong>Academic Adviser:</strong> Sir Jerico Garcia
-    </p>
-
-    <p>
-        <strong>Email:</strong>
-        <a href="mailto:garciaj@udd.edu.ph">
-            garciaj@udd.edu.ph
-        </a>
-    </p>
+        <p><strong>Last Updated:</strong> October 12, 2026</p>
+        <p>Users agree to use this website only for lawful, educational, and demonstration purposes.</p>
     </div>
     <div class="modal-foot">
         <button type="button" class="modal-close-btn" data-close>Close</button>
@@ -862,131 +606,8 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         <button type="button" class="modal-x" data-close aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-     <h2>3. Moderation and Removal Policy</h2>
-
-    <p><strong>Last Updated:</strong> October 12, 2026</p>
-
-    <p>
-        <strong>Disclaimer:</strong>
-        This website is created for demonstration and academic
-        purposes only as part of an SIA subject project.
-        It is not a real company, official service, registered
-        business, or commercial website. No claims are made
-        regarding actual business operations, legal standing,
-        or real-world services.
-    </p>
-
-    <p>
-        The Farm Products and Market Sales Management System
-        aims to provide a safe, respectful, and organized
-        platform for farmers, buyers, and suppliers in the
-        fictional Avengers City, Wakanda. This policy explains
-        how product listings, buyer requests, user interactions,
-        and transaction-related content may be reviewed,
-        reported, moderated, or removed.
-    </p>
-
-    <!-- 3.1 PROHIBITED CONTENT -->
-    <h3>3.1 Content That Is Not Allowed</h3>
-    <p>We may remove or moderate content that includes:</p>
-
-    <ul>
-        <li>Threats, harassment, abusive language, or discrimination.</li>
-        <li>False product prices, quantities, descriptions, or availability.</li>
-        <li>Fraudulent buyer requests or deceptive offers.</li>
-        <li>Spam, repeated advertisements, or irrelevant postings.</li>
-        <li>Illegal activities or attempts to compromise system security.</li>
-        <li>Unauthorized sharing of another user's personal information.</li>
-        <li>Copyrighted images or materials used without permission.</li>
-        <li>Falsified receipts, order statuses, or inventory records.</li>
-    </ul>
-
-    <!-- 3.2 CONTENT REVIEW -->
-    <h3>3.2 How Content Is Reviewed</h3>
-    <p>
-        Authorized project administrators may review product
-        listings, uploaded images, buyer requests, and other
-        submitted content when moderation features are
-        available. Reviews may occur before or after publication
-        or following a report. Violating content may be
-        corrected, restricted, hidden, or removed.
-    </p>
-
-    <!-- 3.3 REPORTING CONTENT -->
-    <h3>3.3 Reporting Content</h3>
-    <p>
-        Users may report misleading product listings,
-        inappropriate messages, suspicious buyer requests,
-        or other violations to the project administrators.
-        Reports should include the content involved, reason
-        for reporting, and relevant details or supporting
-        information without unnecessary personal data.
-    </p>
-
-    <!-- 3.4 REMOVAL REQUESTS -->
-    <h3>3.4 Removal Requests</h3>
-    <p>
-        Administrators may remove or restrict inappropriate
-        listings, misleading requests, unauthorized images,
-        or other violating content following a valid complaint,
-        appropriate legal request, or identified violation.
-        Related transaction records may be retained when
-        necessary and consistent with privacy requirements.
-    </p>
-
-    <!-- 3.5 REPEAT VIOLATIONS -->
-    <h3>3.5 Repeat Violations</h3>
-    <p>
-        Users who repeatedly submit fraudulent listings,
-        misleading requests, abusive messages, or inappropriate
-        content may receive warnings or restrictions.
-        Account access or posting privileges may be limited
-        when these moderation features are implemented.
-    </p>
-
-    <!-- 3.6 PUBLICATION -->
-    <h3>3.6 No Guarantee of Publication</h3>
-    <p>
-        The system does not guarantee publication or continued
-        availability of submitted content. Administrators
-        may reject, hide, or remove content that violates
-        marketplace guidelines or interferes with the
-        system's academic purpose.
-    </p>
-
-    <!-- 3.7 USER RESPONSIBILITY -->
-    <h3>3.7 User Responsibility</h3>
-    <p>
-        Farmers must provide appropriate product information,
-        images, prices, and quantities. Buyers must submit
-        legitimate requests with reasonable budgets.
-        All users must respect privacy, communicate
-        professionally, avoid misleading transactions,
-        and use the AI chatbot responsibly.
-    </p>
-
-    <!-- 3.8 CONTACT -->
-    <h3>3.8 Contact</h3>
-    <p>
-        For moderation concerns or content removal requests,
-        please contact:
-    </p>
-
-    <p>
-        <strong>Project:</strong>
-        Farm Products and Market Sales Management System
-    </p>
-
-    <p>
-        <strong>Academic Adviser:</strong> Sir Jerico Garcia
-    </p>
-
-    <p>
-        <strong>Email:</strong>
-        <a href="mailto:garciaj@udd.edu.ph">
-            garciaj@udd.edu.ph
-        </a>
-    </p>
+        <h2>3. Moderation and Removal Policy</h2>
+        <p>We may remove or moderate inappropriate content or listings.</p>
     </div>
     <div class="modal-foot">
         <button type="button" class="modal-close-btn" data-close>Close</button>
@@ -1000,113 +621,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     </div>
     <div class="modal-body">
         <h2>4. Copyright and DMCA Notice</h2>
-
-        <p><strong>Last Updated:</strong> October 12, 2026</p>
-
-        <p>
-            <strong>Disclaimer:</strong>
-            This website is created for demonstration and academic
-            purposes only as part of an SIA subject project.
-            It is not a real company, official service, registered
-            business, or commercial website. No claims are made
-            regarding actual business operations, legal standing,
-            or real-world services.
-        </p>
-
-        <p>
-            The Farm Products and Market Sales Management System
-            respects the intellectual property rights of others.
-            Farmers may upload agricultural product images,
-            descriptions, and other product-related materials
-            for academic demonstration. Users are responsible
-            for ensuring that their submitted content does not
-            infringe the rights of others.
-        </p>
-
-        <!-- 4.1 COPYRIGHT POLICY -->
-        <h3>4.1 Copyright Policy</h3>
-        <p>
-            Agricultural product images, descriptions, logos,
-            graphics, interface designs, and uploaded materials
-            may be protected by copyright laws.
-            Users must not upload copyrighted content without
-            permission or another lawful basis.
-        </p>
-
-        <p>
-            Original project code, designs, and documentation
-            remain subject to applicable intellectual property
-            laws and school policies. Third-party materials
-            remain the property of their respective owners.
-            Avengers City and Wakanda are fictional references;
-            the project is not affiliated with Marvel or Disney.
-        </p>
-
-        <!-- 4.2 REPORTING INFRINGEMENT -->
-        <h3>4.2 Reporting Copyright Infringement</h3>
-        <p>
-            If you believe that a product image, description,
-            logo, or other material infringes your copyright,
-            please submit a written notice containing:
-        </p>
-
-        <ul>
-            <li>Your full name and contact information.</li>
-            <li>A description of the copyrighted work.</li>
-            <li>The URL or location of the disputed material.</li>
-            <li>A statement explaining the suspected unauthorized use.</li>
-            <li>A statement confirming the accuracy of your report.</li>
-            <li>Your physical or electronic signature, when applicable.</li>
-        </ul>
-
-    <!-- 4.3 RESPONSE -->
-        <h3>4.3 Response to Copyright Complaints</h3>
-        <p>
-            Project administrators may review copyright reports
-            and investigate disputed product listings, images,
-            or descriptions. Content may be removed, restricted,
-            or disabled when a valid violation is identified
-            and the necessary moderation functions are available.
-            The uploader may be contacted for clarification.
-        </p>
-
-    <!-- 4.4 COUNTER-NOTICE -->
-        <h3>4.4 Counter-Notice</h3>
-        <p>
-            Users who believe their content was removed by
-            mistake or misidentification may submit a
-            counter-notice identifying the removed material,
-            explaining the dispute, and providing supporting
-            information. Administrators may review the request
-            and restore content when appropriate and lawful.
-        </p>
-
-    <!-- 4.5 CONTACT -->
-        <h3>4.5 Contact for Copyright Concerns</h3>
-        <p>
-            For copyright reports or removal requests,
-            please contact:
-        </p>
-
-        <p>
-        <strong>Project:</strong>
-            Farm Products and Market Sales Management System
-        </p>
-
-        <p>
-            <strong>Academic Adviser:</strong> Sir Jerico Garcia
-        </p>
-
-        <p>
-        <strong>Email:</strong>
-            <a href="mailto:garciaj@udd.edu.ph">
-                garciaj@udd.edu.ph
-            </a>
-        </p>
-
-        <p>
-            <strong>Website:</strong> [Insert your website URL]
-        </p>
+        <p>Respect intellectual property rights when uploading product details.</p>
     </div>
     <div class="modal-foot">
         <button type="button" class="modal-close-btn" data-close>Close</button>
@@ -1131,7 +646,7 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
     });
 
-    /* ---------- Show / hide password (both fields) ---------- */
+    /* ---------- Show / hide password ---------- */
     document.querySelectorAll('.pw-toggle').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const input = document.getElementById(btn.dataset.target);
@@ -1147,11 +662,9 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         this.value = this.value.replace(/\D/g, '');
     });
 
-    /* ---------- Validation rules (mirror the PHP rules) ---------- */
     const nameRe = /^\p{L}[\p{L}\s.'-]{1,49}$/u;
     const val = id => document.getElementById(id).value;
 
-    // Required name
     const nameRule = label => v => {
         v = v.trim();
         if (!v) return label + ' is required.';
@@ -1159,7 +672,6 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         return '';
     };
 
-    // Optional name: empty is fine, otherwise the format must match
     const optionalNameRule = label => v => {
         v = v.trim();
         if (!v) return '';
@@ -1227,7 +739,6 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         return ok;
     }
 
-    /* ---------- Live validation: on blur, then on every input once touched ---------- */
     Object.keys(rules).forEach(function (id) {
         const input = document.getElementById(id);
         input.addEventListener('blur', function () { input.dataset.touched = '1'; checkField(id); });
@@ -1238,7 +749,6 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     form.querySelectorAll('input[name="role"]').forEach(r => r.addEventListener('change', checkRole));
     document.getElementById('agree').addEventListener('change', checkAgree);
 
-    /* ---------- Password strength + checklist ---------- */
     const fill = document.getElementById('strengthFill');
     const text = document.getElementById('strengthText');
     const ruleEls = document.querySelectorAll('#pwRules li');
@@ -1278,12 +788,10 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
     }
     document.getElementById('password').addEventListener('input', function () {
         updateStrength();
-        // Re-check confirm when the main password changes
         if (val('confirmPassword') !== '') checkField('confirmPassword');
     });
     updateStrength();
 
-    /* ---------- Submit: validate everything, focus first error ---------- */
     form.addEventListener('submit', function (ev) {
         const results = Object.keys(rules).map(id => [id, checkField(id)]);
         const roleOk  = checkRole();
@@ -1298,8 +806,6 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
             return;
         }
 
-        // Prevent double submit. Name/value of the button is not sent when disabled,
-        // so add a hidden field to keep the PHP isset($_POST['create']) check working.
         const hidden = document.createElement('input');
         hidden.type = 'hidden'; hidden.name = 'create'; hidden.value = '1';
         form.appendChild(hidden);
@@ -1308,7 +814,6 @@ dialog.policy-modal::backdrop { background: rgba(28,42,36,.55); }
         btn.textContent = 'Creating account…';
     });
 
-    // If the server sent errors, scroll to the first one
     const firstServerErr = form.querySelector('.is-invalid');
     if (firstServerErr) firstServerErr.focus();
 })();

@@ -50,6 +50,60 @@ function validDate($d) {
 }
 
 
+// ---------- CSRF + FLASH ----------
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf_token'];
+
+$flash = $_SESSION['flash'] ?? null;
+unset($_SESSION['flash']);
+
+
+// ---------- DELETE ----------
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'delete') {
+
+    $token = $_POST['csrf_token'] ?? '';
+    $txId  = (int)($_POST['transaction_id'] ?? 0);
+
+    // Only allow a plain query string to be returned to (prevents open redirects)
+    $returnQs = $_POST['return_to'] ?? '';
+    $redirect = 'transaction_details.php';
+    if ($returnQs !== '' && preg_match('/^[A-Za-z0-9_=&%.+\-]*$/', $returnQs)) {
+        $redirect .= '?' . $returnQs;
+    }
+
+    if (!hash_equals($csrf, $token)) {
+        $_SESSION['flash'] = ['type' => 'error', 'text' => 'Invalid request. Please try again.'];
+    } elseif ($txId <= 0) {
+        $_SESSION['flash'] = ['type' => 'error', 'text' => 'Invalid transaction.'];
+    } else {
+        try {
+            // user_id in the WHERE clause means farmers can only delete their own records
+            $del = $conn->prepare("
+                DELETE FROM transactions
+                WHERE transaction_id = :id AND user_id = :user_id
+            ");
+            $del->execute([':id' => $txId, ':user_id' => $user_id]);
+
+            if ($del->rowCount() > 0) {
+                $_SESSION['flash'] = [
+                    'type' => 'success',
+                    'text' => 'Transaction #' . str_pad($txId, 5, '0', STR_PAD_LEFT) . ' was deleted.',
+                ];
+            } else {
+                $_SESSION['flash'] = ['type' => 'error', 'text' => 'Transaction not found.'];
+            }
+        } catch (PDOException $e) {
+            $_SESSION['flash'] = ['type' => 'error', 'text' => 'Unable to delete this transaction right now.'];
+        }
+    }
+
+    header("Location: $redirect");
+    exit();
+}
+
+
 // ---------- FILTERS ----------
 $search    = trim($_GET['q'] ?? '');
 $statusF   = trim($_GET['status'] ?? '');
@@ -321,6 +375,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 }
 .btn-outline:hover { background: var(--paper); }
 
+.btn-delete {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--danger-soft); color: var(--danger);
+    border: 1px solid transparent; padding: 7px 12px; border-radius: 10px;
+    font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+}
+.btn-delete:hover { background: var(--danger); color: #fff; }
+
 /* ---------- Stats ---------- */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 18px; }
 .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 14px; min-width: 0; }
@@ -351,7 +415,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .table-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .table-wrap { overflow-x: auto; }
 
-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+table { width: 100%; border-collapse: collapse; min-width: 1080px; }
 thead th {
     text-align: left; font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
     color: var(--muted); background: var(--paper); padding: 12px 16px; border-bottom: 1px solid var(--line); white-space: nowrap;
@@ -366,6 +430,8 @@ td.date { white-space: nowrap; }
 td .main-text { font-weight: 600; }
 td .sub-text { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 td.total { font-weight: 700; }
+th.col-action, td.col-action { text-align: right; white-space: nowrap; }
+.delete-form { display: inline; }
 
 /* Status badge */
 .badge {
@@ -392,6 +458,8 @@ td.total { font-weight: 700; }
 /* Messages / empty */
 .message { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 10px; margin-bottom: 18px; font-weight: 500; font-size: 14.5px; background: var(--danger-soft); color: var(--danger); overflow-wrap: anywhere; }
 .message::before { content: "\f06a"; font-family: "Font Awesome 6 Free"; font-weight: 900; margin-top: 1px; }
+.message.success { background: var(--leaf-soft); color: var(--forest); }
+.message.success::before { content: "\f058"; }
 
 .empty { text-align: center; padding: 56px 24px; }
 .empty i { font-size: 38px; color: var(--leaf); margin-bottom: 14px; }
@@ -411,7 +479,7 @@ td.total { font-weight: 700; }
     .filters .actions { grid-column: 1 / -1; }
 }
 
-/* Turn the 9-column table into stacked cards */
+/* Turn the table into stacked cards */
 @media screen and (max-width: 900px) {
     .table-wrap { overflow: visible; }
     table.transactions { min-width: 0; }
@@ -495,6 +563,8 @@ td.total { font-weight: 700; }
     .header-actions { width: 100%; flex-direction: column; }
     .header-actions .btn, .header-actions .btn-outline { width: 100%; min-height: 46px; }
 
+    .btn-delete { min-height: 40px; }
+
     .table-footer { flex-direction: column; align-items: stretch; text-align: center; }
     .pager { justify-content: space-between; }
     .pager a, .pager span.disabled { min-height: 44px; }
@@ -509,7 +579,7 @@ td.total { font-weight: 700; }
 
 /* ---------- Print ---------- */
 @media print {
-    .navbar, .header-actions, .filters, .pager { display: none; }
+    .navbar, .header-actions, .filters, .pager, .col-action { display: none; }
     body { background: #fff; }
     .main { padding: 0; max-width: 100%; }
     .table-wrap { overflow: visible; }
@@ -518,6 +588,7 @@ td.total { font-weight: 700; }
     tr { break-inside: avoid; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
@@ -565,6 +636,12 @@ td.total { font-weight: 700; }
 
     <?php if ($error !== ""): ?>
         <div class="message" role="alert"><span><?= e($error) ?></span></div>
+    <?php endif; ?>
+
+    <?php if ($flash): ?>
+        <div class="message <?= $flash['type'] === 'success' ? 'success' : '' ?>" role="alert">
+            <span><?= e($flash['text']) ?></span>
+        </div>
     <?php endif; ?>
 
     <!-- STATS -->
@@ -656,6 +733,7 @@ td.total { font-weight: 700; }
                             <th class="num">Total</th>
                             <th>Payment</th>
                             <th>Status</th>
+                            <th class="col-action">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -686,6 +764,18 @@ td.total { font-weight: 700; }
                             <td class="num total" data-label="Total"><?= e(peso($t['total_amount'])) ?></td>
                             <td data-label="Payment"><?= e($payText) ?></td>
                             <td data-label="Status"><span class="badge <?= e($statusKey) ?>"><?= e($statusText) ?></span></td>
+                            <td class="col-action" data-label="Action">
+                                <form method="POST" action="" class="delete-form"
+                                      data-confirm="Delete transaction <?= e($refNo) ?> (<?= e($t['product_name']) ?> to <?= e($t['buyer_name']) ?>)? This cannot be undone.">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="transaction_id" value="<?= (int)$t['transaction_id'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+                                    <input type="hidden" name="return_to" value="<?= e($_SERVER['QUERY_STRING'] ?? '') ?>">
+                                    <button type="submit" class="btn-delete" aria-label="Delete transaction <?= e($refNo) ?>">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -765,6 +855,13 @@ td.total { font-weight: 700; }
         if (window.innerWidth > 768) setMenu(false);
     });
 })();
+
+// Confirm before deleting
+document.querySelectorAll('.delete-form').forEach(form => {
+    form.addEventListener('submit', e => {
+        if (!confirm(form.dataset.confirm)) e.preventDefault();
+    });
+});
 </script>
 
 </body>

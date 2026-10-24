@@ -574,6 +574,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
