@@ -8,12 +8,12 @@ if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
 
 require '../database/connection.php';
 
-// CSRF token (used by the delete form)
+// CSRF token (used by all delete forms)
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Flash message (set it in delete_user.php / add.php / update_user.php)
+// Flash message (set it in delete_user.php / add.php / update_user.php / delete_post.php / delete_transaction.php)
 $flash = $_SESSION['flash'] ?? null;
 unset($_SESSION['flash']);
 
@@ -642,11 +642,12 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                         <th>Type</th>
                         <th>Price</th>
                         <th>Date</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php if (!$posts): ?>
-                    <tr><td colspan="5" class="text-center text-muted py-4">No posts yet.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted py-4">No posts yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($posts as $p): ?>
                     <tr data-role="<?= e($p['role']) ?>">
@@ -666,6 +667,17 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                         <td><span class="badge bg-secondary"><?= e(ucfirst((string)$p['post_type'])) ?></span></td>
                         <td>₱<?= number_format((float)($p['price'] ?? 0), 2) ?></td>
                         <td><?= e(date('M d, Y g:i A', strtotime($p['created_at']))) ?></td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal" data-bs-target="#deleteItemModal"
+                                    data-action="delete_post.php"
+                                    data-id="<?= e($p['post_id']) ?>"
+                                    data-title="Delete this post?"
+                                    data-label="<?= e(($p['title'] ?? 'This post') . ' by ' . fullName($p)) ?>"
+                                    aria-label="Delete post">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -696,11 +708,12 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                         <th>Payment</th>
                         <th>Status</th>
                         <th>Date</th>
+                        <th class="text-end">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php if (!$transactions): ?>
-                    <tr><td colspan="10" class="text-center text-muted py-4">No transactions yet.</td></tr>
+                    <tr><td colspan="11" class="text-center text-muted py-4">No transactions yet.</td></tr>
                 <?php endif; ?>
                 <?php foreach ($transactions as $t): ?>
                     <tr>
@@ -714,6 +727,17 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                         <td><?= e($t['payment_method'] ?? '—') ?></td>
                         <td><?= statusBadge((string)$t['status']) ?></td>
                         <td><?= e(date('M d, Y g:i A', strtotime($t['tx_date']))) ?></td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="action-btn delete-btn"
+                                    data-bs-toggle="modal" data-bs-target="#deleteItemModal"
+                                    data-action="delete_transaction.php"
+                                    data-id="<?= e($t['transaction_id']) ?>"
+                                    data-title="Delete this transaction?"
+                                    data-label="Transaction #TRX-<?= e($t['transaction_id']) ?>"
+                                    aria-label="Delete transaction #TRX-<?= e($t['transaction_id']) ?>">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -722,7 +746,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     </section>
 </main>
 
-<!-- Delete confirmation (POST + CSRF instead of a GET link) -->
+<!-- Delete confirmation for users (POST + CSRF instead of a GET link) -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" method="POST" action="delete_user.php">
@@ -744,6 +768,28 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     </div>
 </div>
 
+<!-- Delete confirmation for posts & transactions (shared) -->
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-labelledby="deleteItemTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="POST" id="deleteItemForm">
+            <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
+            <input type="hidden" name="id" id="deleteItemId">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteItemTitle">Delete this item?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0"><strong id="deleteItemLabel"></strong> will be permanently removed. This can't be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Fill the delete modal with the selected user
@@ -751,6 +797,15 @@ document.getElementById('deleteModal').addEventListener('show.bs.modal', functio
     const btn = ev.relatedTarget;
     document.getElementById('deleteUserId').value = btn.dataset.id;
     document.getElementById('deleteUserName').textContent = btn.dataset.name;
+});
+
+// Fill the shared delete modal (posts & transactions)
+document.getElementById('deleteItemModal').addEventListener('show.bs.modal', function (ev) {
+    const btn = ev.relatedTarget;
+    document.getElementById('deleteItemForm').action = btn.dataset.action;
+    document.getElementById('deleteItemId').value = btn.dataset.id;
+    document.getElementById('deleteItemTitle').textContent = btn.dataset.title;
+    document.getElementById('deleteItemLabel').textContent = btn.dataset.label;
 });
 
 // Sidebar: mobile open/close
