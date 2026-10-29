@@ -391,6 +391,7 @@ textarea.form-control { resize: vertical; }
     * { transition: none !important; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>

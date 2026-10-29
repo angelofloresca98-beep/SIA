@@ -19,7 +19,7 @@ unset($_SESSION['flash']);
 
 // One query for everyone, split in PHP
 $stmt = $conn->prepare(
-    "SELECT user_id, firstName, middleName, lastName, address, contact_number, email, role
+    "SELECT user_id, firstName, middleName, lastName, address, contact_number, email, role, created_at
      FROM users
      WHERE role IN ('farmer', 'buyer')
      ORDER BY user_id DESC"
@@ -105,14 +105,19 @@ function renderUserTable(array $users, string $role): void {
             <thead>
                 <tr>
                     <th>User</th>
+                    <th>Role</th>
                     <th>Contact</th>
                     <th>Address</th>
+                    <th>Date Created</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
-            <?php foreach ($users as $u): ?>
-                <tr data-search="<?= e(strtolower(fullName($u) . ' ' . $u['email'] . ' ' . $u['contact_number'] . ' ' . $u['address'])) ?>">
+            <?php foreach ($users as $u):
+                $createdTs = !empty($u['created_at']) ? strtotime($u['created_at']) : false;
+            ?>
+                <tr data-date="<?= $createdTs ? e(date('Y-m-d', $createdTs)) : '' ?>"
+                    data-search="<?= e(strtolower(fullName($u) . ' ' . $u['email'] . ' ' . $u['contact_number'] . ' ' . $u['address'] . ' ' . $u['role'])) ?>">
                     <td>
                         <div class="person">
                             <span class="avatar <?= e($role) ?>"><?= e(initials($u)) ?></span>
@@ -122,8 +127,17 @@ function renderUserTable(array $users, string $role): void {
                             </div>
                         </div>
                     </td>
+                    <td><span class="badge <?= $u['role'] === 'farmer' ? 'bg-success' : 'bg-warning text-dark' ?>"><?= e(ucfirst($u['role'])) ?></span></td>
                     <td><?= e($u['contact_number']) ?></td>
                     <td class="address"><?= e($u['address']) ?></td>
+                    <td class="text-nowrap">
+                        <?php if ($createdTs): ?>
+                            <div><?= e(date('M d, Y', $createdTs)) ?></div>
+                            <div class="person-email"><?= e(date('g:i:s A', $createdTs)) ?></div>
+                        <?php else: ?>
+                            <span class="text-muted">—</span>
+                        <?php endif; ?>
+                    </td>
                     <td class="text-end text-nowrap">
                         <a href="update_user.php?user_id=<?= urlencode($u['user_id']) ?>"
                            class="action-btn edit-btn" title="Edit <?= e(fullName($u)) ?>"
@@ -394,6 +408,10 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     font: inherit;
 }
 
+.date-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.date-filter label { color: var(--muted); font-size: 13px; font-weight: 600; margin: 0; }
+.date-filter input { width: auto; }
+
 .btn-primary { background: var(--leaf); border-color: var(--leaf); font-weight: 600; }
 .btn-primary:hover, .btn-primary:focus { background: var(--forest); border-color: var(--forest); }
 
@@ -498,6 +516,7 @@ a:focus-visible, button:focus-visible, input:focus-visible {
     * { transition: none !important; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
@@ -592,6 +611,13 @@ a:focus-visible, button:focus-visible, input:focus-visible {
                     <input type="search" id="userSearch" placeholder="Search name, email, contact or address"
                            aria-label="Search users">
                 </label>
+                <div class="date-filter">
+                    <label for="dateFrom">From</label>
+                    <input type="date" id="dateFrom" class="form-control form-control-sm">
+                    <label for="dateTo">To</label>
+                    <input type="date" id="dateTo" class="form-control form-control-sm">
+                    <button type="button" class="btn btn-light btn-sm" id="dateClear">Clear</button>
+                </div>
                 <a href="add.php" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i> Add user</a>
             </div>
         </div>
@@ -881,15 +907,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Live search across both tabs
 const searchInput = document.getElementById('userSearch');
-searchInput.addEventListener('input', function () {
-    const q = this.value.trim().toLowerCase();
+const dateFrom    = document.getElementById('dateFrom');
+const dateTo      = document.getElementById('dateTo');
+
+function applyUserFilters() {
+    const q    = searchInput.value.trim().toLowerCase();
+    const from = dateFrom.value;   // YYYY-MM-DD (string compare works)
+    const to   = dateTo.value;
 
     document.querySelectorAll('.user-table').forEach(function (table) {
         const rows = table.querySelectorAll('tbody tr');
         let visible = 0;
 
         rows.forEach(function (row) {
-            const match = row.dataset.search.includes(q);
+            const d = row.dataset.date || '';
+            let match = row.dataset.search.includes(q);
+            if (match && from) match = d !== '' && d >= from;
+            if (match && to)   match = d !== '' && d <= to;
             row.hidden = !match;
             if (match) visible++;
         });
@@ -900,6 +934,15 @@ searchInput.addEventListener('input', function () {
         const badge = document.querySelector('[data-count="' + table.dataset.role + '"]');
         if (badge) badge.textContent = visible;
     });
+}
+
+searchInput.addEventListener('input', applyUserFilters);
+dateFrom.addEventListener('change', applyUserFilters);
+dateTo.addEventListener('change', applyUserFilters);
+document.getElementById('dateClear').addEventListener('click', function () {
+    dateFrom.value = '';
+    dateTo.value = '';
+    applyUserFilters();
 });
 
 // Filter posts by farmer / buyer

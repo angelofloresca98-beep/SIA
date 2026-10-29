@@ -310,6 +310,37 @@ TXT;
 }
 /* ================= END CHATBOT API ================= */
 
+
+/* =========================================================
+   MARK MESSAGES AS READ  (handles fetch('buyer.php?read=1'))
+   Only this buyer's own messages are touched.
+   ========================================================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['read'])) {
+    header('Content-Type: application/json');
+    $s = $conn->prepare("UPDATE messages SET is_read=1 WHERE receiver_id=? AND is_read=0");
+    $s->execute([$user_id]);
+    echo json_encode(['ok' => true]);
+    exit();
+}
+/* ================= END MARK READ ================= */
+
+
+// Messages from farmers (unread count + latest 20)
+$s = $conn->prepare("SELECT COUNT(*) FROM messages WHERE receiver_id=? AND is_read=0");
+$s->execute([$user_id]); $unreadMessages = (int)$s->fetchColumn();
+
+$sql = "SELECT m.message_id, m.message, m.is_read, m.created_at,
+               CONCAT(u.firstName,' ',u.lastName) AS farmer_name, u.contact_number,
+               pr.product_name
+        FROM messages m
+        JOIN users u ON m.sender_id=u.user_id
+        LEFT JOIN post p ON m.post_id=p.post_id
+        LEFT JOIN products pr ON p.product_id=pr.product_id
+        WHERE m.receiver_id=?
+        ORDER BY m.created_at DESC LIMIT 20";
+$stmt = $conn->prepare($sql); $stmt->execute([$user_id]);
+$myMessages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Latest farmer sell posts
 $sql = "SELECT p.post_id, p.created_at, pr.product_id, pr.product_name, pr.variety, pr.unit, pr.price, pr.quantity, pr.description, pr.image, pr.status AS product_status,
                u.user_id AS farmer_id, CONCAT(u.firstName,' ',u.lastName) AS farmer_name, u.contact_number, u.address
@@ -418,6 +449,19 @@ tr:hover td{background:#f8faf8;}
 .product-img{width:100%;height:170px;object-fit:cover;border-radius:10px;border:1px solid var(--line);background:var(--paper);display:block;}
 .product-img.placeholder{display:flex;align-items:center;justify-content:center;font-size:34px;color:var(--leaf);background:linear-gradient(135deg,var(--leaf-soft),var(--paper));}
 
+/* ---------- Farmer messages ---------- */
+.tab-badge{display:inline-block;min-width:20px;padding:1px 7px;margin-left:6px;border-radius:99px;background:var(--danger);color:#fff;font-size:12px;font-weight:700;line-height:18px;text-align:center;}
+.msg-list{display:flex;flex-direction:column;gap:14px;}
+.msg-item{border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;background:#fff;display:flex;flex-direction:column;gap:10px;}
+.msg-item.unread{border-color:#9fbda9;background:#fbfdfb;}
+.msg-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.msg-from{font-weight:700;font-size:15px;}
+.msg-about{color:var(--muted);font-size:13px;}
+.msg-new{background:var(--harvest-soft);color:#7a4f0e;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;}
+.msg-date{margin-left:auto;color:var(--muted);font-size:13px;}
+.msg-body{font-size:14.5px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap;}
+.msg-contact{font-size:13.5px;color:var(--forest);font-weight:600;}
+
 /* ---------- Chatbot ---------- */
 #cb-btn { position: fixed; right: 22px; bottom: 22px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: #183d00; color: #fff; font-size: 22px; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.25); z-index: 1000; }
 #cb-panel { position: fixed; right: 22px; bottom: 90px; width: 340px; max-width: calc(100vw - 32px); height: 460px; max-height: 70vh; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.2); display: none; flex-direction: column; overflow: hidden; z-index: 1000; }
@@ -466,6 +510,7 @@ tr:hover td{background:#f8faf8;}
     <div class="tabs">
         <button class="tab-btn active" data-tab="tab-market">Fresh from Farmers</button>
         <button class="tab-btn" data-tab="tab-orders">Recent Orders</button>
+        <button class="tab-btn" data-tab="tab-messages" id="msg-tab-btn">Messages<?php if ($unreadMessages > 0): ?><span class="tab-badge" id="msg-badge"><?= $unreadMessages ?></span><?php endif; ?></button>
     </div>
 
     <!-- Marketplace preview -->
@@ -548,6 +593,40 @@ tr:hover td{background:#f8faf8;}
             <?php endif; ?>
         </div>
     </div>
+
+    <!-- Messages from farmers -->
+    <div class="tab-panel" id="tab-messages">
+        <div class="section">
+            <div class="section-header">
+                <h2><i class="fa-solid fa-envelope" style="color:var(--harvest);margin-right:8px;"></i>Messages from Farmers</h2>
+                <a href="my_post.php" class="btn-sm outline"><i class="fa-solid fa-clipboard-list"></i> My Requests</a>
+            </div>
+            <?php if (!empty($myMessages)): ?>
+            <div class="msg-list">
+                <?php foreach ($myMessages as $m):
+                    $parts = preg_split('/\s+/', trim($m['farmer_name']));
+                    $initials = strtoupper(mb_substr($parts[0]??'',0,1).mb_substr(end($parts)?:'',0,1));
+                ?>
+                <div class="msg-item <?= $m['is_read'] ? '' : 'unread' ?>">
+                    <div class="msg-top">
+                        <span class="av-xs"><?= $initials ?></span>
+                        <span class="msg-from"><?= htmlspecialchars($m['farmer_name']) ?></span>
+                        <?php if (!$m['is_read']): ?><span class="msg-new">New</span><?php endif; ?>
+                        <?php if ($m['product_name']): ?><span class="msg-about">about your request: <?= htmlspecialchars($m['product_name']) ?></span><?php endif; ?>
+                        <span class="msg-date"><?= date('M d, Y · g:i A', strtotime($m['created_at'])) ?></span>
+                    </div>
+                    <p class="msg-body"><?= htmlspecialchars($m['message']) ?></p>
+                    <?php if (!empty($m['contact_number'])): ?>
+                    <div class="msg-contact"><i class="fa-solid fa-phone"></i> Reply to the farmer: <?= htmlspecialchars($m['contact_number']) ?></div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="empty"><i class="fa-solid fa-envelope"></i><h3>No messages yet</h3><p>When a farmer replies to your request, the message will appear here.</p></div>
+            <?php endif; ?>
+        </div>
+    </div>
 </main>
 
 <!-- CHATBOT (database-only) -->
@@ -625,6 +704,17 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
         document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
         btn.classList.add('active');
         document.getElementById(btn.dataset.tab).classList.add('active');
+
+        // Opening the Messages tab marks them as read and removes the red badge.
+        // (The "New" labels stay until the next page load so the buyer can see which were new.)
+        if (btn.dataset.tab === 'tab-messages') {
+            const badge = document.getElementById('msg-badge');
+            if (badge) {
+                fetch(window.location.pathname + '?read=1', { method: 'POST' })
+                    .then(() => badge.remove())
+                    .catch(() => {});
+            }
+        }
     });
 });
 </script>

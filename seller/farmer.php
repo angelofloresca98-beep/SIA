@@ -222,6 +222,40 @@ TXT;
 }
 /* ================= END CHATBOT API ================= */
 
+
+/* =========================================================
+   SEND MESSAGE API  (handles fetch('farmer.php?send=1'))
+   Farmer -> the buyer who made the "wanted" request
+   ========================================================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['send'])) {
+    header('Content-Type: application/json');
+    $reply = function ($ok, $msg) { echo json_encode(['ok' => $ok, 'message' => $msg]); exit(); };
+
+    $in      = json_decode(file_get_contents('php://input'), true) ?: [];
+    $post_id = (int)($in['post_id'] ?? 0);
+    $text    = trim((string)($in['message'] ?? ''));
+
+    if ($text === '' || mb_strlen($text) > 500) $reply(false, 'Message must be 1-500 characters.');
+
+    // The receiver is looked up here on the server - never trusted from the browser
+    $s = $conn->prepare("SELECT user_id FROM post WHERE post_id = ? AND post_type = 'wanted'");
+    $s->execute([$post_id]);
+    $buyer_id = $s->fetchColumn();
+    if (!$buyer_id) $reply(false, 'That request no longer exists.');
+
+    // Simple rate limit (1 message / 2 seconds)
+    if (isset($_SESSION['last_msg']) && microtime(true) - $_SESSION['last_msg'] < 2) {
+        $reply(false, 'Please wait a moment before sending again.');
+    }
+    $_SESSION['last_msg'] = microtime(true);
+
+    $s = $conn->prepare("INSERT INTO messages (sender_id, receiver_id, post_id, message) VALUES (?,?,?,?)");
+    $s->execute([$user_id, $buyer_id, $post_id, $text]);
+    $reply(true, 'Message sent!');
+}
+/* ================= END SEND MESSAGE API ================= */
+
+
 // ── Stats ──────────────────────────────────────────────
 // My active listings
 $stmt = $conn->prepare("SELECT COUNT(*) FROM post p JOIN products pr ON p.product_id=pr.product_id WHERE p.user_id=? AND p.post_type='sell'");
@@ -235,15 +269,16 @@ $stmt->execute([$user_id]); [$salesCount, $totalRevenue] = $stmt->fetch(PDO::FET
 $stmt = $conn->prepare("SELECT COUNT(*) FROM orders o JOIN products pr ON o.product_id=pr.product_id WHERE pr.user_id=? AND o.status='pending'");
 $stmt->execute([$user_id]); $pendingOrders = $stmt->fetchColumn();
 
-// Latest buyer "wanted" posts
+// Latest buyer "wanted" posts (+ how many messages this farmer already sent for each)
 $sql = "SELECT p.post_id, p.created_at, pr.product_name, pr.variety, pr.unit, pr.quantity, pr.price, pr.description,
-               u.user_id AS buyer_id, u.firstName, u.lastName, u.contact_number, u.address
+               u.user_id AS buyer_id, u.firstName, u.lastName, u.contact_number, u.address,
+               (SELECT COUNT(*) FROM messages m WHERE m.post_id=p.post_id AND m.sender_id=?) AS sent_count
         FROM post p
         JOIN products pr ON p.product_id=pr.product_id
         JOIN users u ON p.user_id=u.user_id
         WHERE p.post_type='wanted' AND u.role='buyer'
         ORDER BY p.created_at DESC LIMIT 6";
-$stmt = $conn->prepare($sql); $stmt->execute(); $buyerPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $conn->prepare($sql); $stmt->execute([$user_id]); $buyerPosts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Latest orders for this farmer (pending)
 $sql = "SELECT o.order_id, o.quantity AS order_qty, o.total_price, o.status, o.created_at,
@@ -356,6 +391,22 @@ a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(
 .av-xs{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;background:var(--harvest-soft);color:#7a4f0e;}
 .req-note{font-size:13.5px;color:#44524a;background:var(--paper);border-radius:8px;padding:8px 10px;overflow-wrap:anywhere;}
 .req-date{font-size:13px;color:var(--muted);}
+
+/* Message buyer (button + modal) */
+.msg-btn{width:100%;margin-top:auto;padding:10px;background:var(--harvest);border-radius:9px;}
+.msg-btn:hover{background:#8c5c0e;}
+.sent-tag{font-size:13px;font-weight:600;color:var(--forest);}
+#msg-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:2000;padding:16px;}
+#msg-modal.open{display:flex;}
+.modal-box{background:#fff;border-radius:14px;width:100%;max-width:440px;padding:22px;box-shadow:0 12px 32px rgba(0,0,0,.25);}
+.modal-box h3{font-size:18px;margin-bottom:4px;color:var(--forest);}
+.modal-box .sub{color:var(--muted);font-size:14px;margin-bottom:14px;overflow-wrap:anywhere;}
+.modal-box textarea{width:100%;height:120px;resize:vertical;border:1px solid #d5ddd3;border-radius:10px;padding:10px;font:inherit;font-size:14px;}
+.modal-foot{display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;}
+#msg-count{font-size:12.5px;color:var(--muted);}
+#msg-status{font-size:13.5px;margin-top:8px;min-height:18px;}
+#msg-status.ok{color:var(--forest);}
+#msg-status.err{color:var(--danger);}
 
 /* Orders table */
 .table-wrap{overflow-x:auto;}
@@ -589,6 +640,15 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
                     <p class="req-note"><?= htmlspecialchars($bp['description']) ?></p>
                     <?php endif; ?>
                     <p class="req-date">Posted <?= date('M d, Y', strtotime($bp['created_at'])) ?></p>
+                    <span class="sent-tag" id="sent-<?= (int)$bp['post_id'] ?>" <?= $bp['sent_count'] ? '' : 'hidden' ?>>
+                        <i class="fa-solid fa-check"></i> You messaged this buyer
+                    </span>
+                    <button type="button" class="btn-sm msg-btn"
+                            data-post="<?= (int)$bp['post_id'] ?>"
+                            data-buyer="<?= htmlspecialchars($bp['firstName'].' '.$bp['lastName'], ENT_QUOTES) ?>"
+                            data-product="<?= htmlspecialchars($bp['product_name'], ENT_QUOTES) ?>">
+                        <i class="fa-solid fa-envelope"></i> Message Buyer
+                    </button>
                 </div>
                 <?php endforeach; ?>
             </div>
@@ -663,6 +723,23 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
 
 </main>
 
+<!-- MESSAGE BUYER MODAL -->
+<div id="msg-modal" role="dialog" aria-modal="true" aria-labelledby="msg-title">
+    <div class="modal-box">
+        <h3 id="msg-title">Message Buyer</h3>
+        <p class="sub" id="msg-sub"></p>
+        <textarea id="msg-text" maxlength="500" placeholder="e.g. Hi! I have fresh stock available. I can deliver this week."></textarea>
+        <div id="msg-status"></div>
+        <div class="modal-foot">
+            <span id="msg-count">0 / 500</span>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="btn-sm outline" id="msg-cancel">Cancel</button>
+                <button type="button" class="btn-sm" id="msg-send"><i class="fa-solid fa-paper-plane"></i> Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- CHATBOT (database-only) -->
 <button id="cb-btn" aria-label="Open chat"><i class="fa-solid fa-comment-dots"></i></button>
 
@@ -729,6 +806,51 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
 
     send.onclick = ask;
     input.addEventListener('keydown', e => { if (e.key === 'Enter') ask(); });
+})();
+
+// Message buyer
+(function () {
+    const modal  = document.getElementById('msg-modal');
+    const text   = document.getElementById('msg-text');
+    const status = document.getElementById('msg-status');
+    const send   = document.getElementById('msg-send');
+    let postId = 0;
+
+    function close() { modal.classList.remove('open'); }
+    function setStatus(t, cls) { status.textContent = t; status.className = cls || ''; }
+
+    document.querySelectorAll('.msg-btn').forEach(b => b.addEventListener('click', () => {
+        postId = b.dataset.post;
+        document.getElementById('msg-sub').textContent = 'To ' + b.dataset.buyer + ' — about: ' + b.dataset.product;
+        text.value = ''; setStatus('');
+        document.getElementById('msg-count').textContent = '0 / 500';
+        modal.classList.add('open'); text.focus();
+    }));
+
+    text.addEventListener('input', () => document.getElementById('msg-count').textContent = text.value.length + ' / 500');
+    document.getElementById('msg-cancel').onclick = close;
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+
+    send.onclick = async () => {
+        const m = text.value.trim();
+        if (!m) { setStatus('Please type a message.', 'err'); return; }
+        send.disabled = true; setStatus('Sending...');
+        try {
+            const res  = await fetch(window.location.pathname + '?send=1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ post_id: postId, message: m })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                setStatus(data.message, 'ok');
+                document.getElementById('sent-' + postId).hidden = false;
+                setTimeout(close, 900);
+            } else setStatus(data.message, 'err');
+        } catch (e) { setStatus('Connection error. Please try again.', 'err'); }
+        send.disabled = false;
+    };
 })();
 
 // Tabs
