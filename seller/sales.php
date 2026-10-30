@@ -210,6 +210,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
 @media(prefers-reduced-motion:reduce){*{transition:none !important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
 <nav class="navbar" aria-label="Main navigation">
@@ -219,6 +220,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
     </button>
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.php" class="acti"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php" class="active"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
@@ -318,5 +320,6 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
     });
 })();
 </script>
+  <script src="theme.js"></script>
 </body>
 </html>

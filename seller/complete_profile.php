@@ -73,6 +73,7 @@ button:hover{background:var(--forest);}
 .out:hover{color:var(--ink);}
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
 <form class="card" method="POST" novalidate>
@@ -95,5 +96,6 @@ button:hover{background:var(--forest);}
     <button type="submit"><i class="fa-solid fa-check"></i> Save &amp; Continue</button>
     <a class="out" href="../logout.php">Logout</a>
 </form>
+  <script src="theme.js"></script>
 </body>
 </html>

@@ -1,3 +1,4 @@
+
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -29,9 +30,17 @@ if (empty($_SESSION['csrf_token'])) {
 // GET BUYER'S POSTS
 
 $sql = "
-    SELECT p.*, pr.product_name
+    SELECT
+        p.*,
+        pr.product_name,
+        pr.variety,
+        pr.quantity,
+        pr.unit,
+        pr.price,
+        pr.description,
+        pr.status
     FROM post p
-    LEFT JOIN products pr ON pr.product_id = p.product_id
+    INNER JOIN products pr ON pr.product_id = p.product_id
     WHERE p.user_id = :user_id
     AND p.post_type = 'wanted'
     ORDER BY p.created_at DESC
@@ -225,6 +234,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 
 <body>
@@ -238,6 +248,7 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
     </div>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="marketplace.php"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php" class="active"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
@@ -272,19 +283,38 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
                         <span class="status available">Available</span>
                     </div>
 
-                    <h2><?= htmlspecialchars($post['product_name'] ?? ('Post #' . $post['post_id'])) ?></h2>
-                    <div class="variety">Product category</div>
+                    <h2>
+    <?= htmlspecialchars($post['product_name'] ?? ('Post #' . $post['post_id'])) ?>
+                    </h2>
+
+                    <div class="variety">
+                        <?= htmlspecialchars($post['variety'] ?: 'No variety specified') ?>
+                    </div>
 
                     <dl class="details">
+
                         <dt>Quantity</dt>
-                        <dd>50 kg</dd>
+                        <dd>
+                            <?= htmlspecialchars($post['quantity']) ?>
+                            <?= htmlspecialchars($post['unit']) ?>
+                        </dd>
+
                         <dt>Price</dt>
-                        <dd class="price">₱150.00</dd>
+                        <dd class="price">
+                            ₱<?= number_format((float)$post['price'], 2) ?>
+                            / <?= htmlspecialchars($post['unit']) ?>
+                        </dd>
+
                         <dt>Posted</dt>
-                        <dd><?= htmlspecialchars(date('M d, Y', strtotime($post['created_at']))) ?></dd>
+                        <dd>
+                            <?= htmlspecialchars(date('M d, Y', strtotime($post['created_at']))) ?>
+                        </dd>
+
                     </dl>
 
-                    <div class="description">Short description of the request.</div>
+                    <div class="description">
+                        <?= htmlspecialchars($post['description'] ?: 'No description provided.') ?>
+                    </div>
 
                     <form class="delete-form" method="POST" action="delete_post.php"
                           onsubmit="return confirm('Delete this post? This can\'t be undone.');">
@@ -307,6 +337,6 @@ a:focus-visible, button:focus-visible { outline: 3px solid var(--harvest); outli
     <?php endif; ?>
 
 </main>
-
+  <script src="theme.js"></script>
 </body>
 </html>

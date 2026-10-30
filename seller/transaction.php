@@ -461,6 +461,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 
 <body>
@@ -479,6 +480,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.php" class="acti"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
@@ -726,6 +728,6 @@ updateTotal();
     });
 })();
 </script>
-
+  <script src="theme.js"></script>
 </body>
 </html>

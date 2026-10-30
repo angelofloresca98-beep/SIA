@@ -8,50 +8,41 @@ if ($_SESSION['role'] !== 'buyer') { header("Location: ../login.php"); exit(); }
 $user_id   = $_SESSION['user_id'];
 $buyerName = $_SESSION['user'] ?? 'Buyer';
 
-$product_id = (int)($_GET['product_id'] ?? $_POST['product_id'] ?? 0);
-if (!$product_id) { header("Location: marketplace.php"); exit(); }
+$statusFilter = $_GET['status'] ?? 'all';
+$search       = trim($_GET['search'] ?? '');
 
-// Fetch product + farmer info
-$stmt = $conn->prepare("SELECT pr.*, CONCAT(u.firstName,' ',u.lastName) AS farmer_name, u.contact_number, u.address, u.user_id AS farmer_id
-                        FROM products pr JOIN users u ON pr.user_id=u.user_id WHERE pr.product_id=? AND pr.status='available' LIMIT 1");
-$stmt->execute([$product_id]);
-$product = $stmt->fetch(PDO::FETCH_ASSOC);
-if (!$product) { header("Location: marketplace.php"); exit(); }
+$where  = "o.buyer_id = :uid";
+$params = [':uid' => $user_id];
 
-$message = ''; $message_type = '';
+if ($statusFilter !== 'all') { $where .= " AND o.status = :st"; $params[':st'] = $statusFilter; }
+if ($search !== '') { $where .= " AND (pr.product_name LIKE :s OR farmer.firstName LIKE :s OR farmer.lastName LIKE :s)"; $params[':s'] = '%'.$search.'%'; }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['place_order'])) {
-    $qty = (float)($_POST['quantity'] ?? 0);
-    if ($qty <= 0) {
-        $message = 'Please enter a valid quantity.'; $message_type = 'error';
-    } elseif ($qty > $product['quantity']) {
-        $message = 'Requested quantity exceeds available stock.'; $message_type = 'error';
-    } else {
-        $total = $qty * $product['price'];
-        try {
-            $conn->beginTransaction();
-            // Insert order
-            $s = $conn->prepare("INSERT INTO orders (buyer_id, product_id, quantity, total_price, status) VALUES (?,?,?,?,'pending')");
-            $s->execute([$user_id, $product_id, $qty, $total]);
-            // Deduct stock
-            $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?")->execute([$qty, $product_id]);
-            // Mark sold out if zero
-            $conn->prepare("UPDATE products SET status = IF(quantity <= 0, 'unavailable', 'available') WHERE product_id = ?")->execute([$product_id]);
-            $conn->commit();
-            $_SESSION['order_success'] = "Order placed! ₱".number_format($total,2)." for ".$qty." ".$product['unit']." of ".$product['product_name'].".";
-            header("Location: orders.php"); exit();
-        } catch (PDOException $e) {
-            if ($conn->inTransaction()) $conn->rollBack();
-            $message = 'Error: '.$e->getMessage(); $message_type = 'error';
-        }
-    }
-}
+$sql = "SELECT o.order_id, o.quantity AS order_qty, o.total_price, o.status, o.created_at,
+               pr.product_name, pr.unit, pr.price,
+               CONCAT(farmer.firstName,' ',farmer.lastName) AS farmer_name, farmer.contact_number, farmer.address
+        FROM orders o
+        JOIN products pr ON o.product_id=pr.product_id
+        JOIN users farmer ON pr.user_id=farmer.user_id
+        WHERE $where
+        ORDER BY o.created_at DESC";
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
+$orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Totals
+$s = $conn->prepare("SELECT COUNT(*), COALESCE(SUM(total_price),0), SUM(status='pending'), SUM(status='completed'), SUM(status='cancelled') FROM orders WHERE buyer_id=?");
+$s->execute([$user_id]);
+[$totalOrders,$totalSpent,$pendingCnt,$completedCnt,$cancelledCnt] = $s->fetch(PDO::FETCH_NUM);
+
+// Flash success message
+$success = $_SESSION['order_success'] ?? '';
+unset($_SESSION['order_success']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Place Order · Farm to Market</title>
+<title>My Orders · Farm to Market</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -66,40 +57,50 @@ body{font-family:'Figtree',system-ui,sans-serif;background:var(--paper);color:va
 .nav a.active{background:rgba(255,255,255,.14);color:#fff;}
 .nav a i{width:18px;text-align:center;}
 .nav li.logout{margin-left:auto;}
-.main{margin:0 auto;padding:36px 32px 60px;max-width:860px;}
-.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--forest);font-weight:600;text-decoration:none;margin-bottom:20px;font-size:14.5px;}
-.back-link:hover{text-decoration:underline;}
-.layout{display:grid;grid-template-columns:1fr 380px;gap:24px;}
-.product-info{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;}
-.product-info h1{font-size:24px;font-weight:700;color:var(--forest);margin-bottom:4px;}
-.variety{color:var(--muted);font-size:14px;margin-bottom:16px;}
-.price-big{font-size:30px;font-weight:700;color:var(--harvest);margin-bottom:20px;}
-.price-big span{font-size:16px;font-weight:500;color:var(--muted);}
-.dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14.5px;}
-.dl dt{color:var(--muted);}
-.dl dd{font-weight:500;}
-.farmer-box{display:flex;align-items:center;gap:10px;background:var(--paper);border-radius:10px;padding:12px 14px;margin-top:20px;}
-.av{width:40px;height:40px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;background:var(--leaf-soft);color:var(--forest);}
-.farmer-box strong{display:block;font-size:15px;}
-.farmer-box small{color:var(--muted);font-size:13px;}
-.order-form{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column;gap:20px;align-self:start;}
-.order-form h2{font-size:19px;font-weight:700;}
-.alert{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;font-weight:500;font-size:14.5px;}
-.alert.error{background:var(--danger-soft);color:var(--danger);}
-label{font-weight:600;font-size:14px;display:block;margin-bottom:6px;}
-input[type=number]{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:15px;background:#fff;}
-input[type=number]:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px rgba(47,125,79,.14);}
-.hint{color:var(--muted);font-size:13px;margin-top:4px;}
-.total-preview{background:var(--paper);border-radius:10px;padding:14px;font-size:15px;}
-.total-preview .lbl{color:var(--muted);margin-bottom:4px;}
-.total-val{font-size:22px;font-weight:700;color:var(--forest);}
-.btn-order{width:100%;padding:13px;background:var(--harvest);color:#fff;border:none;border-radius:10px;font:inherit;font-weight:700;font-size:16px;cursor:pointer;transition:background .15s;}
-.btn-order:hover{background:#8c5c0e;}
-.btn-cancel{width:100%;padding:11px;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;font:inherit;font-weight:600;text-align:center;text-decoration:none;display:block;transition:background .15s;}
-.btn-cancel:hover{background:var(--paper);}
-@media(max-width:860px){.layout{grid-template-columns:1fr;}.main{padding:20px 16px 40px;}}
+.main{margin:0 auto;padding:28px 32px 60px;max-width:1300px;}
+.page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;}
+.page-header h1{font-size:26px;font-weight:700;letter-spacing:-.02em;}
+.page-header p{color:var(--muted);}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;display:flex;align-items:center;gap:14px;}
+.stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.green{background:var(--leaf-soft);color:var(--forest);}
+.gold{background:var(--harvest-soft);color:var(--harvest);}
+.blue{background:#e8f0ff;color:#3b5bdb;}
+.red{background:var(--danger-soft);color:var(--danger);}
+.stat-n{font-size:24px;font-weight:700;line-height:1.1;}
+.stat-l{font-size:13.5px;font-weight:600;margin-top:2px;}
+.alert{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-weight:600;}
+.alert.success{background:var(--leaf-soft);color:var(--forest);}
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:20px;}
+.search-wrap{position:relative;flex:1;min-width:220px;}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.search-wrap input{width:100%;padding:9px 12px 9px 36px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;}
+.search-wrap input:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 3px rgba(47,125,79,.14);}
+select.filter{padding:9px 14px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff;cursor:pointer;}
+.section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:14.5px;}
+th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line);}
+th{font-weight:600;color:var(--muted);font-size:12.5px;text-transform:uppercase;letter-spacing:.05em;background:#fafbfa;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8faf8;}
+.badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;}
+.status-pending{background:#fff8e6;color:#92610a;}
+.status-confirmed{background:#e8f0ff;color:#3b5bdb;}
+.status-completed{background:var(--leaf-soft);color:var(--forest);}
+.status-cancelled{background:var(--danger-soft);color:var(--danger);}
+.empty{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty i{font-size:28px;opacity:.4;margin-bottom:12px;}
+.empty h3{color:var(--ink);font-size:16px;}
+.btn-sm{display:inline-flex;align-items:center;gap:6px;background:var(--harvest);color:#fff;text-decoration:none;padding:8px 16px;border-radius:8px;font:inherit;font-weight:600;font-size:14px;transition:background .15s;}
+.btn-sm:hover{background:#8c5c0e;}
+@media(max-width:1000px){.stats{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.navbar{padding:0 16px;overflow-x:auto;}.nav{min-width:max-content;}.nav a span{display:none;}.main{padding:18px 14px 40px;}.page-header{flex-direction:column;align-items:flex-start;}.stats{grid-template-columns:1fr 1fr;}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
 <nav class="navbar">
@@ -108,72 +109,68 @@ input[type=number]:focus{outline:none;border-color:var(--leaf);box-shadow:0 0 0 
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="marketplace.php" class="active"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
+        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
+        <li><a href="marketplace.php"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
-        <li><a href="orders.php"><i class="fa-solid fa-box-open"></i><span>My Orders</span></a></li>
+        <li><a href="orders.php" class="active"><i class="fa-solid fa-box-open"></i><span>My Orders</span></a></li>
         <li class="logout"><a href="../logout.php"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
     </ul>
 </nav>
 <main class="main">
-    <a href="marketplace.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Marketplace</a>
+    <div class="page-header">
+        <div><h1>My Orders</h1><p>Track all your purchase orders from farmers.</p></div>
+        <a href="marketplace.php" class="btn-sm"><i class="fa-solid fa-store"></i> Shop More</a>
+    </div>
 
-    <div class="layout">
-        <!-- Product Info -->
-        <div class="product-info">
-            <h1><?= htmlspecialchars($product['product_name']) ?></h1>
-            <?php if ($product['variety']): ?><div class="variety"><?= htmlspecialchars($product['variety']) ?></div><?php endif; ?>
-            <div class="price-big">₱<?= number_format($product['price'],2) ?><span> / <?= htmlspecialchars($product['unit']) ?></span></div>
-            <dl class="dl">
-                <dt>Available stock</dt><dd><?= htmlspecialchars($product['quantity']) ?> <?= htmlspecialchars($product['unit']) ?></dd>
-                <dt>Location</dt><dd><?= htmlspecialchars($product['address']??'—') ?></dd>
-            </dl>
-            <?php if ($product['description']): ?>
-            <p style="margin-top:16px;font-size:14px;color:#44524a;line-height:1.55;"><?= htmlspecialchars($product['description']) ?></p>
-            <?php endif; ?>
-            <?php
-                $fparts  = preg_split('/\s+/', trim($product['farmer_name']));
-                $fInit   = strtoupper(mb_substr($fparts[0]??'',0,1).mb_substr(end($fparts)?:'',0,1));
-            ?>
-            <div class="farmer-box">
-                <span class="av"><?= $fInit ?></span>
-                <div><strong><?= htmlspecialchars($product['farmer_name']) ?></strong><small><?= htmlspecialchars($product['contact_number']??'') ?></small></div>
-            </div>
+    <?php if ($success): ?>
+    <div class="alert success"><i class="fa-solid fa-circle-check"></i><?= htmlspecialchars($success) ?></div>
+    <?php endif; ?>
+
+    <div class="stats">
+        <div class="stat"><div class="stat-icon gold"><i class="fa-solid fa-peso-sign"></i></div><div><div class="stat-n">₱<?= number_format($totalSpent,2) ?></div><div class="stat-l">Total Spent</div></div></div>
+        <div class="stat"><div class="stat-icon blue"><i class="fa-solid fa-receipt"></i></div><div><div class="stat-n"><?= $totalOrders ?></div><div class="stat-l">Total Orders</div></div></div>
+        <div class="stat"><div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div><div><div class="stat-n"><?= $completedCnt ?></div><div class="stat-l">Completed</div></div></div>
+        <div class="stat"><div class="stat-icon red"><i class="fa-solid fa-clock"></i></div><div><div class="stat-n"><?= $pendingCnt ?></div><div class="stat-l">Pending</div></div></div>
+    </div>
+
+    <form method="GET" class="toolbar">
+        <div class="search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input type="text" name="search" placeholder="Search product or farmer..." value="<?= htmlspecialchars($search) ?>"></div>
+        <select name="status" class="filter" onchange="this.form.submit()">
+            <option value="all" <?= $statusFilter==='all'?'selected':'' ?>>All Statuses</option>
+            <option value="pending" <?= $statusFilter==='pending'?'selected':'' ?>>Pending</option>
+            <option value="confirmed" <?= $statusFilter==='confirmed'?'selected':'' ?>>Confirmed</option>
+            <option value="completed" <?= $statusFilter==='completed'?'selected':'' ?>>Completed</option>
+            <option value="cancelled" <?= $statusFilter==='cancelled'?'selected':'' ?>>Cancelled</option>
+        </select>
+    </form>
+
+    <div class="section">
+        <?php if (!empty($orders)): ?>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>#</th><th>Product</th><th>Farmer</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <tbody>
+                <?php foreach ($orders as $o): ?>
+                <tr>
+                    <td><strong>#<?= $o['order_id'] ?></strong></td>
+                    <td><?= htmlspecialchars($o['product_name']) ?></td>
+                    <td><?= htmlspecialchars($o['farmer_name']) ?><br><small style="color:var(--muted)"><?= htmlspecialchars($o['contact_number']??'') ?></small></td>
+                    <td><?= htmlspecialchars($o['order_qty']) ?> <?= htmlspecialchars($o['unit']) ?></td>
+                    <td>₱<?= number_format($o['price'],2) ?></td>
+                    <td><strong>₱<?= number_format($o['total_price'],2) ?></strong></td>
+                    <td><span class="badge status-<?= htmlspecialchars($o['status']) ?>"><?= ucfirst($o['status']) ?></span></td>
+                    <td style="color:var(--muted);font-size:13px;white-space:nowrap;"><?= date('M d, Y', strtotime($o['created_at'])) ?></td>
+                </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-
-        <!-- Order Form -->
-        <div class="order-form">
-            <h2><i class="fa-solid fa-basket-shopping" style="color:var(--harvest);margin-right:6px;"></i>Place Your Order</h2>
-
-            <?php if ($message): ?>
-            <div class="alert error"><i class="fa-solid fa-circle-exclamation"></i><?= htmlspecialchars($message) ?></div>
-            <?php endif; ?>
-
-            <form method="POST" id="orderForm">
-                <input type="hidden" name="product_id" value="<?= $product_id ?>">
-                <div>
-                    <label for="quantity">Quantity (<?= htmlspecialchars($product['unit']) ?>) *</label>
-                    <input type="number" id="quantity" name="quantity" min="0.01" step="0.01" max="<?= $product['quantity'] ?>" placeholder="e.g. 5" required>
-                    <div class="hint">Max available: <?= htmlspecialchars($product['quantity']) ?> <?= htmlspecialchars($product['unit']) ?></div>
-                </div>
-                <div class="total-preview">
-                    <div class="lbl">Estimated Total</div>
-                    <div class="total-val" id="totalVal">₱0.00</div>
-                </div>
-                <button type="submit" name="place_order" class="btn-order"><i class="fa-solid fa-check"></i> Confirm Order</button>
-                <a href="marketplace.php" class="btn-cancel">Cancel</a>
-            </form>
-        </div>
+        <?php else: ?>
+        <div class="empty"><i class="fa-solid fa-box-open"></i><h3>No orders found</h3><p><?= $search?'Try a different search.':'You haven\'t placed any orders yet.' ?></p></div>
+        <?php endif; ?>
     </div>
 </main>
-<script>
-const qtyInput = document.getElementById('quantity');
-const totalVal = document.getElementById('totalVal');
-const price    = <?= $product['price'] ?>;
-qtyInput.addEventListener('input', () => {
-    const q = parseFloat(qtyInput.value) || 0;
-    totalVal.textContent = '₱' + (q * price).toLocaleString('en-PH', {minimumFractionDigits:2,maximumFractionDigits:2});
-});
-</script>
+  <script src="theme.js"></script>
 </body>
 </html>

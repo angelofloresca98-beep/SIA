@@ -100,6 +100,7 @@ tr:hover td{background:#f8faf8;}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+  <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
 <nav class="navbar">
@@ -108,6 +109,7 @@ tr:hover td{background:#f8faf8;}
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
+        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="marketplace.php"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
@@ -169,5 +171,6 @@ tr:hover td{background:#f8faf8;}
         <?php endif; ?>
     </div>
 </main>
+  <script src="theme.js"></script>
 </body>
 </html>

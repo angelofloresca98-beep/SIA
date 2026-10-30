@@ -1,11 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-/* ==========================================================
-   FarmMarket — Farm Theme
-   Dark green navbar + buttons · soft sage-cream background
-   Fonts: Fraunces (logo + page titles) · Plus Jakarta Sans (everything else)
-   Load AFTER each page's own <style>:  <link rel="stylesheet" href="theme.css">
-   ========================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   --ink: #14291d;
@@ -668,4 +662,442 @@ body .main { border-left: env(safe-area-inset-left, 0px) solid transparent; bord
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   .fm-reveal { opacity: 1; transform: none; }
+}
+/* ==========================================================
+   DARK MODE — deep forest green
+   Activated by <html data-theme="dark"> (set by theme.js).
+   Every rule is scoped under html[data-theme="dark"], so light
+   mode is untouched. --dark is intentionally NOT changed because
+   the white header buttons use it for their text colour.
+   ========================================================== */
+html[data-theme="dark"] {
+  --ink: #e3f1e6;
+  --muted: #8fb09b;
+  --paper: #0b1a12;
+  --card: #12261a;
+  --line: #254735;
+  --leaf: #4cc57d;
+  --leaf-soft: #12351f;
+  --harvest: #e0b94a;
+  --harvest-soft: #3a2f0e;
+  --danger: #ff9a90;
+  --danger-soft: #3a1512;
+  --btn: #1f8a4c;
+  --btn-hover: #17703d;
+  --gold: #e0b94a;
+  --shadow: 0 2px 12px rgba(0, 0, 0, .35);
+  --shadow-hover: 0 14px 30px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+/* Smooth cross-fade only while switching (class set briefly by theme.js) */
+html.fm-theme-anim body, html.fm-theme-anim body *:not(.fm-ripple):not(.fm-theme-toggle):not(.fm-theme-toggle *) {
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .35s ease !important;
+}
+
+html[data-theme="dark"] body {
+  background-color: #08140d !important;
+  background-image:
+    radial-gradient(circle at 92% -6%, rgba(224, 185, 74, .10) 0, rgba(224, 185, 74, 0) 38%),
+    linear-gradient(180deg, #07130c 0, #0a1a11 340px, #0c1e14 100%) !important;
+  color: var(--ink) !important;
+}
+html[data-theme="dark"] ::selection { background: #2a7a4a; color: #fff; }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #2f6b47; }
+html[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: var(--leaf); }
+
+/* ---------- Navbar + header ---------- */
+html[data-theme="dark"] body .navbar {
+  background-color: #06140c !important;
+  background-image: linear-gradient(90deg, #040e08 0%, #07180e 50%, #0a2415 100%) !important;
+  box-shadow: 0 3px 0 0 var(--gold), 0 10px 24px rgba(0, 0, 0, .5) !important;
+}
+@media (max-width: 1100px) {
+  html[data-theme="dark"] body .navbar .nav { background: #07180e !important; }
+}
+/* inset shadow darkens the hero background but sits under its text and art */
+html[data-theme="dark"] body .page-header,
+html[data-theme="dark"] body .header {
+  box-shadow: var(--shadow), inset 0 0 0 999px rgba(3, 16, 8, .32);
+}
+
+/* ---------- Cards ---------- */
+html[data-theme="dark"] body .stat-card, html[data-theme="dark"] body .stat,
+html[data-theme="dark"] body .section, html[data-theme="dark"] body .form-card,
+html[data-theme="dark"] body .filters, html[data-theme="dark"] body .table-card,
+html[data-theme="dark"] body .post-card, html[data-theme="dark"] body .request-card,
+html[data-theme="dark"] body .no-post, html[data-theme="dark"] body .card,
+html[data-theme="dark"] body .order-form, html[data-theme="dark"] body .product-card,
+html[data-theme="dark"] body .product-info {
+  background: #12261a !important;
+  color: var(--ink);
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] body .stat-card:hover, html[data-theme="dark"] body .stat:hover,
+html[data-theme="dark"] body .post-card:hover, html[data-theme="dark"] body .request-card:hover,
+html[data-theme="dark"] body .product-card:hover { border-color: #3f8f5f !important; }
+
+/* headings, numbers, labels */
+html[data-theme="dark"] body .stat-number, html[data-theme="dark"] body .stat-n,
+html[data-theme="dark"] body .stat .value, html[data-theme="dark"] body .price-hero,
+html[data-theme="dark"] body .section-header h2, html[data-theme="dark"] body .form-card h2,
+html[data-theme="dark"] body .no-post h2, html[data-theme="dark"] body .order-form h2,
+html[data-theme="dark"] body .product-card h2, html[data-theme="dark"] body .product-card h3,
+html[data-theme="dark"] body .post-card h2, html[data-theme="dark"] body .product-info h1,
+html[data-theme="dark"] body .empty h3, html[data-theme="dark"] body .empty h2 { color: #e6f5ea; }
+html[data-theme="dark"] body .stat-label, html[data-theme="dark"] body .stat-l,
+html[data-theme="dark"] body .stat .label { color: #a9cdb5; }
+html[data-theme="dark"] body .stat-sub, html[data-theme="dark"] body .variety-label,
+html[data-theme="dark"] body .variety, html[data-theme="dark"] body .variety-tag,
+html[data-theme="dark"] body .req-date, html[data-theme="dark"] body .dl dt,
+html[data-theme="dark"] body .details dt, html[data-theme="dark"] body .empty,
+html[data-theme="dark"] body .empty p { color: var(--muted); }
+html[data-theme="dark"] body .section-header h2 i { color: var(--btn) !important; }
+html[data-theme="dark"] body .section-header h2 i { color: #e0b94a !important; }
+html[data-theme="dark"] body .dl dd.price-val, html[data-theme="dark"] body .details dd.price { color: #6fe09a; }
+html[data-theme="dark"] body .price-big { color: #e6b84a; }
+html[data-theme="dark"] body .empty i { color: var(--leaf); }
+
+html[data-theme="dark"] body .req-note, html[data-theme="dark"] body .description,
+html[data-theme="dark"] body .desc { background: #0e2217; color: #b6d3c0; border-color: #204230; }
+html[data-theme="dark"] body .total-preview, html[data-theme="dark"] body .farmer-box,
+html[data-theme="dark"] body .farmer-chip { background: #0e2217; border-color: #204230; }
+html[data-theme="dark"] body .qty-badge, html[data-theme="dark"] body .wanted { background: #3a2f0e; color: #f0c75a; }
+html[data-theme="dark"] body .tag.sell, html[data-theme="dark"] body .sell { background: #12351f; color: #6fe09a; }
+html[data-theme="dark"] body .product-img.placeholder {
+  color: #4cc57d;
+  background: repeating-linear-gradient(115deg, rgba(255,255,255,.04) 0 10px, rgba(255,255,255,0) 10px 22px), linear-gradient(135deg, #14392a, #0d2a1c);
+}
+html[data-theme="dark"] body .product-card:hover .product-img { filter: saturate(1.1) brightness(1.08); }
+
+/* ---------- Tabs ---------- */
+html[data-theme="dark"] body .tabs { border-bottom-color: var(--line); }
+html[data-theme="dark"] body .tab-btn { color: var(--muted); }
+html[data-theme="dark"] body .tab-btn:hover, html[data-theme="dark"] body .tab-btn.active { color: #e6f5ea; }
+
+/* ---------- Buttons ---------- */
+html[data-theme="dark"] body .btn, html[data-theme="dark"] body .btn-primary,
+html[data-theme="dark"] body .btn-sm:not(.outline), html[data-theme="dark"] body .btn-xs,
+html[data-theme="dark"] body button[type="submit"]:not(.delete-btn), html[data-theme="dark"] body #cb-send {
+  background-color: #1f8a4c !important;
+  background-image: linear-gradient(120deg, #1a7a43 0%, #156a38 50%, #2a9a58 100%) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
+}
+html[data-theme="dark"] body .btn:hover, html[data-theme="dark"] body .btn-primary:hover,
+html[data-theme="dark"] body .btn-sm:not(.outline):hover, html[data-theme="dark"] body .btn-xs:hover,
+html[data-theme="dark"] body button[type="submit"]:not(.delete-btn):hover, html[data-theme="dark"] body #cb-send:hover {
+  background-color: #17703d !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .55), 0 0 0 1px rgba(76, 197, 125, .35);
+}
+/* buttons sitting on the hero stay white (theme.css keeps them white) */
+html[data-theme="dark"] body .btn-sm.outline, html[data-theme="dark"] body .btn-outline,
+html[data-theme="dark"] body .cancel-btn, html[data-theme="dark"] body .btn-ghost,
+html[data-theme="dark"] body .btn-cancel {
+  background: #12261a !important; color: #a9e6bf !important; border: 1px solid #2f6b47 !important;
+}
+html[data-theme="dark"] body .btn-sm.outline:hover, html[data-theme="dark"] body .btn-outline:hover,
+html[data-theme="dark"] body .cancel-btn:hover, html[data-theme="dark"] body .btn-ghost:hover,
+html[data-theme="dark"] body .btn-cancel:hover {
+  background: #1a3a28 !important; border-color: var(--leaf) !important; color: #d4f5e0 !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .45);
+}
+html[data-theme="dark"] body .header .btn, html[data-theme="dark"] body .header .btn-primary,
+html[data-theme="dark"] body .page-header .btn, html[data-theme="dark"] body .page-header .btn-sm,
+html[data-theme="dark"] body .page-header .btn-primary { background: #e6f4ea !important; color: #0f4a28 !important; }
+html[data-theme="dark"] body .header .btn-outline { background: transparent !important; color: #fff !important; border: 1px solid rgba(255,255,255,.5) !important; }
+html[data-theme="dark"] body .order-btn, html[data-theme="dark"] body .btn-order { box-shadow: 0 4px 14px rgba(0, 0, 0, .45); }
+html[data-theme="dark"] body .pager a:hover { background: #1a3a28; }
+
+/* ---------- Forms ---------- */
+html[data-theme="dark"] body .form-group input, html[data-theme="dark"] body .form-group select,
+html[data-theme="dark"] body .form-group textarea, html[data-theme="dark"] body .filters input,
+html[data-theme="dark"] body .filters select, html[data-theme="dark"] body .search-wrap input,
+html[data-theme="dark"] body select.filter, html[data-theme="dark"] body input[type=number],
+html[data-theme="dark"] body input[type=tel], html[data-theme="dark"] body select.status-select,
+html[data-theme="dark"] body select.st-sel {
+  background-color: #0d1f15; color: var(--ink); border: 1px solid #2c5640;
+}
+html[data-theme="dark"] body input::placeholder, html[data-theme="dark"] body textarea::placeholder { color: #6f9a80; }
+html[data-theme="dark"] body input:focus, html[data-theme="dark"] body textarea:focus,
+html[data-theme="dark"] body select:focus { border-color: var(--leaf) !important; box-shadow: 0 0 0 4px rgba(76, 197, 125, .2) !important; }
+html[data-theme="dark"] body .form-group label, html[data-theme="dark"] body .filters label { color: #bcd9c6; }
+html[data-theme="dark"] body .message.success, html[data-theme="dark"] body .alert.success { background: #12351f; color: #8ff0b4; }
+html[data-theme="dark"] body .message.error, html[data-theme="dark"] body .alert.error { background: #3a1512; color: #ff9a90; }
+
+/* ---------- Tables ---------- */
+html[data-theme="dark"] body th { background: #153023 !important; color: #a9e6bf !important; border-bottom-color: #2a5a3f; }
+html[data-theme="dark"] body td { color: #c9e3d1; border-color: #1f3f2d; }
+html[data-theme="dark"] body tbody tr:nth-child(even) td { background: #0f2418; }
+html[data-theme="dark"] body tr:hover td { background: #17301f !important; }
+html[data-theme="dark"] body td.ref { color: #6fe09a; }
+html[data-theme="dark"] body .status-pending, html[data-theme="dark"] body .badge.pending { background: #3a300f; color: #f0c75a; }
+html[data-theme="dark"] body .status-confirmed { background: #10303f; color: #7cc4ea; }
+html[data-theme="dark"] body .status-completed, html[data-theme="dark"] body .badge.completed,
+html[data-theme="dark"] body .available { background: #12351f; color: #6fe09a; }
+html[data-theme="dark"] body .status-cancelled, html[data-theme="dark"] body .badge.cancelled,
+html[data-theme="dark"] body .unavailable { background: #3a1512; color: #ff9a90; }
+
+/* ---------- Chatbot ---------- */
+html[data-theme="dark"] body #cb-panel { background: #12261a; color: var(--ink); border-color: #2a5a3f; box-shadow: 0 20px 50px rgba(0, 0, 0, .6); }
+html[data-theme="dark"] body #cb-msgs { background: #0b1a12; }
+html[data-theme="dark"] body .cb-m.bot { background: #163020; color: var(--ink); border-color: #2a5a3f; }
+html[data-theme="dark"] body .cb-m.me { background: #1f8a4c; color: #fff; }
+html[data-theme="dark"] body #cb-form { background: #12261a; border-top-color: #254735; }
+html[data-theme="dark"] body #cb-input { background: #0d1f15; color: var(--ink); border-color: #2c5640; }
+html[data-theme="dark"] body #cb-input::placeholder { color: #6f9a80; }
+
+/* ==========================================================
+   THEME TOGGLE — simple round sun/moon icon button in the navbar
+   ========================================================== */
+body .navbar { gap: 10px; }
+body .navbar .nav-toggle { order: 2; margin-left: 0 !important; }
+
+.fm-theme-toggle {
+  position: relative; flex: none; order: 1; margin-left: auto;
+  width: 42px; height: 42px; padding: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #ffd45a; background: rgba(255, 255, 255, .12);
+  border: 1px solid rgba(255, 255, 255, .25); border-radius: 50%;
+  transition: transform .3s var(--ease), background .3s ease, box-shadow .3s ease, color .4s ease;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+html[data-theme="dark"] .fm-theme-toggle { color: #dfe7ff; }
+.fm-theme-toggle:hover {
+  background: rgba(255, 255, 255, .22); transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, .3), 0 0 14px rgba(255, 212, 90, .45);
+}
+html[data-theme="dark"] .fm-theme-toggle:hover { box-shadow: 0 6px 16px rgba(0, 0, 0, .4), 0 0 14px rgba(190, 205, 255, .45); }
+.fm-theme-toggle:active { transform: scale(.9); }
+.fm-theme-toggle:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+.fm-theme-toggle svg {
+  position: absolute; width: 22px; height: 22px;
+  transition: transform .55s var(--ease), opacity .3s ease;
+}
+/* light mode: sun visible, moon hidden */
+.fm-theme-toggle .fm-sun  { opacity: 1; transform: rotate(0) scale(1); }
+.fm-theme-toggle .fm-moon { opacity: 0; transform: rotate(-90deg) scale(.3); }
+html[data-theme="dark"] .fm-theme-toggle .fm-sun  { opacity: 0; transform: rotate(90deg) scale(.3); }
+html[data-theme="dark"] .fm-theme-toggle .fm-moon { opacity: 1; transform: rotate(0) scale(1); }
+
+/* hover: sun rays spin, moon rocks */
+.fm-theme-toggle:hover .fm-sun .fm-rays { animation: ttSpin 3s linear infinite; }
+.fm-theme-toggle .fm-rays { transform-origin: 12px 12px; }
+html[data-theme="dark"] .fm-theme-toggle:hover .fm-moon { animation: ttRock 1.2s ease-in-out infinite; }
+@keyframes ttSpin { to { transform: rotate(360deg); } }
+@keyframes ttRock { 0%, 100% { rotate: -10deg; } 50% { rotate: 12deg; } }
+
+/* click: pop + expanding ring */
+.fm-theme-toggle::after {
+  content: ""; position: absolute; inset: -1px; border-radius: 50%;
+  border: 2px solid currentColor; opacity: 0; pointer-events: none;
+}
+.fm-theme-toggle.fm-tt-pop { animation: ttPop .5s var(--ease); }
+.fm-theme-toggle.fm-tt-pop::after { animation: ttRing .6s ease-out; }
+@keyframes ttPop { 0% { transform: scale(1); } 35% { transform: scale(.8); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@keyframes ttRing { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(1.9); } }
+
+/* fallback for pages without a navbar */
+.fm-theme-toggle.fm-floating { position: fixed; left: 18px; bottom: 18px; z-index: 9999; margin: 0; order: 0; background: #0a3a1d; box-shadow: 0 8px 20px rgba(0, 0, 0, .3); }
+
+@media (max-width: 480px) { .fm-theme-toggle { width: 40px; height: 40px; } }
+@media (prefers-reduced-motion: reduce) {
+  .fm-theme-toggle svg, .fm-theme-toggle .fm-rays, .fm-theme-toggle .fm-moon { animation: none !important; }
+}
+
+/* ==========================================================
+   Dashboard request cards: product name always easy to read
+   ========================================================== */
+body .request-card h3 { color: #0b3a1f; font-weight: 800 !important; font-size: 1.15rem; letter-spacing: -.01em; }
+body .request-card .buyer-chip { color: var(--ink); }
+html[data-theme="dark"] body .request-card h3 { color: #f1fbf4; }
+html[data-theme="dark"] body .request-card .buyer-chip { background: #0e2217; color: #e3f1e6; }
+html[data-theme="dark"] body .request-card .buyer-chip small { color: #9fc0ab; }
+html[data-theme="dark"] body .request-card dd { color: #e3f1e6; }
+
+/* ==========================================================
+   "Update product" button — same motion as "Delete product"
+   (magnetic pull, mouse glow, sheen, lift, icon wiggle, ripple)
+   ========================================================== */
+body .update-box summary {
+  position: relative; overflow: hidden; isolation: isolate;
+  background: #fff; color: var(--dark); border: 1px solid #b4d9bd;
+  transform: translate(var(--tx, 0px), var(--ty, 0px));
+  transition: transform .18s ease-out, box-shadow .25s ease, background-color .25s ease, color .25s ease, border-color .25s ease;
+}
+body .update-box summary::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0;
+  background: radial-gradient(90px circle at var(--bx, 50%) var(--by, 50%), rgba(255,255,255,.5), transparent 70%);
+  transition: opacity .25s ease;
+}
+body .update-box summary::after {
+  content: ""; position: absolute; top: 0; left: -80%; width: 50%; height: 100%; z-index: -1; pointer-events: none;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,.5), transparent);
+  transform: skewX(-20deg); transition: left .7s var(--ease);
+}
+body .update-box summary i { display: inline-block; transition: transform .3s var(--ease); }
+body .update-box summary:hover {
+  background: var(--btn); border-color: var(--btn); color: #fff;
+  box-shadow: 0 8px 18px rgba(15, 74, 40, .3);
+  transform: translate(var(--tx, 0px), calc(var(--ty, 0px) - 2px)) scale(1.02);
+}
+body .update-box summary:hover::before { opacity: 1; }
+body .update-box summary:hover::after { left: 140%; }
+body .update-box summary:hover i { transform: rotate(-12deg) scale(1.2); }
+body .update-box summary:active { transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(.96); }
+/* keep the open state readable while still reacting to hover */
+body .update-box[open] summary { background: #e3f4e7; color: var(--dark); border-color: #b4d9bd; border-radius: 10px 10px 0 0; }
+body .update-box[open] summary:hover { background: var(--btn); color: #fff; border-color: var(--btn); }
+body .update-box { border: 0; background: transparent; }
+body .update-box[open] { border: 1px solid #b4d9bd; border-radius: 10px; background: #fff; }
+body .update-box summary .fm-ripple { background: rgba(47, 158, 87, .28); }
+
+/* ---------- dark mode ---------- */
+html[data-theme="dark"] body .update-box summary { background: #12261a; color: #a9e6bf; border-color: #2f6b47; }
+html[data-theme="dark"] body .update-box summary:hover {
+  background: #1f8a4c; border-color: #4cc57d; color: #fff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .5), 0 0 14px rgba(76, 197, 125, .35);
+}
+html[data-theme="dark"] body .update-box[open] { background: #12261a; border-color: #2f6b47; }
+html[data-theme="dark"] body .update-box[open] summary { background: #163a25; color: #a9e6bf; border-color: #2f6b47; }
+html[data-theme="dark"] body .update-box[open] summary:hover { background: #1f8a4c; color: #fff; border-color: #4cc57d; }
+
+/* ==========================================================
+   "Delete product" in dark mode — dark by default, turns RED on hover
+   ========================================================== */
+html[data-theme="dark"] body .delete-btn {
+  background: #12261a !important; background-image: none !important;
+  color: #ff9a90 !important; border: 1px solid #5a2a26 !important; box-shadow: none;
+}
+html[data-theme="dark"] body .delete-btn:hover {
+  background: #c0392b !important;
+  background-image: linear-gradient(120deg, #d9453a 0%, #b3261e 55%, #e0584a 100%) !important;
+  color: #fff !important; border-color: #ff6b5e !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .5), 0 0 16px rgba(255, 90, 75, .5);
+}
+html[data-theme="dark"] body .delete-btn::before { background: radial-gradient(90px circle at var(--bx, 50%) var(--by, 50%), rgba(255, 150, 140, .45), transparent 70%); }
+html[data-theme="dark"] body .delete-btn .fm-ripple { background: rgba(255, 120, 105, .4); }
+
+/* ==========================================================
+   PHOTO ZOOM VIEWER (theme.js)
+   ========================================================== */
+.fm-zoomable { cursor: zoom-in; transition: transform .35s var(--ease), filter .3s ease; }
+img.fm-zoomable:hover { transform: scale(1.03); filter: brightness(1.05); }
+.fm-zoomable:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+html.fm-lb-lock, html.fm-lb-lock body { overflow: hidden !important; }
+
+.fm-lb {
+  position: fixed; inset: 0; z-index: 10000; display: none;
+  background: rgba(4, 18, 10, .88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .25s ease;
+}
+.fm-lb.fm-lb-open { display: block; opacity: 1; animation: fmLbIn .3s var(--ease); }
+@keyframes fmLbIn { from { opacity: 0; } to { opacity: 1; } }
+
+.fm-lb-stage {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: zoom-in;
+}
+.fm-lb.fm-lb-zoomed .fm-lb-stage { cursor: grab; }
+.fm-lb.fm-lb-grabbing .fm-lb-stage { cursor: grabbing; }
+.fm-lb-img {
+  max-width: 92vw; max-height: 80vh; width: auto; height: auto; object-fit: contain;
+  border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+  transform-origin: center center; will-change: transform; background: #0e2217;
+  animation: fmLbPop .35s var(--ease);
+}
+@keyframes fmLbPop { from { transform: scale(.88); opacity: 0; } to { transform: none; opacity: 1; } }
+.fm-lb.fm-lb-smooth .fm-lb-img { transition: transform .28s var(--ease); }
+
+.fm-lb-close {
+  position: absolute; top: 16px; right: 16px; width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .14); color: #fff;
+  font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: transform .3s var(--ease), background .2s ease;
+}
+.fm-lb-close:hover { background: #c0392b; transform: rotate(90deg) scale(1.08); }
+
+.fm-lb-bar {
+  position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px;
+  background: rgba(10, 58, 29, .85); border: 1px solid rgba(255, 255, 255, .2); border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+}
+.fm-lb-bar button {
+  min-width: 40px; height: 40px; padding: 0 12px; border-radius: 999px; border: 0; cursor: pointer;
+  background: rgba(255, 255, 255, .12); color: #fff; font: 700 20px/1 var(--font-body);
+  transition: background .2s ease, transform .2s var(--ease);
+}
+.fm-lb-bar button:hover { background: var(--leaf); transform: scale(1.1); }
+.fm-lb-bar button:active { transform: scale(.92); }
+.fm-lb-bar .fm-lb-reset { font-size: 13px; }
+.fm-lb-zoom { min-width: 54px; text-align: center; color: #fff; font: 600 13.5px var(--font-body); font-variant-numeric: tabular-nums; }
+.fm-lb-hint {
+  position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; padding: 0 16px;
+  color: rgba(255, 255, 255, .7); font-size: 12.5px; pointer-events: none;
+}
+.fm-lb button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .fm-lb-img { max-width: 96vw; max-height: 72vh; }
+  .fm-lb-bar { bottom: 52px; }
+  .fm-lb-hint { font-size: 11.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fm-lb, .fm-lb-img, .fm-lb-close, .fm-lb-bar button { animation: none !important; transition: none !important; }
+}
+
+
+/* ==========================================================
+   PROFILE PAGE — DARK MODE FORM FIX
+   Fix Location textarea and Contact Number visibility
+   ========================================================== */
+
+/* Light mode */
+body #address,
+body #contact_number {
+    background-color: #fcfefb !important;
+    color: #14291d !important;
+    border: 1px solid #c2dcc8 !important;
+}
+
+body #address::placeholder,
+body #contact_number::placeholder {
+    color: #718578 !important;
+}
+
+/* Dark mode */
+html[data-theme="dark"] body #address,
+html[data-theme="dark"] body #contact_number {
+    background-color: #0d1f15 !important;
+    color: #e3f1e6 !important;
+    border: 1px solid #2c5640 !important;
+    caret-color: #6fe09a;
+}
+
+/* Placeholder text */
+html[data-theme="dark"] body #address::placeholder,
+html[data-theme="dark"] body #contact_number::placeholder {
+    color: #8fb09b !important;
+    opacity: 1;
+}
+
+/* Focus state */
+html[data-theme="dark"] body #address:focus,
+html[data-theme="dark"] body #contact_number:focus {
+    background-color: #12261a !important;
+    color: #ffffff !important;
+    border-color: #4cc57d !important;
+    outline: none !important;
+    box-shadow: 0 0 0 4px rgba(76, 197, 125, .2) !important;
+}
+
+/* Location and contact labels */
+html[data-theme="dark"] body .field label {
+    color: #e3f1e6 !important;
+}
+
+/* Field hints */
+html[data-theme="dark"] body .field .hint {
+    color: #8fb09b !important;
 }
