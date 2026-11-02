@@ -9,6 +9,16 @@ require './database/connection.php';
 
 $error = "";
 
+// ----- LOGIN ATTEMPT LIMIT SETTINGS -----
+const MAX_ATTEMPTS = 5;    // wrong tries allowed
+const LOCK_SECONDS = 15;   // lock time after too many wrong tries
+
+// How many seconds are left on the lock (0 = not locked)
+$lockRemaining = max(0, ($_SESSION['login_locked_until'] ?? 0) - time());
+if ($lockRemaining === 0) {
+    unset($_SESSION['login_locked_until']);
+}
+
 
 // LOGIN PROCESS
 
@@ -17,8 +27,13 @@ if (isset($_POST['login'])) {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
+    // Still locked? Stop here, do not check anything.
+    if ($lockRemaining > 0) {
+
+        $error = "Too many failed attempts. Please wait {$lockRemaining} seconds.";
+
     // Check empty fields
-    if (empty($email) || empty($password)) {
+    } elseif (empty($email) || empty($password)) {
 
         $error = "Please fill all fields!";
 
@@ -44,6 +59,10 @@ if (isset($_POST['login'])) {
                     $error = "Your account is inactive.";
 
                 } else {
+
+                    // Correct login: reset the counter
+                    unset($_SESSION['login_attempts'], $_SESSION['login_locked_until']);
+                    session_regenerate_id(true);
 
                     $_SESSION['user_id'] = $user['user_id'];
 
@@ -80,7 +99,24 @@ if (isset($_POST['login'])) {
 
             } else {
 
-                $error = "Invalid email or password!";
+                // Wrong email or password: count the attempt
+                $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+
+                if ($_SESSION['login_attempts'] >= MAX_ATTEMPTS) {
+
+                    // Lock for 10 seconds and restart the counter
+                    $_SESSION['login_locked_until'] = time() + LOCK_SECONDS;
+                    $_SESSION['login_attempts'] = 0;
+                    $lockRemaining = LOCK_SECONDS;
+
+                    $error = "Too many failed attempts. Please wait {$lockRemaining} seconds.";
+
+                } else {
+
+                    $left = MAX_ATTEMPTS - $_SESSION['login_attempts'];
+                    $error = "Invalid email or password! {$left} attempt" . ($left === 1 ? '' : 's') . " left.";
+
+                }
 
             }
 
@@ -90,6 +126,11 @@ if (isset($_POST['login'])) {
 
         }
     }
+}
+
+// If the page is reloaded while locked, still show the message
+if ($lockRemaining > 0 && $error === "") {
+    $error = "Too many failed attempts. Please wait {$lockRemaining} seconds.";
 }
 
 // (display only) keep the typed email after a failed attempt
@@ -289,17 +330,25 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
 }
 
 /* Hover Animation: Lifts up slightly, brightens color, and adds a lush glow */
-.btn-login:hover { 
+.btn-login:hover:not(:disabled) { 
     background: var(--leaf); 
     transform: translateY(-3px) scale(1.01);
     box-shadow: 0 8px 22px rgba(29, 110, 63, 0.35);
 }
 
 /* Click / Active Animation: Smooth press-down tactile effect */
-.btn-login:active {
+.btn-login:active:not(:disabled) {
     transform: translateY(1px) scale(0.98);
     box-shadow: 0 2px 6px rgba(13, 56, 35, 0.2);
     transition-duration: 0.1s;
+}
+
+/* Locked state (after too many wrong attempts) */
+.btn-login:disabled {
+    background: #9aa8a0;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
  
 .foot { text-align: center; margin-top: 22px; color: var(--muted); font-size: 14.5px; }
@@ -486,9 +535,9 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
         <p class="sub">Use the email and password for your account.</p>
  
         <?php if ($error != ""): ?>
-            <div class="alert alert-danger" role="alert">
+            <div class="alert alert-danger" id="loginAlert" role="alert">
                 <i class="fa-solid fa-circle-exclamation"></i>
-                <span><?= htmlspecialchars($error) ?></span>
+                <span id="loginAlertText"><?= htmlspecialchars($error) ?></span>
             </div>
         <?php endif; ?>
  
@@ -509,7 +558,7 @@ input:focus { outline: none; border-color: var(--leaf); box-shadow: 0 0 0 3px rg
                 </div>
             </div>
  
-            <button type="submit" name="login" class="btn-login">Sign in</button>
+            <button type="submit" name="login" class="btn-login" id="loginBtn" <?= $lockRemaining > 0 ? 'disabled' : '' ?>>Sign in</button>
  
             <p class="foot">New here? <a href="register.php">Create an account</a></p>
         </form>
@@ -618,6 +667,31 @@ toggle.addEventListener('click', function () {
     toggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
     toggle.querySelector('i').className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
 });
+
+// Lockout countdown (seconds left comes from the server)
+(function () {
+    let left = <?= (int)$lockRemaining ?>;
+    if (left <= 0) return;
+
+    const btn   = document.getElementById('loginBtn');
+    const alert = document.getElementById('loginAlert');
+    const text  = document.getElementById('loginAlertText');
+
+    const timer = setInterval(function () {
+        left--;
+        if (left > 0) {
+            if (text) text.textContent = 'Too many failed attempts. Please wait ' + left + ' second' + (left === 1 ? '' : 's') + '.';
+            btn.textContent = 'Try again in ' + left + 's';
+        } else {
+            clearInterval(timer);
+            btn.disabled = false;
+            btn.textContent = 'Sign in';
+            if (alert) alert.remove();
+        }
+    }, 1000);
+
+    btn.textContent = 'Try again in ' + left + 's';
+})();
 </script>
  
 </body>
