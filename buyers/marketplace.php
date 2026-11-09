@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 session_start();
 require '../database/connection.php';
+require_once __DIR__ . '/../components/ProfileBadge.php';
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
 if ($_SESSION['role'] !== 'buyer') { header("Location: ../login.php"); exit(); }
@@ -95,6 +96,7 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="../components/profile-badge.css">
   <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
@@ -104,7 +106,6 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="marketplace.php" class="active"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
@@ -115,6 +116,16 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
 <main class="main">
     <div class="page-header">
         <div><h1>Marketplace</h1><p>Browse fresh products listed by farmers.</p></div>
+        <?php
+        render_profile_badge([
+            'name'        => $buyerName,
+            'role'        => 'Buyer',
+            'profileUrl'  => 'profile.php',
+            'settingsUrl' => 'profile.php#settings',
+            'logoutUrl'   => '../logout.php',
+            'email'       => $_SESSION['email'] ?? '',
+        ]);
+        ?>
     </div>
 
     <form method="GET" class="toolbar">
@@ -166,6 +177,7 @@ select.filter{padding:10px 14px;border:1px solid var(--line);border-radius:10px;
     <div class="empty"><i class="fa-solid fa-store"></i><h2>No products found</h2><p><?= $search ? 'Try a different search term.' : 'No products are available right now.' ?></p></div>
     <?php endif; ?>
 </main>
+  <script src="../components/profile-badge.js"></script>
   <script src="theme.js"></script>
 </body>
 </html>

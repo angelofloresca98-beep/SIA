@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 session_start();
 require '../database/connection.php';
+require_once __DIR__ . '/../components/ProfileBadge.php';
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
 if ($_SESSION['role'] !== 'buyer') { header("Location: ../login.php"); exit(); }
@@ -384,7 +385,10 @@ a:focus-visible,button:focus-visible{outline:3px solid var(--harvest);outline-of
 .nav a i{width:18px;text-align:center;}
 .nav li.logout{margin-left:auto;}
 .main{margin:0 auto;padding:28px 32px 60px;max-width:1300px;}
-.page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;}
+.page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;position:relative;z-index:50;overflow:visible;}
+.page-header.has-open-menu,
+.page-header:has(.profile-dropdown.open),
+.page-header:has([aria-expanded="true"]){z-index:500 !important;}
 .page-header h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:2px;}
 .page-header p{color:var(--muted);}
 .profile{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px;font-weight:600;}
@@ -479,6 +483,7 @@ tr:hover td{background:#f8faf8;}
 
 </style>
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="../components/profile-badge.css">
   <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
@@ -488,7 +493,6 @@ tr:hover td{background:#f8faf8;}
     <a class="brand" href="buyer.php"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="buyer.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="marketplace.php"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
@@ -499,7 +503,16 @@ tr:hover td{background:#f8faf8;}
 <main class="main">
     <div class="page-header">
         <div><h1>Buyer Dashboard</h1><p>Welcome back, <strong><?= htmlspecialchars($buyerName) ?></strong>!</p></div>
-        <div class="profile"><span class="avatar"><?= strtoupper(mb_substr($buyerName,0,1)) ?></span> Buyer</div>
+        <?php
+        render_profile_badge([
+            'name'        => $buyerName,
+            'role'        => 'Buyer',
+            'profileUrl'  => 'profile.php',
+            'settingsUrl' => 'profile.php#settings',
+            'logoutUrl'   => '../logout.php',
+            'email'       => $_SESSION['email'] ?? '',
+        ]);
+        ?>
     </div>
 
     <div class="stats">
@@ -720,6 +733,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     });
 });
 </script>
+  <script src="../components/profile-badge.js"></script>
   <script src="theme.js"></script>
 </body>
 </html>

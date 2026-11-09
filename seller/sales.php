@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 session_start();
 require '../database/connection.php';
 
@@ -281,7 +281,6 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
     </button>
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php" class="active"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>

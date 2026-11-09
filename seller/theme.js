@@ -153,8 +153,8 @@
   btn.setAttribute('role', 'switch');
   btn.innerHTML =
     '<svg class="fm-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
-      '<circle cx="12" cy="12" r="4.2" fill="currentColor"/>' +
-      '<g class="fm-rays"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></g>' +
+    '<circle cx="12" cy="12" r="4.2" fill="currentColor"/>' +
+    '<g class="fm-rays"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></g>' +
     '</svg>' +
     '<svg class="fm-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a.7.7 0 0 0-.9-.9A10 10 0 1 0 21.4 15.5a.7.7 0 0 0-.9-.9z"/></svg>';
 
@@ -223,10 +223,10 @@
       '<div class="fm-lb-stage"><img class="fm-lb-img" alt="" draggable="false"></div>' +
       '<button type="button" class="fm-lb-close" aria-label="Close photo">&times;</button>' +
       '<div class="fm-lb-bar">' +
-        '<button type="button" data-z="out" aria-label="Zoom out">&minus;</button>' +
-        '<span class="fm-lb-zoom">100%</span>' +
-        '<button type="button" data-z="in" aria-label="Zoom in">+</button>' +
-        '<button type="button" data-z="reset" class="fm-lb-reset" aria-label="Reset zoom">Reset</button>' +
+      '<button type="button" data-z="out" aria-label="Zoom out">&minus;</button>' +
+      '<span class="fm-lb-zoom">100%</span>' +
+      '<button type="button" data-z="in" aria-label="Zoom in">+</button>' +
+      '<button type="button" data-z="reset" class="fm-lb-reset" aria-label="Reset zoom">Reset</button>' +
       '</div>' +
       '<div class="fm-lb-hint">Scroll or pinch to zoom &middot; drag to move &middot; double-click to toggle</div>';
     document.body.appendChild(overlay);
@@ -403,4 +403,107 @@
   }
   mark();
   if ('MutationObserver' in window) new MutationObserver(mark).observe(document.body, { childList: true, subtree: true });
+
+  // Profile dropdown menu initialization & keyboard accessibility
+  function initProfileMenus() {
+    document.querySelectorAll('[data-user-menu]').forEach(function (menu) {
+      if (menu.dataset.initialized === 'true') return;
+      menu.dataset.initialized = 'true';
+
+      var button = menu.querySelector('.profile-btn, [data-profile-trigger]');
+      var dropdown = menu.querySelector('.profile-dropdown, [data-profile-dropdown]');
+      if (!button || !dropdown) return;
+
+      function getMenuItems() {
+        return Array.prototype.slice.call(dropdown.querySelectorAll('[role="menuitem"], a, button')).filter(function (el) {
+          return !el.disabled && el.offsetParent !== null;
+        });
+      }
+
+      var parentHeader = menu.closest('.page-header, .header');
+
+      function openDropdown(focusFirst, focusLast) {
+        dropdown.hidden = false;
+        dropdown.classList.add('open');
+        button.setAttribute('aria-expanded', 'true');
+        menu.classList.add('has-open-menu');
+        if (parentHeader) parentHeader.classList.add('has-open-menu');
+        var items = getMenuItems();
+        if (focusFirst && items.length > 0) items[0].focus();
+        else if (focusLast && items.length > 0) items[items.length - 1].focus();
+      }
+
+      function closeDropdown(restoreFocus) {
+        dropdown.classList.remove('open');
+        dropdown.hidden = true;
+        button.setAttribute('aria-expanded', 'false');
+        menu.classList.remove('has-open-menu');
+        if (parentHeader) parentHeader.classList.remove('has-open-menu');
+        if (restoreFocus) button.focus();
+      }
+
+      function toggleDropdown() {
+        var isOpen = button.getAttribute('aria-expanded') === 'true';
+        if (isOpen) closeDropdown();
+        else openDropdown();
+      }
+
+      button.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleDropdown();
+      });
+
+      button.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleDropdown();
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          openDropdown(true);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          openDropdown(false, true);
+        } else if (e.key === 'Escape') {
+          closeDropdown(true);
+        }
+      });
+
+      dropdown.addEventListener('keydown', function (e) {
+        var items = getMenuItems();
+        var currentIndex = items.indexOf(document.activeElement);
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          var nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+          if (items[nextIndex]) items[nextIndex].focus();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          var prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+          if (items[prevIndex]) items[prevIndex].focus();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDropdown(true);
+        } else if (e.key === 'Tab') {
+          setTimeout(function () {
+            if (!menu.contains(document.activeElement)) closeDropdown(false);
+          }, 10);
+        }
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!menu.contains(e.target)) closeDropdown(false);
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && button.getAttribute('aria-expanded') === 'true') {
+          closeDropdown(true);
+        }
+      });
+    });
+  }
+
+  initProfileMenus();
+  if ('MutationObserver' in window) {
+    new MutationObserver(initProfileMenus).observe(document.body, { childList: true, subtree: true });
+  }
 })();

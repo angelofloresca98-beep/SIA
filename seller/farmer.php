@@ -1,6 +1,7 @@
-﻿<?php
+<?php
 session_start();
 require '../database/connection.php';
+require_once __DIR__ . '/../components/ProfileBadge.php';
 
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
 if ($_SESSION['role'] !== 'farmer') { header("Location: ../login.php"); exit(); }
@@ -332,7 +333,10 @@ a:focus-visible,button:focus-visible,select:focus-visible{outline:3px solid var(
 
 /* Layout */
 .main{margin:0 auto;padding:28px var(--pad-x) 60px;max-width:1300px;width:100%;}
-.page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;}
+.page-header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;position:relative;z-index:50;overflow:visible;}
+.page-header.has-open-menu,
+.page-header:has(.profile-dropdown.open),
+.page-header:has([aria-expanded="true"]){z-index:500 !important;}
 .page-header h1{font-size:clamp(22px,3.4vw,26px);font-weight:700;letter-spacing:-.02em;margin-bottom:2px;}
 .page-header p{color:var(--muted);overflow-wrap:anywhere;}
 .profile{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 6px;font-weight:600;flex-shrink:0;}
@@ -528,6 +532,7 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="../components/profile-badge.css">
   <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
@@ -539,7 +544,6 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
     </button>
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php" class="active"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
@@ -557,10 +561,16 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
             <h1>Farmer Dashboard</h1>
             <p>Welcome back, <strong><?= htmlspecialchars($farmerName) ?></strong>!</p>
         </div>
-        <div class="profile">
-            <span class="avatar"><?= strtoupper(mb_substr($farmerName,0,1)) ?></span>
-            Farmer
-        </div>
+        <?php
+        render_profile_badge([
+            'name'        => $farmerName,
+            'role'        => 'Farmer',
+            'profileUrl'  => 'profile.php',
+            'settingsUrl' => 'profile.php#settings',
+            'logoutUrl'   => '../logout.php',
+            'email'       => $_SESSION['email'] ?? '',
+        ]);
+        ?>
     </div>
 
     <!-- Stats -->
@@ -891,6 +901,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 })();
 </script>
+  <script src="../components/profile-badge.js"></script>
   <script src="theme.js"></script>
 </body>
 </html>

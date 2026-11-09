@@ -1,6 +1,7 @@
 <?php
 session_start();
 require '../database/connection.php';
+require_once __DIR__ . '/../components/ProfileBadge.php';
 
 /* Any logged-in farmer or buyer can open this page */
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
@@ -152,6 +153,7 @@ input:focus,textarea:focus{border-color:var(--leaf);outline:2px solid rgba(47,12
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
 </style>
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="../components/profile-badge.css">
 <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
@@ -162,7 +164,6 @@ input:focus,textarea:focus{border-color:var(--leaf);outline:2px solid rgba(47,12
     <a class="brand" href="<?= $e($dashboard) ?>"><i class="fa-solid fa-seedling"></i> FarmMarket</a>
     <ul class="nav">
         <li><a href="<?= $e($dashboard) ?>"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php" class="active"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="marketplace.php"><i class="fa-solid fa-store"></i><span>Marketplace</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Requests</span></a></li>
         <li><a href="buyer_post.php"><i class="fa-solid fa-plus"></i><span>Post Request</span></a></li>
@@ -177,10 +178,16 @@ input:focus,textarea:focus{border-color:var(--leaf);outline:2px solid rgba(47,12
             <h1>My Profile</h1>
             <p>View your account details and update your location and contact number.</p>
         </div>
-        <div class="profile-pill">
-            <span class="profile-avatar"><?= $e($initials ?: '?') ?></span>
-            <?= $e(ucfirst($role)) ?>
-        </div>
+        <?php
+        render_profile_badge([
+            'name'       => $fullName ?: ($_SESSION['user'] ?? 'Buyer'),
+            'role'       => $role,
+            'profileUrl' => 'profile.php',
+            'logoutUrl'  => '../logout.php',
+            'email'      => $u['email'] ?? ($_SESSION['email'] ?? ''),
+            'static'     => true,  // On the profile page itself — badge is non-interactive
+        ]);
+        ?>
     </div>
 
     <?php if ($flash): ?>
@@ -218,7 +225,7 @@ input:focus,textarea:focus{border-color:var(--leaf);outline:2px solid rgba(47,12
         </section>
 
         <!-- Editable: address + contact number only -->
-        <section class="section">
+        <section class="section" id="settings">
             <h2><i class="fa-solid fa-pen-to-square"></i> Update details</h2>
             <form method="POST" action="profile.php" novalidate>
                 <input type="hidden" name="csrf" value="<?= $e($_SESSION['csrf']) ?>">
@@ -246,6 +253,7 @@ input:focus,textarea:focus{border-color:var(--leaf);outline:2px solid rgba(47,12
 const flash = document.getElementById('flash');
 if (flash) setTimeout(() => flash.style.display = 'none', 5000);
 </script>
+<script src="../components/profile-badge.js"></script>
 <script src="theme.js"></script>
 </body>
 </html>

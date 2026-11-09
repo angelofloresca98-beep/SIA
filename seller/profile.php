@@ -2,6 +2,7 @@
 <?php
 session_start();
 require '../database/connection.php';
+require_once __DIR__ . '/../components/ProfileBadge.php';
 
 /* Any logged-in farmer or buyer can open this page */
 if (!isset($_SESSION['user_id'], $_SESSION['role'])) { header("Location: ../login.php"); exit(); }
@@ -328,6 +329,7 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
 
 </style>
 <link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="../components/profile-badge.css">
 <script>try{var t=localStorage.getItem("fm-theme");if(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)t="dark";document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light");}catch(e){}</script>
 </head>
 <body>
@@ -339,7 +341,6 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
     <ul class="nav" id="main-nav">
         <li><a href="<?= $e($dashboard) ?>"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
         <?php if ($role === 'farmer'): ?>
-        <li><a href="profile.php" class="active"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
@@ -356,10 +357,16 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
             <h1>My Profile</h1>
             <p>View your account details and update your location and contact number.</p>
         </div>
-        <div class="profile">
-            <span class="avatar"><?= $e($initials ?: '?') ?></span>
-            <?= $e(ucfirst($role)) ?>
-        </div>
+        <?php
+        render_profile_badge([
+            'name'       => $fullName ?: ($_SESSION['user'] ?? 'Farmer'),
+            'role'       => $role,
+            'profileUrl' => 'profile.php',
+            'logoutUrl'  => '../logout.php',
+            'email'      => $u['email'] ?? ($_SESSION['email'] ?? ''),
+            'static'     => true,  // On the profile page itself — badge is non-interactive
+        ]);
+        ?>
     </div>
 
     <?php if ($flash): ?>
@@ -396,7 +403,7 @@ select.status-select{font:inherit;font-size:13px;padding:4px 8px;border:1px soli
             <p class="lock"><i class="fa-solid fa-lock"></i> Name, email and role can't be changed here.</p>
         </section>
 
-        <section class="section">
+        <section class="section" id="settings">
             <div class="section-header">
                 <h2><i class="fa-solid fa-pen-to-square"></i> Update Details</h2>
             </div>
@@ -451,6 +458,7 @@ if (flash) setTimeout(() => flash.style.display = 'none', 5000);
     });
 })();
 </script>
+<script src="../components/profile-badge.js"></script>
 <script src="theme.js"></script>
 </body>
 </html>
