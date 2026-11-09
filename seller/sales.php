@@ -8,6 +8,75 @@ if ($_SESSION['role'] !== 'farmer') { header("Location: ../login.php"); exit(); 
 $user_id    = $_SESSION['user_id'];
 $farmerName = $_SESSION['user'] ?? 'Farmer';
 
+// Make sure PDO throws errors so failed queries are not silent
+$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+/* =========================================================
+   HANDLE STATUS UPDATE (must run BEFORE the queries below)
+   ========================================================= */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_order'])) {
+    $order_id = (int)($_POST['order_id'] ?? 0);
+    $newSt    = $_POST['new_status'] ?? '';
+
+    if ($order_id && in_array($newSt, ['pending', 'confirmed', 'completed', 'cancelled'], true)) {
+        // >>> CHANGE THIS to the real stock/quantity column name in your `products` table <<<
+        $stockCol = 'quantity';
+
+        try {
+            $conn->beginTransaction();
+
+            // Lock the order row and read its current status + quantity
+            $sel = $conn->prepare(
+                "SELECT o.status, o.quantity, o.product_id
+                 FROM orders o
+                 JOIN products pr ON o.product_id = pr.product_id
+                 WHERE o.order_id = ? AND pr.user_id = ?
+                 FOR UPDATE"
+            );
+            $sel->execute([$order_id, $user_id]);
+            $ord = $sel->fetch(PDO::FETCH_ASSOC);
+
+            if ($ord && $ord['status'] !== $newSt) {
+                $oldSt = $ord['status'];
+                $qty   = $ord['quantity'];
+                $pid   = $ord['product_id'];
+
+                $upd = $conn->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+                $upd->execute([$newSt, $order_id]);
+
+                if ($oldSt !== 'cancelled' && $newSt === 'cancelled') {
+                    // Cancelling: give the quantity back to the product
+                    $back = $conn->prepare("UPDATE products SET `$stockCol` = `$stockCol` + ? WHERE product_id = ?");
+                    $back->execute([$qty, $pid]);
+                } elseif ($oldSt === 'cancelled' && $newSt !== 'cancelled') {
+                    // Un-cancelling: take the quantity out again (only if enough stock)
+                    $take = $conn->prepare("UPDATE products SET `$stockCol` = `$stockCol` - ? WHERE product_id = ? AND `$stockCol` >= ?");
+                    $take->execute([$qty, $pid, $qty]);
+                    if ($take->rowCount() === 0) {
+                        $conn->rollBack();
+                        die("Cannot reactivate this order: not enough stock left.");
+                    }
+                }
+            }
+
+            $conn->commit();
+        } catch (PDOException $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            error_log("Order update failed: " . $e->getMessage());
+            // Remove this die() once everything works
+            die("Update failed: " . htmlspecialchars($e->getMessage()));
+        }
+    }
+
+    // Redirect back and keep the current filters
+    $qs = http_build_query(array_filter([
+        'status' => $_POST['f_status'] ?? '',
+        'search' => $_POST['f_search'] ?? ''
+    ], fn($v) => $v !== '' && $v !== 'all'));
+    header("Location: sales.php" . ($qs ? "?$qs" : ""));
+    exit();
+}
+
 // Filters
 $statusFilter = $_GET['status'] ?? 'all';
 $search       = trim($_GET['search'] ?? '');
@@ -20,8 +89,11 @@ if ($statusFilter !== 'all') {
     $params[':st'] = $statusFilter;
 }
 if ($search !== '') {
-    $where .= " AND (pr.product_name LIKE :s OR u.firstName LIKE :s OR u.lastName LIKE :s)";
-    $params[':s'] = '%'.$search.'%';
+    // Separate placeholders (reusing :s breaks when emulated prepares are off)
+    $where .= " AND (pr.product_name LIKE :s1 OR u.firstName LIKE :s2 OR u.lastName LIKE :s3)";
+    $params[':s1'] = '%'.$search.'%';
+    $params[':s2'] = '%'.$search.'%';
+    $params[':s3'] = '%'.$search.'%';
 }
 
 $sql = "SELECT o.order_id, o.quantity AS order_qty, o.total_price, o.status, o.created_at,
@@ -37,20 +109,9 @@ $stmt->execute($params);
 $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Summary totals
-$stmt2 = $conn->prepare("SELECT COUNT(*), COALESCE(SUM(o.total_price),0), SUM(o.status='pending'), SUM(o.status='completed'), SUM(o.status='cancelled') FROM orders o JOIN products pr ON o.product_id=pr.product_id WHERE pr.user_id=?");
+$stmt2 = $conn->prepare("SELECT COUNT(*), COALESCE(SUM(o.total_price),0), COALESCE(SUM(o.status='pending'),0), COALESCE(SUM(o.status='completed'),0), COALESCE(SUM(o.status='cancelled'),0) FROM orders o JOIN products pr ON o.product_id=pr.product_id WHERE pr.user_id=?");
 $stmt2->execute([$user_id]);
 [$totalOrders,$totalRev,$pendingCnt,$completedCnt,$cancelledCnt] = $stmt2->fetch(PDO::FETCH_NUM);
-
-// Handle status update
-if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['update_order'])) {
-    $order_id = (int)$_POST['order_id'];
-    $newSt    = $_POST['new_status'] ?? '';
-    if ($order_id && in_array($newSt,['pending','confirmed','completed','cancelled'])) {
-        $s = $conn->prepare("UPDATE orders o JOIN products pr ON o.product_id=pr.product_id SET o.status=? WHERE o.order_id=? AND pr.user_id=?");
-        $s->execute([$newSt,$order_id,$user_id]);
-    }
-    header("Location: sales.php"); exit();
-}
 ?>
 
 <!DOCTYPE html>
@@ -220,7 +281,7 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
     </button>
     <ul class="nav" id="main-nav">
         <li><a href="farmer.php"><i class="fa-solid fa-house"></i><span>Dashboard</span></a></li>
-        <li><a href="profile.php" class="acti"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
+        <li><a href="profile.php"><i class="fa-solid fa-user"></i><span>My Profile</span></a></li>
         <li><a href="my_post.php"><i class="fa-solid fa-clipboard-list"></i><span>My Listings</span></a></li>
         <li><a href="farmer_post.php"><i class="fa-solid fa-plus"></i><span>Create Product</span></a></li>
         <li><a href="sales.php" class="active"><i class="fa-solid fa-chart-line"></i><span>Sales</span></a></li>
@@ -270,13 +331,15 @@ select.st-sel{font:inherit;font-size:13px;padding:4px 8px;border:1px solid var(-
                     <td data-label="Status"><span class="badge status-<?= htmlspecialchars($o['status']) ?>"><?= ucfirst($o['status']) ?></span></td>
                     <td data-label="Update">
                         <form method="POST" class="status-form">
-                            <input type="hidden" name="order_id" value="<?= $o['order_id'] ?>">
+                            <input type="hidden" name="order_id" value="<?= (int)$o['order_id'] ?>">
+                            <input type="hidden" name="f_status" value="<?= htmlspecialchars($statusFilter) ?>">
+                            <input type="hidden" name="f_search" value="<?= htmlspecialchars($search) ?>">
                             <select name="new_status" class="st-sel" aria-label="Order status">
                                 <?php foreach(['pending','confirmed','completed','cancelled'] as $st): ?>
                                 <option value="<?= $st ?>" <?= $o['status']===$st?'selected':'' ?>><?= ucfirst($st) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <button name="update_order" class="btn-xs" aria-label="Update status"><i class="fa-solid fa-check"></i></button>
+                            <button type="submit" name="update_order" value="1" class="btn-xs" aria-label="Update status"><i class="fa-solid fa-check"></i></button>
                         </form>
                     </td>
                     <td data-label="Date" class="sub-muted" style="white-space:nowrap;"><?= date('M d, Y', strtotime($o['created_at'])) ?></td>
