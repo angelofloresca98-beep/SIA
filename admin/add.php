@@ -50,6 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add'])) {
     }
     $password = $_POST['password'] ?? '';   // never trimmed
 
+    // Accept pasted formats like "0917 123 4567" or "0917-123-4567"
+    $old['contact_number'] = preg_replace('/[\s\-]/', '', $old['contact_number']);
+
     if ($old['firstName'] === '') $errors['firstName'] = 'Enter a first name.';
     if ($old['lastName'] === '')  $errors['lastName']  = 'Enter a last name.';
 
@@ -66,8 +69,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add'])) {
         $errors['status'] = 'Select a status.';
     }
 
-    if ($old['contact_number'] !== '' && !preg_match('/^[0-9+\-\s()]{7,20}$/', $old['contact_number'])) {
-        $errors['contact_number'] = 'Use digits only, for example 09171234567.';
+    // Optional, but if filled it must be 11 digits starting with 09
+    if ($old['contact_number'] !== '' && !preg_match('/^09\d{9}$/', $old['contact_number'])) {
+        $errors['contact_number'] = 'Enter an 11-digit number starting with 09, for example 09171234567.';
     }
 
     if (strlen($password) < 8) {
@@ -480,7 +484,10 @@ textarea.form-control { resize: vertical; }
                     <label for="contact_number" class="form-label">Contact Number <span class="optional">(optional)</span></label>
                     <input type="tel" id="contact_number" name="contact_number"
                            class="<?= cls($errors, 'contact_number') ?>"
-                           value="<?= e($old['contact_number']) ?>" placeholder="09171234567" autocomplete="tel">
+                           value="<?= e($old['contact_number']) ?>"
+                           placeholder="09171234567" autocomplete="tel"
+                           inputmode="numeric" maxlength="11" pattern="09[0-9]{9}"
+                           title="11 digits, starting with 09">
                     <?= fieldError($errors, 'contact_number') ?>
                 </div>
 
@@ -572,6 +579,12 @@ menuBtn.addEventListener('click', function () {
 backdrop.addEventListener('click', function () { setSidebar(false); });
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') setSidebar(false);
+});
+
+// Contact number: digits only, max 11
+const contact = document.getElementById('contact_number');
+contact.addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(0, 11);
 });
 
 // Password visibility
